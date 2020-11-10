@@ -4,7 +4,7 @@ from bpy.types import Operator
 from bpy_extras.io_utils import orientation_helper, ExportHelper, axis_conversion
 from mathutils import Matrix
 
-from ..classes.classes import War3ExportSettings
+from ..classes.War3ExportSettings import War3ExportSettings
 
 
 @orientation_helper(axis_forward='-X', axis_up='Z')

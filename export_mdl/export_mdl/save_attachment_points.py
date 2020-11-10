@@ -1,4 +1,5 @@
 from .write_billboard import write_billboard
+from .write_mdl import write_mdl
 
 
 def save_attachment_points(fw, model):
@@ -18,6 +19,7 @@ def save_attachment_points(fw, model):
 
             visibility = attachment.visibility
             if visibility is not None:
-                visibility.write_mdl("Visibility", fw, model.global_seqs,
-                                     "\t")  # write_anim(visibility, "Visibility", fw, global_seqs, "\t", True)
+                write_mdl(visibility.keyframes, visibility.type, visibility.interpolation, visibility.global_sequence,
+                          visibility.handles_left, visibility.handles_right, "Visibility", fw, model.global_seqs,
+                          "\t")  # write_anim(visibility, "Visibility", fw, global_seqs, "\t", True)
             fw("}\n")

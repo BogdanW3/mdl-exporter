@@ -31,7 +31,7 @@ from .save_ribbon_emitters import save_ribbon_emitters
 from .save_sequences import save_sequences
 from .save_texture_animations import save_texture_animations
 from .save_textures import save_textures
-from ..classes.classes import War3Model
+from ..classes.War3Model import War3Model
 
 
 def save(operator, context, settings, filepath="", mdl_version=800):

@@ -1,3 +1,4 @@
+from .write_mdl import write_mdl
 from ..utils import f2s
 
 
@@ -42,8 +43,10 @@ def save_materials(fw, model):
                 if layer.texture_anim is not None:
                     fw("\t\t\tTVertexAnimId %d,\n" % model.tvertex_anims.index(layer.texture_anim))
                 if layer.alpha_anim is not None:
-                    layer.alpha_anim.write_mdl("Alpha", fw, model.global_seqs,
-                                               "\t\t")  # write_anim(layer.alpha_anim, "Alpha", fw, global_seqs, "\t\t")
+                    write_mdl(layer.alpha_anim.keyframes, layer.alpha_anim.type, layer.alpha_anim.interpolation,
+                              layer.alpha_anim.global_sequence, layer.alpha_anim.handles_left,
+                              layer.alpha_anim.handles_right, "Alpha", fw, model.global_seqs,
+                              "\t\t")  # write_anim(layer.alpha_anim, "Alpha", fw, global_seqs, "\t\t")
                 else:
                     fw("\t\t\tstatic Alpha %s,\n" % f2s(layer.alpha_value))
 

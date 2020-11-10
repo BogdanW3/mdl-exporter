@@ -1,6 +1,3 @@
-import bpy
-import bpy
-import bmesh
 import math
 from operator import itemgetter
 
@@ -23,8 +20,8 @@ def calc_bounds_radius(min_ext, max_ext):
 
 
 def calc_extents(vertices):
-    max_extents = tuple(max(vertices,key=itemgetter(i))[i] for i in range(3))
-    min_extents = tuple(min(vertices,key=itemgetter(i))[i] for i in range(3))
+    max_extents = tuple(max(vertices, key=itemgetter(i))[i] for i in range(3))
+    min_extents = tuple(min(vertices, key=itemgetter(i))[i] for i in range(3))
     
     return min_extents, max_extents
 

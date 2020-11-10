@@ -1,6 +1,7 @@
 import itertools
 
 from .write_billboard import write_billboard
+from .write_mdl import write_mdl
 
 
 def save_bones(fw, model):
@@ -30,13 +31,19 @@ def save_bones(fw, model):
             fw("\tGeosetAnimId None,\n")
 
         if bone.anim_loc is not None:
-            bone.anim_loc.write_mdl("Translation", fw, model.global_seqs, "\t")
+            write_mdl(bone.anim_loc.keyframes, bone.anim_loc.type, bone.anim_loc.interpolation,
+                      bone.anim_loc.global_sequence, bone.anim_loc.handles_left, bone.anim_loc.handles_right,
+                      "Translation", fw, model.global_seqs, "\t")
 
         if bone.anim_rot is not None:
-            bone.anim_rot.write_mdl("Rotation", fw, model.global_seqs, "\t")
+            write_mdl(bone.anim_rot.keyframes, bone.anim_rot.type, bone.anim_rot.interpolation,
+                      bone.anim_rot.global_sequence, bone.anim_rot.handles_left, bone.anim_rot.handles_right,
+                      "Rotation", fw, model.global_seqs, "\t")
 
         if bone.anim_scale is not None:
-            bone.anim_scale.write_mdl("Scaling", fw, model.global_seqs, "\t")
+            write_mdl(bone.anim_scale.keyframes, bone.anim_scale.type, bone.anim_scale.interpolation,
+                      bone.anim_scale.global_sequence, bone.anim_scale.handles_left, bone.anim_scale.handles_right,
+                      "Scaling", fw, model.global_seqs, "\t")
 
         # Visibility
         fw("}\n")
