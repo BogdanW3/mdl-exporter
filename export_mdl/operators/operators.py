@@ -13,17 +13,13 @@ from bpy.props import (
         EnumProperty,
         BoolProperty,
         StringProperty,
-        FloatVectorProperty,
-        IntVectorProperty,
-        PointerProperty,
-        )
+)
 
-from .properties import War3EventTypesContainer
-from .classes import War3ExportSettings
+from ..properties.properties import War3EventTypesContainer
+from ..classes.classes import War3ExportSettings
 
 from bpy_extras.io_utils import (
-        ImportHelper,
-        ExportHelper,
+    ExportHelper,
         axis_conversion,
         orientation_helper,
         )
@@ -86,7 +82,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         settings.optimize_animation = self.optimize_animation
         settings.optimize_tolerance = self.optimize_tolerance
         
-        from . import export_mdl
+        from ..export_mdl import export_mdl
         export_mdl.save(self, context, settings, filepath=filepath, mdl_version=800)
         
         return {'FINISHED'}
@@ -158,7 +154,7 @@ class WAR3_OT_search_event_id(Operator):
 def load_texture_list():
     directory = os.path.dirname(__file__)
         
-    path = os.path.join(directory, "textures.txt")
+    path = os.path.join(directory, "../textures.txt")
     l = []
     with open(path, 'r') as f:
         l = [(line[:-1], os.path.basename(line[:-1]), os.path.basename(line[:-1])) for line in f.readlines()]

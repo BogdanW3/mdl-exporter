@@ -1,5 +1,5 @@
 import bpy
-from . import operators, properties
+from ..properties import properties
 
 from bpy.props import (
         PointerProperty
@@ -9,8 +9,7 @@ from bpy.types import (
         Panel, 
         UIList,
         )
-        
-from .operators import WAR3_OT_material_list_action
+
 
 class WAR3_UL_sequence_list(UIList):
 

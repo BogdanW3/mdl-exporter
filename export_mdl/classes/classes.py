@@ -13,7 +13,7 @@ from mathutils import (
     Vector
     )
     
-from .utils import *
+from ..utils import *
 
 class War3ExportSettings:
     def __init__(self):

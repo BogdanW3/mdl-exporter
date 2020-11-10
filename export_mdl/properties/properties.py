@@ -256,7 +256,7 @@ class War3EventTypesContainer:
         
         directory = os.path.dirname(__file__)
         
-        path = os.path.join(directory, "sound_types.txt")
+        path = os.path.join(directory, "../sound_types.txt")
         l = []
         
         with open(path, 'r') as f:
@@ -266,7 +266,7 @@ class War3EventTypesContainer:
         
         self.enums['SND'] = l
 
-        path = os.path.join(directory, "splat_types.txt")
+        path = os.path.join(directory, "../splat_types.txt")
         l = []
         
         with open(path, 'r') as f:
@@ -277,7 +277,7 @@ class War3EventTypesContainer:
         self.enums['SPL'] = l
         self.enums['FTP'] = l
 
-        path = os.path.join(directory, "ubersplat_types.txt")
+        path = os.path.join(directory, "../ubersplat_types.txt")
         l = []
         
         with open(path, 'r') as f:
@@ -287,7 +287,7 @@ class War3EventTypesContainer:
         
         self.enums['UBR'] = l
         
-        path = os.path.join(directory, "spawnobject_types.txt")
+        path = os.path.join(directory, "../spawnobject_types.txt")
         l = []
         
         with open(path, 'r') as f:

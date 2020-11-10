@@ -17,29 +17,41 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "MDL Exporter", 
-    "author": "Kalle Halvarsson",
+    "name": "Warcraft MDL Exporter",
+    "author": "Kalle Halvarsson & me",
+    'version': (0, 0, 1),
     "blender": (2, 80, 0),
+    'category': 'Import-Export',
     "location": "File > Export > Warcraft MDL (.mdl)",
     "description": "Export mesh as Warcraft .MDL",
-    "category": "Import-Export"} 
+    }
 
 
 if "bpy" in locals():
-  import imp
-  imp.reload(properties)
-  imp.reload(operators)
-  imp.reload(classes)
-  imp.reload(export_mdl)
-  imp.reload(ui)
+    from .operators import operators
+    from .classes import classes
+    from .export_mdl import export_mdl
+    from .properties import properties
+    from .ui import ui
+    import importlib
+    importlib.reload(properties)
+    importlib.reload(operators)
+    importlib.reload(classes)
+    importlib.reload(export_mdl)
+    importlib.reload(ui)
 else:
-  from . import properties, operators, classes, export_mdl, ui
+    from .operators import operators
+    from .classes import classes
+    from .export_mdl import export_mdl
+    from .properties import properties
+    from .ui import ui
 
-import bpy
-import os
-import shutil
+    import bpy
+    import os
+    import shutil
 
-from bpy.utils import register_class, unregister_class
+    from bpy.utils import register_class, unregister_class
+
 
 classes = (
     properties.War3MaterialLayerProperties,
@@ -67,10 +79,12 @@ classes = (
     ui.WAR3_PT_particle_editor_panel,
     ui.WAR3_PT_light_panel
 )
-        
+
+
 def menu_func(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
     self.layout.operator(operators.WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")  
+
 
 def register():
     for cls in classes:
@@ -86,14 +100,14 @@ def register():
         source_path = os.path.join(os.path.join(os.path.dirname(__file__), "presets"), "emitters")
         files = os.listdir(source_path) 
         [shutil.copy2(os.path.join(source_path, f), emitters_path) for f in files]
-    
-    
+
+
 def unregister():
     for cls in reversed(classes):
         unregister_class(cls)
         
     bpy.types.TOPBAR_MT_file_export.remove(menu_func)
-    
+
+
 if __name__ == "__main__":
     register()
-                                         
