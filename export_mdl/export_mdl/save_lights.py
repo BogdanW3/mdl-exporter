@@ -1,5 +1,5 @@
-from export_mdl.export_mdl.write_billboard import write_billboard
-from export_mdl.utils import f2s
+from .write_billboard import write_billboard
+from ..utils import f2s
 
 
 def save_lights(fw, model):

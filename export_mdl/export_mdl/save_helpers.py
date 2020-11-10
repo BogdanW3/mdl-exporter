@@ -1,4 +1,4 @@
-from export_mdl.export_mdl.write_billboard import write_billboard
+from .write_billboard import write_billboard
 
 
 def save_helpers(fw, model):

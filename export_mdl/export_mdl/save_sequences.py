@@ -1,4 +1,4 @@
-from export_mdl.utils import f2s, calc_bounds_radius
+from ..utils import f2s, calc_bounds_radius
 
 
 def save_sequences(fw, model):

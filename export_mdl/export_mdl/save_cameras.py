@@ -1,6 +1,6 @@
 from mathutils import Vector
 
-from export_mdl.utils import f2s
+from ..utils import f2s
 
 
 def save_cameras(fw, model, settings):

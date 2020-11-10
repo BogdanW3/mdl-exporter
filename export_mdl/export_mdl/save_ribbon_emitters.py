@@ -1,4 +1,4 @@
-from export_mdl.utils import f2s, rnd
+from ..utils import f2s, rnd
 
 
 def save_ribbon_emitters(fw, model):

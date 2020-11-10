@@ -1,4 +1,4 @@
-from export_mdl.utils import f2s
+from ..utils import f2s
 
 
 def save_geoset_animations(fw, model):

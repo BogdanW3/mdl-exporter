@@ -15,6 +15,16 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+from .operators import WAR3_MT_emitter_presets
+from .operators import WAR3_OT_add_anim_sequence
+from .operators import WAR3_OT_create_collision_shape
+from .operators import WAR3_OT_create_eventobject
+from .operators import WAR3_OT_emitter_preset_add
+from .operators import WAR3_OT_export_mdl
+from .operators import WAR3_OT_material_list_action
+from .operators import WAR3_OT_search_event_id
+from .operators import WAR3_OT_search_event_type
+from .operators import WAR3_OT_search_texture
 
 bl_info = {
     "name": "Warcraft MDL Exporter",
@@ -60,16 +70,16 @@ classes = (
     properties.War3BillboardProperties,
     properties.War3ParticleSystemProperties,
     properties.War3LightSettings,
-    operators.WAR3_OT_export_mdl,
-    operators.WAR3_OT_search_event_type,
-    operators.WAR3_OT_search_event_id,
-    operators.WAR3_OT_search_texture,
-    operators.WAR3_OT_create_eventobject,
-    operators.WAR3_OT_create_collision_shape,
-    operators.WAR3_OT_material_list_action,
-    operators.WAR3_OT_emitter_preset_add,
-    operators.WAR3_OT_add_anim_sequence,
-    operators.WAR3_MT_emitter_presets,
+    WAR3_OT_export_mdl.WAR3_OT_export_mdl,
+    WAR3_OT_search_event_type.WAR3_OT_search_event_type,
+    WAR3_OT_search_event_id.WAR3_OT_search_event_id,
+    WAR3_OT_search_texture.WAR3_OT_search_texture,
+    WAR3_OT_create_eventobject.WAR3_OT_create_eventobject,
+    WAR3_OT_create_collision_shape.WAR3_OT_create_collision_shape,
+    WAR3_OT_material_list_action.WAR3_OT_material_list_action,
+    WAR3_OT_emitter_preset_add.WAR3_OT_emitter_preset_add,
+    WAR3_OT_add_anim_sequence.WAR3_OT_add_anim_sequence,
+    WAR3_MT_emitter_presets.WAR3_MT_emitter_presets,
     ui.WAR3_UL_sequence_list,
     ui.WAR3_UL_material_layer_list,
     ui.WAR3_PT_sequences_panel,
@@ -83,7 +93,7 @@ classes = (
 
 def menu_func(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
-    self.layout.operator(operators.WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")  
+    self.layout.operator(export_mdl.operators.WAR3_OT_export_mdl.WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
 
 
 def register():
