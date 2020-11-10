@@ -2,7 +2,7 @@ from bpy.props import EnumProperty
 from bpy.types import Operator
 
 # from .operators import event_items
-from ..properties.properties import War3EventTypesContainer
+from ..properties.War3EventTypesContainer import War3EventTypesContainer
 
 war3_event_types = War3EventTypesContainer()
 

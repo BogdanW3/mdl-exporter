@@ -1,5 +1,8 @@
 import bpy
-from ..properties import properties
+
+from ..properties import War3BillboardProperties
+from ..properties import War3EventProperties
+from ..properties import War3LightSettings
 
 from bpy.props import (
         PointerProperty
@@ -99,7 +102,7 @@ class WAR3_PT_event_panel(Panel):
     
     @classmethod
     def register(cls):
-        bpy.types.WindowManager.events = bpy.props.PointerProperty(type=properties.War3EventProperties)
+        bpy.types.WindowManager.events = bpy.props.PointerProperty(type=War3EventProperties.War3EventProperties)
        
     @classmethod
     def unregister(cls):
@@ -149,7 +152,7 @@ class WAR3_PT_billboard_panel(Panel):
     
     @classmethod
     def register(cls):
-        bpy.types.Object.mdl_billboard = PointerProperty(type=properties.War3BillboardProperties)
+        bpy.types.Object.mdl_billboard = PointerProperty(type=War3BillboardProperties.War3BillboardProperties)
        
     @classmethod
     def unregister(cls):
@@ -439,7 +442,7 @@ class WAR3_PT_light_panel(Panel):
     
     @classmethod
     def register(cls):
-        bpy.types.Light.mdl_light = PointerProperty(type=properties.War3LightSettings)
+        bpy.types.Light.mdl_light = PointerProperty(type=War3LightSettings.War3LightSettings)
        
     @classmethod
     def unregister(cls):

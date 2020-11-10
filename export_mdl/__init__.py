@@ -15,6 +15,12 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+from .properties import War3BillboardProperties
+from .properties import War3EventProperties
+from .properties import War3LightSettings
+from .properties import War3MaterialLayerProperties
+from .properties import War3ParticleSystemProperties
+from .properties import War3SequenceProperties
 from .operators import WAR3_MT_emitter_presets
 from .operators import WAR3_OT_add_anim_sequence
 from .operators import WAR3_OT_create_collision_shape
@@ -64,12 +70,12 @@ else:
 
 
 classes = (
-    properties.War3MaterialLayerProperties,
-    properties.War3EventProperties,
-    properties.War3SequenceProperties,
-    properties.War3BillboardProperties,
-    properties.War3ParticleSystemProperties,
-    properties.War3LightSettings,
+    War3MaterialLayerProperties.War3MaterialLayerProperties,
+    War3EventProperties.War3EventProperties,
+    War3SequenceProperties.War3SequenceProperties,
+    War3BillboardProperties.War3BillboardProperties,
+    War3ParticleSystemProperties.War3ParticleSystemProperties,
+    War3LightSettings.War3LightSettings,
     WAR3_OT_export_mdl.WAR3_OT_export_mdl,
     WAR3_OT_search_event_type.WAR3_OT_search_event_type,
     WAR3_OT_search_event_id.WAR3_OT_search_event_id,
