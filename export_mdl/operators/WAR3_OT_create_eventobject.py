@@ -6,6 +6,7 @@ from .WAR3_OT_search_event_id import war3_event_types
 
 
 class WAR3_OT_create_eventobject(Operator):
+    """Create a Warcraft 3 event object"""
     bl_idname = "object.create_eventobject"
     bl_label = "Add MDL Event Object"
 

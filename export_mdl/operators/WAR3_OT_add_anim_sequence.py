@@ -3,6 +3,7 @@ from bpy.types import Operator
 
 
 class WAR3_OT_add_anim_sequence(Operator):
+    """Add a Warcraft 3 animation sequence"""
     bl_idname = "custom.add_anim_sequence"
     bl_label = "Add Sequence"
     bl_options = {'REGISTER', 'INTERNAL'}

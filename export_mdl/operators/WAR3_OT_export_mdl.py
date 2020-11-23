@@ -7,7 +7,7 @@ from mathutils import Matrix
 from ..classes.War3ExportSettings import War3ExportSettings
 
 
-@orientation_helper(axis_forward='-X', axis_up='Z')
+@orientation_helper(axis_forward='Y', axis_up='Z')
 class WAR3_OT_export_mdl(Operator, ExportHelper):
     """MDL Exporter"""
     bl_idname = 'export.mdl_exporter'
@@ -33,7 +33,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             name="Scale",
             min=0.01,
             max=1000.0,
-            default=60.0,
+            default=0.767,
             )
 
     optimize_animation: BoolProperty(
