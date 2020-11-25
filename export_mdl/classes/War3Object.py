@@ -2,7 +2,7 @@ class War3Object:  # Stores information about an MDL object (not a blender objec
     def __init__(self, name):
         self.parent = None
         self.name = name
-        self.pivot = None #TODO
+        self.pivot = None  # TODO
         self.anim_loc = None
         self.anim_rot = None
         self.anim_scale = None

@@ -20,18 +20,21 @@ def save_helpers(fw, model):
             write_billboard(fw, helper.billboarded, helper.billboard_lock)
 
         if helper.anim_loc is not None:
-            write_mdl(helper.anim_loc.keyframes, helper.anim_loc.type, helper.anim_loc.interpolation,
-                      helper.anim_loc.global_sequence, helper.anim_loc.handles_left, helper.anim_loc.handles_right,
+            write_mdl(helper.anim_loc.keyframes, helper.anim_loc.type,
+                      helper.anim_loc.interpolation, helper.anim_loc.global_sequence,
+                      helper.anim_loc.handles_left, helper.anim_loc.handles_right,
                       "Translation", fw, model.global_seqs, "\t")
 
         if helper.anim_rot is not None:
-            write_mdl(helper.anim_rot.keyframes, helper.anim_rot.type, helper.anim_rot.interpolation,
-                      helper.anim_rot.global_sequence, helper.anim_rot.handles_left, helper.anim_rot.handles_right,
+            write_mdl(helper.anim_rot.keyframes, helper.anim_rot.type,
+                      helper.anim_rot.interpolation, helper.anim_rot.global_sequence,
+                      helper.anim_rot.handles_left, helper.anim_rot.handles_right,
                       "Rotation", fw, model.global_seqs, "\t")
 
         if helper.anim_scale is not None:
-            write_mdl(helper.anim_scale.keyframes, helper.anim_scale.type, helper.anim_scale.interpolation,
-                      helper.anim_scale.global_sequence, helper.anim_scale.handles_left,
-                      helper.anim_scale.handles_right, "Scaling", fw, model.global_seqs, "\t")
+            write_mdl(helper.anim_scale.keyframes, helper.anim_scale.type,
+                      helper.anim_scale.interpolation, helper.anim_scale.global_sequence,
+                      helper.anim_scale.handles_left, helper.anim_scale.handles_right,
+                      "Scaling", fw, model.global_seqs, "\t")
 
         fw("}\n")

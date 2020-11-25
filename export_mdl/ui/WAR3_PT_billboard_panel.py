@@ -22,8 +22,8 @@ class WAR3_PT_billboard_panel(Panel):
         del bpy.types.Object.mdl_billboard
 
     @classmethod
-    def poll(self,context):
-        obj = context.active_object
+    def poll(cls, context):
+        obj = bpy.context.active_object
 
         if obj is None:
             return False
@@ -41,7 +41,7 @@ class WAR3_PT_billboard_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        data = context.active_object.mdl_billboard
+        data = bpy.context.active_object.mdl_billboard
         layout.prop(data, "billboarded")
         layout.prop(data, "billboard_lock_x")
         layout.prop(data, "billboard_lock_y")

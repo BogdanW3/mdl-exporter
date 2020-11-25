@@ -7,20 +7,25 @@ def save_geoset_animations(fw, model):
         for anim in model.geoset_anims:
             fw("GeosetAnim {\n")
             alpha = anim.alpha_anim
-            vertexcolor = anim.color
-            vertexcolor_anim = anim.color_anim
+            vertex_color = anim.color
+            vertex_color_anim = anim.color_anim
+
             if alpha is not None:
-                write_mdl(alpha.keyframes, alpha.type, alpha.interpolation, alpha.global_sequence, alpha.handles_left,
-                          alpha.handles_right, "Alpha", fw, model.global_seqs, "\t")
+                write_mdl(alpha.keyframes, alpha.type,
+                          alpha.interpolation, alpha.global_sequence,
+                          alpha.handles_left, alpha.handles_right,
+                          "Alpha", fw, model.global_seqs, "\t")
             else:
                 fw("\tstatic Alpha 1.0,\n")
 
-            if vertexcolor_anim is not None:
-                write_mdl(vertexcolor_anim.keyframes, vertexcolor_anim.type, vertexcolor_anim.interpolation,
-                          vertexcolor_anim.global_sequence, vertexcolor_anim.handles_left,
-                          vertexcolor_anim.handles_right, "Color", fw, model.global_seqs, "\t")
-            elif vertexcolor is not None:
-                fw("\tstatic Color {%s, %s, %s},\n" % tuple(map(f2s, reversed(vertexcolor[:3]))))
+            if vertex_color_anim is not None:
+                write_mdl(vertex_color_anim.keyframes, vertex_color_anim.type,
+                          vertex_color_anim.interpolation, vertex_color_anim.global_sequence,
+                          vertex_color_anim.handles_left, vertex_color_anim.handles_right,
+                          "Color", fw, model.global_seqs, "\t")
+
+            elif vertex_color is not None:
+                fw("\tstatic Color {%s, %s, %s},\n" % tuple(map(f2s, reversed(vertex_color[:3]))))
 
             fw("\tGeosetId %d,\n" % model.geosets.index(anim.geoset))
 

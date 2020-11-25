@@ -8,9 +8,12 @@ def save_event_objects(fw, model):
             fw("\tObjectId %d,\n" % model.object_indices[event.name])
         if event.parent is not None:
             fw("\tParent %d,\n" % model.object_indices[event.parent])
-        eventtrack = event.track
-        if eventtrack is not None:
-            write_mdl(eventtrack.keyframes, eventtrack.type, eventtrack.interpolation, eventtrack.global_sequence,
-                      eventtrack.handles_left, eventtrack.handles_right, "EventTrack", fw, model.global_seqs, "\t")
+
+        event_track = event.track
+        if event_track is not None:
+            write_mdl(event_track.keyframes, event_track.type,
+                      event_track.interpolation, event_track.global_sequence,
+                      event_track.handles_left, event_track.handles_right,
+                      "EventTrack", fw, model.global_seqs, "\t")
 
         fw("}\n")

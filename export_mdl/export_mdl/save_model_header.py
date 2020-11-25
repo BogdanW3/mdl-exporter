@@ -23,6 +23,7 @@ def save_model_header(fw, model):
         fw("\tNumLights %d,\n" % len(model.objects['light']))
     if len(model.objects['helper']):
         fw("\tNumHelpers %d,\n" % len(model.objects['helper']))
+
     fw("\tBlendTime %d,\n" % 150)
     fw("\tMinimumExtent {%s, %s, %s},\n" % tuple(map(f2s, model.global_extents_min)))
     fw("\tMaximumExtent {%s, %s, %s},\n" % tuple(map(f2s, model.global_extents_max)))
