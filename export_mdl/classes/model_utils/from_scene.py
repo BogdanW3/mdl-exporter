@@ -10,6 +10,8 @@ from .add_particle_systems import add_particle_systems
 from .create_collision_shapes import create_collision_shapes
 from .get_parent import get_parent
 from .get_sequences import get_sequences
+from .get_actions import get_actions
+from ..animation_curve_utils.space_actions import space_actions
 from .get_visibility import get_visibility
 from .make_mesh import make_mesh
 from .register_global_sequence import register_global_sequence
@@ -20,7 +22,11 @@ def from_scene(war3_model: War3Model, context, settings):
 
     scene = context.scene
 
-    war3_model.sequences = get_sequences(war3_model.f2ms, scene)
+    if settings.use_actions:
+        war3_model.sequences = get_actions(war3_model.f2ms)
+        space_actions(war3_model.sequences)
+    else:
+        war3_model.sequences = get_sequences(war3_model.f2ms, scene)
 
     objs = []
     mats = set()

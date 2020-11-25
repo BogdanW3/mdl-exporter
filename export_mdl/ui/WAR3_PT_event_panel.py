@@ -21,7 +21,7 @@ class WAR3_PT_event_panel(Panel):
         del bpy.types.WindowManager.events
 
     @classmethod
-    def poll(self,context):
+    def poll(cls, context):
         obj = context.active_object
 
         if obj is None or obj.get('event_type') is None:

@@ -41,6 +41,11 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             description="Remove keyframes if the resulting motion deviates less than the tolerance value."
             )
 
+    use_actions: BoolProperty(
+            name="Use Actions",
+            description="Use actions instead of mdl-sequences"
+            )
+
     optimize_tolerance: FloatProperty(
             name="Tolerance",
             min=0.001,
@@ -63,6 +68,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         settings.use_selection = self.use_selection
         settings.optimize_animation = self.optimize_animation
         settings.optimize_tolerance = self.optimize_tolerance
+        settings.use_actions = self.use_actions
 
         from ..export_mdl import export_mdl
         export_mdl.save(self, context, settings, filepath=filepath, mdl_version=800)
@@ -78,7 +84,14 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         layout.prop(self, "axis_up")
         layout.separator()
         layout.prop(self, 'optimize_animation')
+        layout.prop(self, 'use_actions')
         if self.optimize_animation:
             box = layout.box()
             box.label(text="EXPERIMENTAL", icon='ERROR')
             layout.prop(self, 'optimize_tolerance')
+        if self.use_actions:
+            box = layout.box()
+            box.label(text="EXPERIMENTAL", icon='ERROR')
+            box.label(text="Will export action and not marker based sequences. "
+                           "This does not yet support Rarity or NonLooping")
+            # layout.prop(self, 'use_actions')
