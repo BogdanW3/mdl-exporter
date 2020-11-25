@@ -32,6 +32,7 @@ from .save_sequences import save_sequences
 from .save_texture_animations import save_texture_animations
 from .save_textures import save_textures
 from ..classes.War3Model import War3Model
+from ..classes.model_utils.from_scene import from_scene
 
 
 def save(operator, context, settings, filepath="", mdl_version=800):
@@ -42,7 +43,7 @@ def save(operator, context, settings, filepath="", mdl_version=800):
     scene.frame_set(0)
 
     model = War3Model(context)
-    model.from_scene(context, settings)
+    from_scene(model, context, settings)
 
     scene.frame_set(current_frame)
 
