@@ -1,10 +1,12 @@
 import bpy
 from mathutils import Vector
 
+# import export_mdl.classes.animation_curve_utils.get_wc3_animation_curve
 from ..War3AnimationCurve import War3AnimationCurve
 from ..War3Geoset import War3Geoset
 from ..War3GeosetAnim import War3GeosetAnim
 from ..War3Model import War3Model
+from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 from .is_animated_ugg import is_animated_ugg
 from .prepare_mesh import prepare_mesh
 from .create_bone import create_bone
@@ -21,7 +23,7 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
     mesh = prepare_mesh(obj, context, settings.global_matrix @ obj.matrix_world)
 
     # Geoset Animation
-    vertex_color_anim = War3AnimationCurve.get(obj.animation_data, 'color', 3, war3_model.sequences)
+    vertex_color_anim = get_wc3_animation_curve(obj.animation_data, 'color', 3, war3_model.sequences)
     vertex_color = None
 
     if any(i < 0.999 for i in obj.color[:3]):
@@ -35,7 +37,7 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
                 attr = "outputs" if node.bl_idname == 'ShaderNodeRGB' else "inputs"
                 vertex_color = tuple(getattr(node, attr)[0].default_value[:3])
                 if hasattr(mat.node_tree, "animation_data"):
-                    vertex_color_anim = War3AnimationCurve.get(
+                    vertex_color_anim = get_wc3_animation_curve(
                         mat.node_tree.animation_data, 'nodes["VertexColor"].%s[0].default_value' % attr, 3, war3_model.sequences)
     geoset_anim = None
     geoset_anim_hash = 0

@@ -3,6 +3,7 @@ from mathutils import Vector
 from ..War3Model import War3Model
 from ..War3Object import War3Object
 from ..War3AnimationCurve import War3AnimationCurve
+from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 from .is_animated_ugg import is_animated_ugg
 from .get_visibility import get_visibility
 from .register_global_sequence import register_global_sequence
@@ -55,22 +56,22 @@ def add_bones(war3_model: War3Model, billboard_lock, billboarded, obj, parent, s
         bone.pivot = obj.matrix_world @ Vector(b.bone.head_local)  # Armature space to world space
         bone.pivot = settings.global_matrix @ Vector(bone.pivot)  # Axis conversion
         data_path = 'pose.bones[\"' + b.name + '\"].%s'
-        bone.anim_loc = War3AnimationCurve.get(obj.animation_data, data_path % 'location', 3, war3_model.sequences)
+        bone.anim_loc = get_wc3_animation_curve(obj.animation_data, data_path % 'location', 3, war3_model.sequences)
         # get_curves(obj, data_path % 'location', (0, 1, 2))
 
         if settings.optimize_animation and bone.anim_loc is not None:
             bone.anim_loc.optimize(settings.optimize_tolerance, war3_model.sequences)
 
-        bone.anim_rot = War3AnimationCurve.get(obj.animation_data, data_path % 'rotation_quaternion', 4, war3_model.sequences)
+        bone.anim_rot = get_wc3_animation_curve(obj.animation_data, data_path % 'rotation_quaternion', 4, war3_model.sequences)
         # get_curves(obj, data_path % 'rotation_quaternion', (0, 1, 2, 3))
 
         if bone.anim_rot is None:
-            bone.anim_rot = War3AnimationCurve.get(obj.animation_data, data_path % 'rotation_euler', 3, war3_model.sequences)
+            bone.anim_rot = get_wc3_animation_curve(obj.animation_data, data_path % 'rotation_euler', 3, war3_model.sequences)
 
         if settings.optimize_animation and bone.anim_rot is not None:
             bone.anim_rot.optimize(settings.optimize_tolerance, war3_model.sequences)
 
-        bone.anim_scale = War3AnimationCurve.get(obj.animation_data, data_path % 'scale', 3, war3_model.sequences)
+        bone.anim_scale = get_wc3_animation_curve(obj.animation_data, data_path % 'scale', 3, war3_model.sequences)
         # get_curves(obj, data_path % 'scale', (0, 1, 2))
 
         if settings.optimize_animation and bone.anim_scale is not None:

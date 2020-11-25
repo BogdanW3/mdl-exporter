@@ -3,6 +3,7 @@ from mathutils import Vector
 from ..War3Model import War3Model
 from ..War3Object import War3Object
 from ..War3AnimationCurve import War3AnimationCurve
+from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 from .is_animated_ugg import is_animated_ugg
 from .create_bone import create_bone
 from .get_visibility import get_visibility
@@ -20,7 +21,7 @@ def add_empties_animations(war3_model: War3Model, billboard_lock, billboarded, o
         eventobj.pivot = settings.global_matrix @ Vector(obj.location)
 
         for datapath in ('["event_track"]', '["eventtrack"]', '["EventTrack"]'):
-            eventobj.track = War3AnimationCurve.get(obj.animation_data, datapath, 1, war3_model.sequences)
+            eventobj.track = get_wc3_animation_curve(obj.animation_data, datapath, 1, war3_model.sequences)
             # get_curve(obj, ['["eventtrack"]', '["EventTrack"]', '["event_track"]'])
 
             if eventobj.track is not None:

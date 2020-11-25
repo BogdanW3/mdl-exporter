@@ -7,3 +7,4 @@ class War3ExportSettings:
         self.use_selection = False
         self.optimize_animation = False
         self.optimize_tolerance = 0.05
+        self.use_actions = False

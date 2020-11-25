@@ -8,6 +8,8 @@ def save_sequences(fw, model):
         fw("\t\tInterval {%d, %d},\n" % (sequence.start, sequence.end))
         if sequence.non_looping:
             fw("\t\tNonLooping,\n")
+        if sequence.rarity > 0:
+            fw("\t\tRarity %d,\n" % sequence.rarity)
         if 'walk' in sequence.name.lower():
             fw("\t\tMoveSpeed %d,\n" % sequence.movement_speed)
 
