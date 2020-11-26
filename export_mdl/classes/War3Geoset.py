@@ -1,5 +1,6 @@
 class War3Geoset:
     def __init__(self):
+        self.name = None
         self.vertices = []
         self.triangles = []
         self.matrices = []
@@ -8,6 +9,10 @@ class War3Geoset:
         self.max_extent = None
         self.mat_name = None
         self.geoset_anim = None
+        self.uvs = []
+        self.material_id = None
+        self.vertex_groups = []
+        self.vertex_groups_ids = None
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):

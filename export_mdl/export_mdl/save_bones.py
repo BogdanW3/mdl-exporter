@@ -1,7 +1,7 @@
 import itertools
 
 from .write_billboard import write_billboard
-from .write_mdl import write_mdl
+from .write_animations import write_animations
 
 
 def save_bones(fw, model):
@@ -31,21 +31,21 @@ def save_bones(fw, model):
             fw("\tGeosetAnimId None,\n")
 
         if bone.anim_loc is not None:
-            write_mdl(bone.anim_loc.keyframes, bone.anim_loc.type,
-                      bone.anim_loc.interpolation, bone.anim_loc.global_sequence,
-                      bone.anim_loc.handles_left, bone.anim_loc.handles_right,
+            write_animations(bone.anim_loc.keyframes, bone.anim_loc.type,
+                             bone.anim_loc.interpolation, bone.anim_loc.global_sequence,
+                             bone.anim_loc.handles_left, bone.anim_loc.handles_right,
                       "Translation", fw, model.global_seqs, "\t")
 
         if bone.anim_rot is not None:
-            write_mdl(bone.anim_rot.keyframes, bone.anim_rot.type,
-                      bone.anim_rot.interpolation, bone.anim_rot.global_sequence,
-                      bone.anim_rot.handles_left, bone.anim_rot.handles_right,
+            write_animations(bone.anim_rot.keyframes, bone.anim_rot.type,
+                             bone.anim_rot.interpolation, bone.anim_rot.global_sequence,
+                             bone.anim_rot.handles_left, bone.anim_rot.handles_right,
                       "Rotation", fw, model.global_seqs, "\t")
 
         if bone.anim_scale is not None:
-            write_mdl(bone.anim_scale.keyframes, bone.anim_scale.type,
-                      bone.anim_scale.interpolation, bone.anim_scale.global_sequence,
-                      bone.anim_scale.handles_left, bone.anim_scale.handles_right,
+            write_animations(bone.anim_scale.keyframes, bone.anim_scale.type,
+                             bone.anim_scale.interpolation, bone.anim_scale.global_sequence,
+                             bone.anim_scale.handles_left, bone.anim_scale.handles_right,
                       "Scaling", fw, model.global_seqs, "\t")
 
         # Visibility

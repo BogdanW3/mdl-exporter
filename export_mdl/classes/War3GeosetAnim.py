@@ -3,6 +3,7 @@ class War3GeosetAnim:
         self.color = color
         self.color_anim = color_anim
         self.alpha_anim = alpha_anim
+        self.geoset_id = None
         self.geoset = None
 
     def __eq__(self, other):

@@ -1,4 +1,4 @@
-from .write_mdl import write_mdl
+from .write_animations import write_animations
 from ..utils import f2s
 
 
@@ -11,17 +11,17 @@ def save_geoset_animations(fw, model):
             vertex_color_anim = anim.color_anim
 
             if alpha is not None:
-                write_mdl(alpha.keyframes, alpha.type,
-                          alpha.interpolation, alpha.global_sequence,
-                          alpha.handles_left, alpha.handles_right,
+                write_animations(alpha.keyframes, alpha.type,
+                                 alpha.interpolation, alpha.global_sequence,
+                                 alpha.handles_left, alpha.handles_right,
                           "Alpha", fw, model.global_seqs, "\t")
             else:
                 fw("\tstatic Alpha 1.0,\n")
 
             if vertex_color_anim is not None:
-                write_mdl(vertex_color_anim.keyframes, vertex_color_anim.type,
-                          vertex_color_anim.interpolation, vertex_color_anim.global_sequence,
-                          vertex_color_anim.handles_left, vertex_color_anim.handles_right,
+                write_animations(vertex_color_anim.keyframes, vertex_color_anim.type,
+                                 vertex_color_anim.interpolation, vertex_color_anim.global_sequence,
+                                 vertex_color_anim.handles_left, vertex_color_anim.handles_right,
                           "Color", fw, model.global_seqs, "\t")
 
             elif vertex_color is not None:

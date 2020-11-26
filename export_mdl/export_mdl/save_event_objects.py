@@ -1,4 +1,4 @@
-from .write_mdl import write_mdl
+from .write_animations import write_animations
 
 
 def save_event_objects(fw, model):
@@ -11,9 +11,9 @@ def save_event_objects(fw, model):
 
         event_track = event.track
         if event_track is not None:
-            write_mdl(event_track.keyframes, event_track.type,
-                      event_track.interpolation, event_track.global_sequence,
-                      event_track.handles_left, event_track.handles_right,
+            write_animations(event_track.keyframes, event_track.type,
+                             event_track.interpolation, event_track.global_sequence,
+                             event_track.handles_left, event_track.handles_right,
                       "EventTrack", fw, model.global_seqs, "\t")
 
         fw("}\n")

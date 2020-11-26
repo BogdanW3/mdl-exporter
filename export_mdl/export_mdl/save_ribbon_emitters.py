@@ -1,4 +1,4 @@
-from .write_mdl import write_mdl
+from .write_animations import write_animations
 from ..utils import f2s, rnd
 
 
@@ -15,17 +15,17 @@ def save_ribbon_emitters(fw, model):
         fw("\tstatic HeightBelow %s,\n" % f2s(rnd(psys.dimensions[0] / 2)))
 
         if psys.alpha_anim is not None:
-            write_mdl(psys.alpha_anim.keyframes, psys.alpha_anim.type,
-                      psys.alpha_anim.interpolation, psys.alpha_anim.global_sequence,
-                      psys.alpha_anim.handles_left, psys.alpha_anim.handles_right,
+            write_animations(psys.alpha_anim.keyframes, psys.alpha_anim.type,
+                             psys.alpha_anim.interpolation, psys.alpha_anim.global_sequence,
+                             psys.alpha_anim.handles_left, psys.alpha_anim.handles_right,
                       "Alpha", fw, model.global_seqs, "\t")
         else:
             fw("\tstatic Alpha %s,\n" % emitter.alpha)
 
         if psys.ribbon_color_anim is not None:
-            write_mdl(psys.ribbon_color_anim.keyframes, psys.ribbon_color_anim.type,
-                      psys.ribbon_color_anim.interpolation, psys.ribbon_color_anim.global_sequence,
-                      psys.ribbon_color_anim.handles_left, psys.ribbon_color_anim.handles_right,
+            write_animations(psys.ribbon_color_anim.keyframes, psys.ribbon_color_anim.type,
+                             psys.ribbon_color_anim.interpolation, psys.ribbon_color_anim.global_sequence,
+                             psys.ribbon_color_anim.handles_left, psys.ribbon_color_anim.handles_right,
                       "Color", fw, model.global_seqs, "\t")
             # write_anim_vec(psys.ribbon_color_anim, 'Color', 'ribbon_color', fw, global_seqs, Matrix(), Matrix(), "\t", (2, 1, 0))
         else:
@@ -35,9 +35,9 @@ def save_ribbon_emitters(fw, model):
 
         visibility = psys.visibility
         if visibility is not None:
-            write_mdl(visibility.keyframes, visibility.type,
-                      visibility.interpolation, visibility.global_sequence,
-                      visibility.handles_left, visibility.handles_right,
+            write_animations(visibility.keyframes, visibility.type,
+                             visibility.interpolation, visibility.global_sequence,
+                             visibility.handles_left, visibility.handles_right,
                       "Visibility", fw, model.global_seqs, "\t")
             # write_anim(visibility, "Visibility", fw, global_seqs, "\t", True)
 

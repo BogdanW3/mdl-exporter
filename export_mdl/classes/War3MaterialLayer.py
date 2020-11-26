@@ -10,6 +10,8 @@ class War3MaterialLayer:
         self.alpha_value = 1
         self.no_depth_test = False
         self.no_depth_set = False
+        self.texture_id = None
+        self.material_texture_id = None
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):
