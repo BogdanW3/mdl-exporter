@@ -144,7 +144,7 @@ classes = (
 
 def menu_func(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
-    self.layout.operator(WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
+    self.layout.operator(WAR3_OT_export_mdl.WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
 
 
 def register():
