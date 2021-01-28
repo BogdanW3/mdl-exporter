@@ -28,15 +28,15 @@ def from_scene(war3_model: War3Model, context, settings):
     else:
         war3_model.sequences = get_sequences(war3_model.f2ms, scene)
 
-    objs = []
-    mats = set()
+    objects = []
+    materials = set()
 
     if settings.use_selection:
-        objs = (obj for obj in scene.objects if obj.select_get() and obj.visible_get())
+        objects = (obj for obj in scene.objects if obj.select_get() and obj.visible_get())
     else:
-        objs = (obj for obj in scene.objects if obj.visible_get())
+        objects = (obj for obj in scene.objects if obj.visible_get())
 
-    for obj in objs:
+    for obj in objects:
         parent = get_parent(obj)
 
         billboarded = False
@@ -52,14 +52,14 @@ def from_scene(war3_model: War3Model, context, settings):
 
         # Particle Systems
         if len(obj.particle_systems):
-            add_particle_systems(war3_model, billboard_lock, billboarded, mats, obj, parent, settings)
+            add_particle_systems(war3_model, billboard_lock, billboarded, materials, obj, parent, settings)
 
         # Collision Shapes
         elif obj.type == 'EMPTY' and obj.name.startswith('Collision'):
             create_collision_shapes(war3_model, obj, parent, settings)
 
         elif obj.type == 'MESH' or obj.type == 'CURVE':
-            make_mesh(war3_model, billboard_lock, billboarded, context, mats, obj, parent, settings)
+            make_mesh(war3_model, billboard_lock, billboarded, context, materials, obj, parent, settings)
 
         elif obj.type == 'EMPTY':
             add_empties_animations(war3_model, billboard_lock, billboarded, obj, parent, settings)
@@ -74,7 +74,7 @@ def from_scene(war3_model: War3Model, context, settings):
             war3_model.cameras.append(obj)
 
     war3_model.geosets = list(war3_model.geoset_map.values())
-    war3_model.materials = [War3Material.get(mat, war3_model) for mat in mats]
+    war3_model.materials = [War3Material.get(mat, war3_model) for mat in materials]
 
     # Add default material if no other materials present
     if any((x for x in war3_model.geosets if x.mat_name == "default")):

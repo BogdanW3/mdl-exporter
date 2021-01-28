@@ -1,7 +1,7 @@
 from ..utils import f2s, calc_bounds_radius
 
 
-def save_geosets(fw, material_names, model):
+def save_geosets(fw, material_names, model, settings):
     if len(model.geosets):
         for geoset in model.geosets:
             fw("Geoset {\n")
@@ -24,17 +24,43 @@ def save_geosets(fw, material_names, model):
 
             # VertexGroups
             fw("\tVertexGroup {\n")
-            for vertgroup in geoset.vertices:
-                fw("\t\t%d,\n" % vertgroup[3])
+
+            if not settings.use_skinweights:
+                for vertgroup in geoset.vertices:
+                    fw("\t\t%d,\n" % vertgroup[3])
             fw("\t}\n")
+
+            if settings.use_skinweights:
+                # Tangents
+                fw("\tTangents %d {\n" % len(geoset.vertices))
+                for normal in geoset.vertices:
+                    fw("\t\t{%s, %s, %s, %s},\n" % tuple(map(f2s, (normal[1] + [1]))))
+                fw("\t}\n")
+                # SkinWeights
+                fw("\tSkinWeights %d {\n" % len(geoset.vertices))
+                for skin in geoset.vertices:
+                    fw("\t\t{%s, %s, %s, %s, %s, %s, %s, %s},\n" % tuple(skin[-1]))
+                fw("\t}\n")
+            else:
+                # VertexGroups
+                fw("\tVertexGroup {\n")
+                for vertgroup in geoset.vertices:
+                    fw("\t\t%d,\n" % vertgroup[3])
+                fw("\t}\n")
 
             # Faces
             fw("\tFaces %d %d {\n" % (len(geoset.triangles), len(geoset.triangles) * 3))
-            fw("\t\tTriangles {\n")
-            for triangle in geoset.triangles:
-                fw("\t\t\t{%d, %d, %d},\n" % triangle[:])
 
+            fw("\t\tTriangles {\n")
+            fw("\t\t\t{")
+            for triangle in geoset.triangles:
+                fw(" %d, %d, %d," % triangle[:])
+            fw("\t\t\t},\n")
             fw("\t\t}\n")
+            # fw("\t\tTriangles {\n")
+            # for triangle in geoset.triangles:
+            #     fw("\t\t\t{%d, %d, %d},\n" % triangle[:])
+            # fw("\t\t}\n")
             fw("\t}\n")
 
             fw("\tGroups %d %d {\n" % (len(geoset.matrices), sum(len(mtrx) for mtrx in geoset.matrices)))

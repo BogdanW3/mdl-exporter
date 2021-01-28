@@ -57,6 +57,11 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
     if armature is not None:
         bone_names = set(b.name for b in armature.object.data.bones)
 
+    # Make a list of all bones to use if saving skin weights
+    temp_skin_matrices = None
+    if settings.use_skinweights and len(bone_names):
+        temp_skin_matrices = list([b.name] for b in armature.object.data.bones)
+
     bone = None
     if (armature is None and parent is None) or is_animated:
         bone = create_bone(anim_loc, anim_rot, anim_scale, obj, parent, settings)
@@ -108,6 +113,8 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
             if geoset_anim is not None:
                 geoset.geoset_anim = geoset_anim
                 geoset_anim.geoset = geoset
+            if settings.use_skinweights:
+                geoset.skin_matrices = temp_skin_matrices
 
             war3_model.geoset_map[(mat_name, geoset_anim_hash)] = geoset
 
@@ -122,13 +129,13 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
             uv[1] = 1 - uv[1]  # For some reason, uv Y coordinates appear flipped. This should fix that.
             tvert = (rnd(uv.x), rnd(uv.y))
             groups = None
+            skins = None
             matrix = 0
-
             if armature is not None:
                 vertex_groups = sorted(mesh.vertices[vert].groups[:], key=lambda x: x.weight, reverse=True)
                 # Sort bones by descending weight
-                if len(vertex_groups):
-                    # Warcraft does not support vertex weights, so we exclude groups with too small influence
+                if len(vertex_groups) and not settings.use_skinweights:
+                    # Warcraft 800 does not support vertex weights, so we exclude groups with too small influence
                     groups = list(obj.vertex_groups[vg.group].name for vg in vertex_groups if
                                   (obj.vertex_groups[vg.group].name in bone_names and vg.weight > 0.25))[:3]
                     if not len(groups):
@@ -137,6 +144,36 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
                             if obj.vertex_groups[vg.group].name in bone_names:
                                 groups = [obj.vertex_groups[vg.group].name]
                                 break
+                elif len(vertex_groups) and settings.use_skinweights:
+                    # Warcraft 800+ do support vertex (skin) weights; 4 per vertex which sum up to 255
+                    bone_list = (list(geoset.skin_matrices.index([obj.vertex_groups[vg.group].name]) for vg in vertex_groups if (obj.vertex_groups[vg.group].name in bone_names)) + [0]*4)[:4]
+                    weight_list = (list(vg.weight for vg in vertex_groups if (obj.vertex_groups[vg.group].name in bone_names)) + [0]*4)[:4]
+                    tot_weight = sum(weight_list)
+                    w_conv = 255/tot_weight
+                    weight_list = [i * w_conv for i in weight_list]
+                    # Ugly fix to make sure total weight is 255
+                    temp_dec = 0
+                    for w in range(0, 4):
+                        w_dec = weight_list[w] % 1
+                        if w_dec < 0.5:
+                            weight_list[w] = int(weight_list[w])
+                            temp_dec = temp_dec + w_dec
+                        elif w_dec > 0.5:
+                            weight_list[w] = int(weight_list[w] + 1)
+                            temp_dec = temp_dec - 1 + w_dec
+                        elif w_dec == 0.5:
+                            if temp_dec < 0:
+                                weight_list[w] = int(weight_list[w])
+                                temp_dec = temp_dec + w_dec
+                            else:
+                                weight_list[w] = int(weight_list[w] + 1)
+                                temp_dec = temp_dec - 1 + w_dec
+
+                    ugg = 255 - sum(weight_list)
+                    weight_list[0] = int(weight_list[0]-ugg)
+
+                    skins = bone_list + weight_list
+
 
             if parent is not None and (groups is None or len(groups) == 0):
                 groups = [parent]
@@ -146,7 +183,11 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
                     geoset.matrices.append(groups)
                 matrix = geoset.matrices.index(groups)
 
-            vertex = (coord, norm, tvert, matrix)
+            if settings.use_skinweights:
+                vertex = (coord, norm, tvert, skins)
+            else:
+                vertex = (coord, norm, tvert, matrix)
+
             if vertex not in geoset.vertices:
                 geoset.vertices.append(vertex)
 

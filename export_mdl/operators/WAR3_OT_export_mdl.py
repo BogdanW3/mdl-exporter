@@ -46,6 +46,11 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             description="Use actions instead of mdl-sequences"
             )
 
+    use_skinweights: BoolProperty(
+            name="Use SkinWeights",
+            description="Use skin weights instead of vertex groups"
+            )
+
     optimize_tolerance: FloatProperty(
             name="Tolerance",
             min=0.001,
@@ -69,6 +74,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         settings.optimize_animation = self.optimize_animation
         settings.optimize_tolerance = self.optimize_tolerance
         settings.use_actions = self.use_actions
+        settings.use_skinweights = self.use_skinweights
 
         from ..export_mdl import export_mdl
         export_mdl.save(self, context, settings, filepath=filepath, mdl_version=800)
@@ -85,6 +91,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         layout.separator()
         layout.prop(self, 'optimize_animation')
         layout.prop(self, 'use_actions')
+        layout.prop(self, 'use_skinweights')
         if self.optimize_animation:
             box = layout.box()
             box.label(text="EXPERIMENTAL", icon='ERROR')
@@ -94,4 +101,8 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             box.label(text="EXPERIMENTAL", icon='ERROR')
             box.label(text="Will export action and not marker based sequences. "
                            "This does not yet support Rarity or NonLooping")
+        if self.use_skinweights:
+            box = layout.box()
+            box.label(text="EXPERIMENTAL", icon='ERROR')
+            box.label(text="Will export with skin weights and leave vertex groups empty.")
             # layout.prop(self, 'use_actions')

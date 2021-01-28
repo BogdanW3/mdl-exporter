@@ -8,3 +8,4 @@ class War3ExportSettings:
         self.optimize_animation = False
         self.optimize_tolerance = 0.05
         self.use_actions = False
+        self.use_skinweights = False

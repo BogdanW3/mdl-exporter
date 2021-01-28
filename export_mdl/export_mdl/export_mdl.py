@@ -53,7 +53,10 @@ def save(operator, context, settings, filepath="", mdl_version=800):
         date = datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y")
         fw("// Exported on %s by %s\n" % (date, getpass.getuser()))
 
-        fw("Version {\n\tFormatVersion %d,\n}\n" % mdl_version)
+        if settings.use_skinweights:
+            fw("Version {\n\tFormatVersion %d,\n}\n" % 900)
+        else:
+            fw("Version {\n\tFormatVersion %d,\n}\n" % mdl_version)
         # HEADER
         save_model_header(fw, model)
 
@@ -73,7 +76,7 @@ def save(operator, context, settings, filepath="", mdl_version=800):
         material_names = save_texture_animations(fw, model)
 
         # GEOSETS
-        save_geosets(fw, material_names, model)
+        save_geosets(fw, material_names, model, settings)
 
         # GEOSET ANIMS
         save_geoset_animations(fw, model)

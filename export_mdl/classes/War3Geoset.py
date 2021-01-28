@@ -3,6 +3,8 @@ class War3Geoset:
         self.vertices = []
         self.triangles = []
         self.matrices = []
+        self.skin_matrices = []
+        self.skin_weights = []
         self.objects = []
         self.min_extent = None
         self.max_extent = None
