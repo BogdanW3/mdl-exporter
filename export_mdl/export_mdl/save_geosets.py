@@ -34,7 +34,9 @@ def save_geosets(fw, material_names, model, settings):
                 # Tangents
                 fw("\tTangents %d {\n" % len(geoset.vertices))
                 for normal in geoset.vertices:
-                    fw("\t\t{%s, %s, %s, %s},\n" % tuple(map(f2s, (normal[1] + [1]))))
+                    # fw("\t\t{%s, %s, %s, -1},\n" % tuple(map(f2s, normal[1])))
+                    tangents = tuple(map(f2s, normal[1])) + tuple({str(sum(normal[1]) / abs(sum(normal[1])))})
+                    fw("\t\t{%s, %s, %s, %s},\n" % tuple(tangents))
                 fw("\t}\n")
                 # SkinWeights
                 fw("\tSkinWeights %d {\n" % len(geoset.vertices))
