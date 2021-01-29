@@ -41,12 +41,6 @@ def save_geosets(fw, material_names, model, settings):
                 for skin in geoset.vertices:
                     fw("\t\t{%s, %s, %s, %s, %s, %s, %s, %s},\n" % tuple(skin[-1]))
                 fw("\t}\n")
-            else:
-                # VertexGroups
-                fw("\tVertexGroup {\n")
-                for vertgroup in geoset.vertices:
-                    fw("\t\t%d,\n" % vertgroup[3])
-                fw("\t}\n")
 
             # Faces
             fw("\tFaces %d %d {\n" % (len(geoset.triangles), len(geoset.triangles) * 3))
