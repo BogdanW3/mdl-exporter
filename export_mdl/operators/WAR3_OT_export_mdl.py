@@ -64,7 +64,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
-        settings = War3ExportSettings()
+        settings: War3ExportSettings = War3ExportSettings()
         settings.global_matrix = axis_conversion(
             to_forward=self.axis_forward,
             to_up=self.axis_up,

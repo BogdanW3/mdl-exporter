@@ -1,7 +1,10 @@
+from typing import TextIO
+
+from ..classes.War3Model import War3Model
 from ..utils import f2s, rnd
 
 
-def save_collision_shape(fw, model):
+def save_collision_shape(fw: TextIO.write, model: War3Model):
     for collider in model.objects['collisionshape']:
         fw("CollisionShape \"%s\" {\n" % collider.name)
         fw("\tObjectId %d,\n" % model.object_indices[collider.name])

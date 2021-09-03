@@ -10,25 +10,25 @@ from ..utils.transform_rot import transform_rot
 from ..utils.transform_vec import transform_vec
 
 
-def add_particle_systems(war3_model: War3Model, billboard_lock, billboarded, mats, obj, parent, settings):
-    visibility = get_visibility(war3_model.sequences, obj)
-    anim_loc, anim_rot, anim_scale, is_animated = is_animated_ugg(war3_model, obj, settings)
-    data = obj.particle_systems[0].settings
+def add_particle_systems(war3_model: War3Model, billboard_lock, billboarded, mats, bpy_obj, parent, settings):
+    visibility = get_visibility(war3_model.sequences, bpy_obj)
+    anim_loc, anim_rot, anim_scale, is_animated = is_animated_ugg(war3_model, bpy_obj, settings)
+    data = bpy_obj.particle_systems[0].settings
 
     if getattr(data, "mdl_particle_sys"):
-        particle_sys = War3ParticleSystem(obj.name, obj, war3_model)
+        particle_sys = War3ParticleSystem(bpy_obj.name, bpy_obj, war3_model)
 
-        particle_sys.pivot = settings.global_matrix @ Vector(obj.location)
+        particle_sys.pivot = settings.global_matrix @ Vector(bpy_obj.location)
 
         # particle_sys.dimensions = obj.matrix_world.to_quaternion() * Vector(obj.scale)
-        particle_sys.dimensions = Vector(map(abs, settings.global_matrix @ obj.dimensions))
+        particle_sys.dimensions = Vector(map(abs, settings.global_matrix @ bpy_obj.dimensions))
 
         particle_sys.parent = parent
         particle_sys.visibility = visibility
         register_global_sequence(war3_model.global_seqs, particle_sys.visibility)
 
         if is_animated:
-            bone = create_bone(anim_loc, anim_rot, anim_scale, obj, parent, settings)
+            bone = create_bone(anim_loc, anim_rot, anim_scale, bpy_obj, parent, settings)
             register_global_sequence(war3_model.global_seqs, bone.anim_loc)
             register_global_sequence(war3_model.global_seqs, bone.anim_rot)
             register_global_sequence(war3_model.global_seqs, bone.anim_scale)

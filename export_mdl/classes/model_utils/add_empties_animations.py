@@ -12,16 +12,16 @@ from ..utils.transform_rot import transform_rot
 from ..utils.transform_vec import transform_vec
 
 
-def add_empties_animations(war3_model: War3Model, billboard_lock, billboarded, obj, parent, settings):
-    visibility = get_visibility(war3_model.sequences, obj)
-    anim_loc, anim_rot, anim_scale, is_animated = is_animated_ugg(war3_model, obj, settings)
-    if obj.name.startswith("SND") or obj.name.startswith("UBR") or obj.name.startswith(
-            "FTP") or obj.name.startswith("SPL"):
-        eventobj = War3Object(obj.name)
-        eventobj.pivot = settings.global_matrix @ Vector(obj.location)
+def add_empties_animations(war3_model: War3Model, billboard_lock, billboarded, bpy_obj, parent, settings):
+    visibility = get_visibility(war3_model.sequences, bpy_obj)
+    anim_loc, anim_rot, anim_scale, is_animated = is_animated_ugg(war3_model, bpy_obj, settings)
+    if bpy_obj.name.startswith("SND") or bpy_obj.name.startswith("UBR") or bpy_obj.name.startswith(
+            "FTP") or bpy_obj.name.startswith("SPL"):
+        eventobj = War3Object(bpy_obj.name)
+        eventobj.pivot = settings.global_matrix @ Vector(bpy_obj.location)
 
         for datapath in ('["event_track"]', '["eventtrack"]', '["EventTrack"]'):
-            eventobj.track = get_wc3_animation_curve(obj.animation_data, datapath, 1, war3_model.sequences)
+            eventobj.track = get_wc3_animation_curve(bpy_obj.animation_data, datapath, 1, war3_model.sequences)
             # get_curve(obj, ['["eventtrack"]', '["EventTrack"]', '["event_track"]'])
 
             if eventobj.track is not None:
@@ -30,9 +30,9 @@ def add_empties_animations(war3_model: War3Model, billboard_lock, billboarded, o
 
         war3_model.objects['eventobject'].add(eventobj)
 
-    elif obj.name.endswith(" Ref"):
-        att = War3Object(obj.name)
-        att.pivot = settings.global_matrix @ Vector(obj.location)
+    elif bpy_obj.name.endswith(" Ref"):
+        att = War3Object(bpy_obj.name)
+        att.pivot = settings.global_matrix @ Vector(bpy_obj.location)
         att.parent = parent
         att.visibility = visibility
         register_global_sequence(war3_model.global_seqs, visibility)
@@ -40,8 +40,8 @@ def add_empties_animations(war3_model: War3Model, billboard_lock, billboarded, o
         att.billboard_lock = billboard_lock
         war3_model.objects['attachment'].add(att)
 
-    elif obj.name.startswith("Bone_"):
-        bone = create_bone(anim_loc, anim_rot, anim_scale, obj, parent, settings)
+    elif bpy_obj.name.startswith("Bone_"):
+        bone = create_bone(anim_loc, anim_rot, anim_scale, bpy_obj, parent, settings)
         # bone = War3Object(obj.name)
         # if parent is not None:
         #     bone.parent = parent
@@ -55,7 +55,7 @@ def add_empties_animations(war3_model: War3Model, billboard_lock, billboarded, o
         if bone.anim_loc is not None:
             register_global_sequence(war3_model.global_seqs, bone.anim_loc)
             transform_vec(bone.anim_loc.keyframes, bone.anim_loc.interpolation, bone.anim_loc.handles_right,
-                          bone.anim_loc.handles_left, obj.matrix_world.inverted())
+                          bone.anim_loc.handles_left, bpy_obj.matrix_world.inverted())
             # if obj.parent is not None:
             #     bone.anim_loc.transform_vec(obj.parent.matrix_world.inverted())
             transform_vec(bone.anim_loc.keyframes, bone.anim_loc.interpolation, bone.anim_loc.handles_right,
@@ -63,7 +63,7 @@ def add_empties_animations(war3_model: War3Model, billboard_lock, billboarded, o
 
         if bone.anim_rot is not None:
             register_global_sequence(war3_model.global_seqs, bone.anim_rot)
-            transform_rot(bone.anim_rot.keyframes, obj.matrix_world.inverted())
+            transform_rot(bone.anim_rot.keyframes, bpy_obj.matrix_world.inverted())
             transform_rot(bone.anim_rot.keyframes, settings.global_matrix)
 
         bone.billboarded = billboarded

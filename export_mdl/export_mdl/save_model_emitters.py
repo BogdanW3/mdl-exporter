@@ -1,8 +1,11 @@
+from typing import TextIO
+
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 from ..utils import f2s, rnd
 
 
-def save_model_emitters(fw, model):
+def save_model_emitters(fw: TextIO.write, model: War3Model):
     for psys in model.objects['particle']:
         emitter = psys.emitter
         fw("ParticleEmitter \"%s\" {\n" % psys.name)

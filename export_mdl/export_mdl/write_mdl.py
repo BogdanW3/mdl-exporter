@@ -1,10 +1,12 @@
+from typing import TextIO
+
 import bpy
 
 from ..utils import f2s, rnd
 
 
-def write_mdl(keyframes, type1, interpolation, global_sequence, handles_left, handles_right, name, fw, global_seqs,
-              indent="\t"):
+def write_mdl(keyframes, type1, interpolation, global_sequence, handles_left, handles_right, name, fw: TextIO.write,
+              global_seqs, indent="\t"):
 
     f2ms = 1000 / bpy.context.scene.render.fps
 

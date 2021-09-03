@@ -2,13 +2,14 @@ import math
 
 import bpy
 from mathutils import Euler
+from typing import Union, Tuple, Dict, Set
 
 from .utils.split_segment import split_segment
 
 
 class War3AnimationCurve:
-    def __init__(self, fcurves, data_path, sequences, scale=1):
-        frames = set()
+    def __init__(self, fcurves: Dict[Tuple[str, int], Union[int, bpy.types.FCurve]], data_path: str, sequences, scale=1):
+        frames: Set[float] = set()
 
         self.interpolation = 'Linear'
         self.global_sequence = -1
@@ -19,6 +20,9 @@ class War3AnimationCurve:
         f2ms = 1000 / bpy.context.scene.render.fps
 
         self.parse_fcurve_values(f2ms, fcurves, frames, sequences)
+
+        if len(frames) <= 1:
+            self.interpolation = 'Linear'
 
         self.add_start_and_end_frames(f2ms, frames, sequences)
 
@@ -70,13 +74,15 @@ class War3AnimationCurve:
                 self.handles_left[frame] = tuple(handle_right)
                 self.handles_right[frame] = tuple(handle_right)
 
-    def rotation_is_quaternation(self, data_path, frame, values):
+    def rotation_is_quaternation(self, data_path, frame: float, values):
         if 'rotation' in data_path and 'quaternion' not in data_path:  # Warcraft 3 only uses quaternions!
             self.keyframes[frame] = tuple(Euler(values).to_quaternion())
         else:
             self.keyframes[frame] = tuple(values)
 
-    def interpret_fcurves(self, data_path, fcurves, frame, scale):
+    def interpret_fcurves(self, data_path: str,
+                          fcurves: Dict[Tuple[str, int], Union[int, bpy.types.FCurve]],
+                          frame: float, scale):
         values = []
         handle_left = []
         handle_right = []
@@ -100,14 +106,15 @@ class War3AnimationCurve:
                 handle_right.append(h_right)
         return values, handle_left, handle_right
 
-    def add_start_and_end_frames(self, f2ms, frames, sequences):
-        # We want start and end keyframes for each sequence. Make sure not to do this for events and global sequences, though!
+    def add_start_and_end_frames(self, f2ms: float, frames: Set[float], sequences):
+        # We want start and end keyframes for each sequence.
+        # Make sure not to do this for events and global sequences, though!
         if self.global_sequence < 0 and self.type in {'Rotation', 'Translation', 'Scale'}:
             for sequence in sequences:
                 frames.add(round(sequence.start / f2ms))
                 frames.add(round(sequence.end / f2ms))
 
-    def set_type(self, data_path):
+    def set_type(self, data_path: str):
         if 'rotation' in data_path:
             self.type = 'Rotation'
         elif 'location' in data_path:
@@ -124,7 +131,8 @@ class War3AnimationCurve:
         if self.type == 'Boolean' or self.type == 'Event':
             self.interpolation = 'DontInterp'
 
-    def parse_fcurve_values(self, f2ms, fcurves, frames, sequences):
+    def parse_fcurve_values(self, f2ms: float, fcurves: Dict[Tuple[str, int], Union[int, bpy.types.FCurve]],
+                            frames: Set[float], sequences):
         for fcurve in fcurves.values():
             if len(fcurve.keyframe_points):
                 if fcurve.keyframe_points[0].interpolation == 'BEZIER' and self.type != 'Rotation':
@@ -138,9 +146,9 @@ class War3AnimationCurve:
                     self.global_sequence = max(self.global_sequence, int(fcurve.range()[1] * f2ms))
 
             for keyframe in fcurve.keyframe_points:
-                frame = keyframe.co[0] * f2ms
+                frame: float = keyframe.co[0] * f2ms
                 for sequence in sequences:
-                    if (frame >= sequence.start and frame <= sequence.end) or self.global_sequence > 0:
+                    if (sequence.start <= frame <= sequence.end) or self.global_sequence > 0:
                         frames.add(keyframe.co[0])
                         break
 
@@ -173,7 +181,8 @@ class War3AnimationCurve:
                 curve = anim_data.action.fcurves.find(data_path, index=index)
                 if curve is not None:
                     curves[(data_path.split('.')[-1], index)] = curve
-                    # For now, i'm just interested in the type, not the whole data path. Hence, the split returns the name after the last dot.
+                    # For now, i'm just interested in the type, not the whole data path.
+                    # Hence, the split returns the name after the last dot.
 
         if len(curves):
             return War3AnimationCurve(curves, data_path, sequences, scale)

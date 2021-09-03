@@ -1,7 +1,10 @@
+from typing import TextIO
+
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 
 
-def save_event_objects(fw, model):
+def save_event_objects(fw: TextIO.write, model: War3Model):
     for event in model.objects['eventobject']:
         fw("EventObject \"%s\" {\n" % event.name)
         if len(model.object_indices) > 1:

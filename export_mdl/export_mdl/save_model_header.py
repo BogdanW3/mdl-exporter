@@ -1,7 +1,10 @@
+from typing import TextIO
+
+from ..classes.War3Model import War3Model
 from ..utils import f2s, calc_bounds_radius
 
 
-def save_model_header(fw, model):
+def save_model_header(fw: TextIO.write, model: War3Model):
     fw("Model \"%s\" {\n" % model.name)
     if len(model.geosets):
         fw("\tNumGeosets %d,\n" % len(model.geosets))

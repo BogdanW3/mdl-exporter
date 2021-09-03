@@ -1,8 +1,11 @@
+from typing import TextIO
+
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 from ..utils import f2s
 
 
-def save_materials(fw, model):
+def save_materials(fw: TextIO.write, model: War3Model):
     if len(model.materials):
         fw("Materials %d {\n" % len(model.materials))
         for material in model.materials:

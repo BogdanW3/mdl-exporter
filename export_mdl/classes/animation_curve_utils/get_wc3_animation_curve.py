@@ -1,7 +1,9 @@
+import bpy
+
 from ..War3AnimationCurve import War3AnimationCurve
 
 
-def get_wc3_animation_curve(anim_data, data_path, num_indices, sequences, scale=1):
+def get_wc3_animation_curve(anim_data: bpy.types.AnimData, data_path: str, num_indices: int, sequences, scale=1):
     curves = {}
 
     if anim_data and anim_data.action:

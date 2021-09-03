@@ -1,5 +1,8 @@
+import bpy
 from mathutils import Vector
+from typing import Tuple, Optional
 
+from ..War3ExportSettings import War3ExportSettings
 from ..War3Model import War3Model
 from ..War3Object import War3Object
 from ..War3AnimationCurve import War3AnimationCurve
@@ -11,15 +14,16 @@ from ..utils.transform_rot import transform_rot
 from ..utils.transform_vec import transform_vec
 
 
-def add_bones(war3_model: War3Model, billboard_lock, billboarded, obj, parent, settings):
-    visibility = get_visibility(war3_model.sequences, obj)
-    anim_loc, anim_rot, anim_scale, is_animated = is_animated_ugg(war3_model, obj, settings)
-    root = War3Object(obj.name)
+def add_bones(war3_model: War3Model, billboard_lock: Tuple[bool, bool, bool],
+              billboarded: bool, bpy_obj: bpy.types.Object, parent: bpy.types.Object, settings: War3ExportSettings):
+    visibility = get_visibility(war3_model.sequences, bpy_obj)
+    anim_loc, anim_rot, anim_scale, is_animated = is_animated_ugg(war3_model, bpy_obj, settings)
+    root = War3Object(bpy_obj.name)
 
     if parent is not None:
         root.parent = parent
 
-    root.pivot = settings.global_matrix @ Vector(obj.location)
+    root.pivot = settings.global_matrix @ Vector(bpy_obj.location)
     root.anim_loc = anim_loc
     root.anim_scale = anim_scale
     root.anim_rot = anim_rot
@@ -27,17 +31,20 @@ def add_bones(war3_model: War3Model, billboard_lock, billboarded, obj, parent, s
 
     if root.anim_loc is not None:
         register_global_sequence(war3_model.global_seqs, root.anim_loc)
-        if obj.parent is not None:
+        if bpy_obj.parent is not None:
+            # transform_vec(root.anim_loc.keyframes, root.anim_loc.interpolation, root.anim_loc.handles_right,
+            #               root.anim_loc.handles_left, bpy_obj.parent.matrix_world.inverted())
             transform_vec(root.anim_loc.keyframes, root.anim_loc.interpolation, root.anim_loc.handles_right,
-                          root.anim_loc.handles_left, obj.parent.matrix_world.inverted())
+                          root.anim_loc.handles_left, bpy_obj.parent.matrix_parent_inverse)
 
         transform_vec(root.anim_loc.keyframes, root.anim_loc.interpolation, root.anim_loc.handles_right,
                       root.anim_loc.handles_left, settings.global_matrix)
 
     if root.anim_rot is not None:
         register_global_sequence(war3_model.global_seqs, root.anim_rot)
-        if obj.parent is not None:
-            transform_rot(root.anim_rot.keyframes, obj.parent.matrix_world.inverted())
+        if bpy_obj.parent is not None:
+            # transform_rot(root.anim_rot.keyframes, bpy_obj.parent.matrix_world.inverted())
+            transform_rot(root.anim_rot.keyframes, bpy_obj.parent.matrix_parent_inverse)
 
         transform_rot(root.anim_rot.keyframes, settings.global_matrix)
 
@@ -46,48 +53,46 @@ def add_bones(war3_model: War3Model, billboard_lock, billboarded, obj, parent, s
     root.billboarded = billboarded
     root.billboard_lock = billboard_lock
     war3_model.objects['bone'].add(root)
-    for b in obj.pose.bones:
+    for b in bpy_obj.pose.bones:
         bone = War3Object(b.name)
         if b.parent is not None:
             bone.parent = b.parent.name
         else:
             bone.parent = root.name
 
-        bone.pivot = obj.matrix_world @ Vector(b.bone.head_local)  # Armature space to world space
+        bone.pivot = bpy_obj.matrix_world @ Vector(b.bone.head_local)  # Armature space to world space
         bone.pivot = settings.global_matrix @ Vector(bone.pivot)  # Axis conversion
         data_path = 'pose.bones[\"' + b.name + '\"].%s'
-        bone.anim_loc = get_wc3_animation_curve(obj.animation_data, data_path % 'location', 3, war3_model.sequences)
-        # get_curves(obj, data_path % 'location', (0, 1, 2))
 
+        bone.anim_loc = get_wc3_animation_curve(bpy_obj.animation_data, data_path % 'location', 3, war3_model.sequences)
+        # get_curves(obj, data_path % 'location', (0, 1, 2))
         if settings.optimize_animation and bone.anim_loc is not None:
             bone.anim_loc.optimize(settings.optimize_tolerance, war3_model.sequences)
 
-        bone.anim_rot = get_wc3_animation_curve(obj.animation_data, data_path % 'rotation_quaternion', 4, war3_model.sequences)
+        bone.anim_rot = get_wc3_animation_curve(bpy_obj.animation_data, data_path % 'rotation_quaternion', 4, war3_model.sequences)
         # get_curves(obj, data_path % 'rotation_quaternion', (0, 1, 2, 3))
-
         if bone.anim_rot is None:
-            bone.anim_rot = get_wc3_animation_curve(obj.animation_data, data_path % 'rotation_euler', 3, war3_model.sequences)
+            bone.anim_rot = get_wc3_animation_curve(bpy_obj.animation_data, data_path % 'rotation_euler', 3, war3_model.sequences)
 
         if settings.optimize_animation and bone.anim_rot is not None:
             bone.anim_rot.optimize(settings.optimize_tolerance, war3_model.sequences)
 
-        bone.anim_scale = get_wc3_animation_curve(obj.animation_data, data_path % 'scale', 3, war3_model.sequences)
+        bone.anim_scale = get_wc3_animation_curve(bpy_obj.animation_data, data_path % 'scale', 3, war3_model.sequences)
         # get_curves(obj, data_path % 'scale', (0, 1, 2))
-
         if settings.optimize_animation and bone.anim_scale is not None:
             bone.anim_scale.optimize(settings.optimize_tolerance, war3_model.sequences)
 
         register_global_sequence(war3_model.global_seqs, bone.anim_scale)
 
         if bone.anim_loc is not None:
-            m = obj.matrix_world @ b.bone.matrix_local
+            m = bpy_obj.matrix_world @ b.bone.matrix_local
             transform_vec(bone.anim_loc.keyframes, bone.anim_loc.interpolation, bone.anim_loc.handles_right,
                           bone.anim_loc.handles_left, settings.global_matrix @ m.to_3x3().to_4x4())
             register_global_sequence(war3_model.global_seqs, bone.anim_loc)
 
         if bone.anim_rot is not None:
-            mat_pose_ws = obj.matrix_world @ b.bone.matrix_local
-            mat_rest_ws = obj.matrix_world @ b.matrix
+            mat_pose_ws = bpy_obj.matrix_world @ b.bone.matrix_local
+            mat_rest_ws = bpy_obj.matrix_world @ b.matrix
             transform_rot(bone.anim_rot.keyframes, mat_pose_ws)
             transform_rot(bone.anim_rot.keyframes, settings.global_matrix)
             register_global_sequence(war3_model.global_seqs, bone.anim_rot)

@@ -1,4 +1,9 @@
-def save_textures(fw, model):
+from typing import TextIO
+
+from ..classes.War3Model import War3Model
+
+
+def save_textures(fw: TextIO.write, model: War3Model):
     if len(model.textures):
         fw("Textures %d {\n" % len(model.textures))
         for texture in model.textures:

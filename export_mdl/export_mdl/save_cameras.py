@@ -1,9 +1,12 @@
+from typing import TextIO
+
 from mathutils import Vector
 
+from ..classes.War3Model import War3Model
 from ..utils import f2s
 
 
-def save_cameras(fw, model, settings):
+def save_cameras(fw: TextIO.write, model: War3Model, settings):
     for camera in model.cameras:
         fw("Camera \"%s\" {\n" % camera.name)
         position = settings.global_matrix @ Vector(camera.location)

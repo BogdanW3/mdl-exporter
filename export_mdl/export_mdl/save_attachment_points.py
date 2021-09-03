@@ -1,8 +1,11 @@
+from typing import TextIO
+
 from .write_billboard import write_billboard
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 
 
-def save_attachment_points(fw, model):
+def save_attachment_points(fw: TextIO.write, model: War3Model):
     if len(model.objects['attachment']):
         for i, attachment in enumerate(model.objects['attachment']):
             fw("Attachment \"%s\" {\n" % attachment.name)

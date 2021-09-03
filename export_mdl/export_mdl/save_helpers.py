@@ -1,8 +1,11 @@
+from typing import TextIO
+
 from .write_billboard import write_billboard
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 
 
-def save_helpers(fw, model):
+def save_helpers(fw: TextIO.write, model: War3Model):
     for helper in model.objects['helper']:
         name = helper.name.replace('.', '_')
 

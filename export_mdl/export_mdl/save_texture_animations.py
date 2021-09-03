@@ -1,7 +1,10 @@
+from typing import TextIO
+
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 
 
-def save_texture_animations(fw, model):
+def save_texture_animations(fw: TextIO.write, model: War3Model):
     if len(model.tvertex_anims):
         fw("TextureAnims %d {\n" % len(model.tvertex_anims))
         for uv_anim in model.tvertex_anims:

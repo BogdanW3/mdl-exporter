@@ -1,8 +1,11 @@
+from typing import TextIO
+
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 from ..utils import f2s, rnd
 
 
-def save_ribbon_emitters(fw, model):
+def save_ribbon_emitters(fw: TextIO.write, model: War3Model):
     for psys in model.objects['ribbon']:
         emitter = psys.emitter
         fw("RibbonEmitter \"%s\" {\n" % psys.name)

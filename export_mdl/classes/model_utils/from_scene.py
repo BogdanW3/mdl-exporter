@@ -1,5 +1,9 @@
 import itertools
+from typing import List, Union
 
+import bpy
+
+from ..War3ExportSettings import War3ExportSettings
 from ..War3Material import War3Material
 from ..War3MaterialLayer import War3MaterialLayer
 from ..War3Model import War3Model
@@ -18,9 +22,9 @@ from .register_global_sequence import register_global_sequence
 from ...utils import calc_extents
 
 
-def from_scene(war3_model: War3Model, context, settings):
+def from_scene(war3_model: War3Model, context: bpy.context, settings: War3ExportSettings):
 
-    scene = context.scene
+    scene: bpy.types.Scene = context.scene
 
     if settings.use_actions:
         war3_model.sequences = get_actions(war3_model.f2ms)
@@ -28,50 +32,16 @@ def from_scene(war3_model: War3Model, context, settings):
     else:
         war3_model.sequences = get_sequences(war3_model.f2ms, scene)
 
-    objects = []
+    # objects: List[bpy.types.Object] = []
+    objects: Union[List[bpy.types.Object], bpy.types.bpy_prop_collection, bpy.types.SceneObjects] = []
     materials = set()
 
     if settings.use_selection:
-        objects = (obj for obj in scene.objects if obj.select_get() and obj.visible_get())
+        objects = list(obj for obj in scene.objects if obj.select_get() and obj.visible_get())
     else:
-        objects = (obj for obj in scene.objects if obj.visible_get())
+        objects = list(obj for obj in scene.objects if obj.visible_get())
 
-    for obj in objects:
-        parent = get_parent(obj)
-
-        billboarded = False
-        billboard_lock = (False, False, False)
-        if hasattr(obj, "mdl_billboard"):
-            bb = obj.mdl_billboard
-            billboarded = bb.billboarded
-            billboard_lock = (bb.billboard_lock_z, bb.billboard_lock_y, bb.billboard_lock_x)
-            # NOTE: Axes are listed backwards (same as with colors)
-
-        # Animations
-        visibility = get_visibility(war3_model.sequences, obj)
-
-        # Particle Systems
-        if len(obj.particle_systems):
-            add_particle_systems(war3_model, billboard_lock, billboarded, materials, obj, parent, settings)
-
-        # Collision Shapes
-        elif obj.type == 'EMPTY' and obj.name.startswith('Collision'):
-            create_collision_shapes(war3_model, obj, parent, settings)
-
-        elif obj.type == 'MESH' or obj.type == 'CURVE':
-            make_mesh(war3_model, billboard_lock, billboarded, context, materials, obj, parent, settings)
-
-        elif obj.type == 'EMPTY':
-            add_empties_animations(war3_model, billboard_lock, billboarded, obj, parent, settings)
-
-        elif obj.type == 'ARMATURE':
-            add_bones(war3_model, billboard_lock, billboarded, obj, parent, settings)
-
-        elif obj.type in ('LAMP', 'LIGHT'):
-            add_lights(war3_model, billboard_lock, billboarded, obj, settings)
-
-        elif obj.type == 'CAMERA':
-            war3_model.cameras.append(obj)
+    parse_bpy_objects(context, materials, objects, settings, war3_model)
 
     war3_model.geosets = list(war3_model.geoset_map.values())
     war3_model.materials = [War3Material.get(mat, war3_model) for mat in materials]
@@ -108,20 +78,20 @@ def from_scene(war3_model: War3Model, context, settings):
 
     index = 0
     for tag in ('bone', 'light', 'helper', 'attachment', 'particle', 'particle2', 'ribbon', 'eventobject', 'collisionshape'):
-        for object in war3_model.objects[tag]:
-            war3_model.object_indices[object.name] = index
-            war3_model.objects_all.append(object)
-            vertices_all.append(object.pivot)
+        for model_object in war3_model.objects[tag]:
+            war3_model.object_indices[model_object.name] = index
+            war3_model.objects_all.append(model_object)
+            vertices_all.append(model_object.pivot)
             if tag == 'collisionshape':
-                for vert in object.verts:
+                for vert in model_object.verts:
                     vertices_all.append(vert)
             index = index+1
 
     for geoset in war3_model.geosets:
         for vertex in geoset.vertices:
-            vertices_all.append(vertex[0])
+            vertices_all.append(vertex.pos)
 
-        geoset.min_extent, geoset.max_extent = calc_extents([x[0] for x in geoset.vertices])
+        geoset.min_extent, geoset.max_extent = calc_extents([vert.pos for vert in geoset.vertices])
 
         if geoset.geoset_anim is not None:
             register_global_sequence(war3_model.global_seqs, geoset.geoset_anim.alpha_anim)
@@ -139,3 +109,44 @@ def from_scene(war3_model: War3Model, context, settings):
 
     war3_model.global_extents_min, war3_model.global_extents_max = calc_extents(vertices_all) if len(vertices_all) else ((0, 0, 0), (0, 0, 0))
     war3_model.global_seqs = sorted(war3_model.global_seqs)
+
+
+def parse_bpy_objects(context, materials,
+                      objects: Union[List[bpy.types.Object], bpy.types.bpy_prop_collection, bpy.types.SceneObjects],
+                      settings: War3ExportSettings, war3_model: War3Model):
+    for bpy_obj in objects:
+        parent: bpy.types.Object = get_parent(bpy_obj)
+
+        billboarded = False
+        billboard_lock = (False, False, False)
+        if hasattr(bpy_obj, "mdl_billboard"):
+            bb = bpy_obj.mdl_billboard
+            billboarded = bb.billboarded
+            billboard_lock = (bb.billboard_lock_z, bb.billboard_lock_y, bb.billboard_lock_x)
+            # NOTE: Axes are listed backwards (same as with colors)
+
+        # Animations
+        visibility = get_visibility(war3_model.sequences, bpy_obj)
+
+        # Particle Systems
+        if len(bpy_obj.particle_systems):
+            add_particle_systems(war3_model, billboard_lock, billboarded, materials, bpy_obj, parent, settings)
+
+        # Collision Shapes
+        elif bpy_obj.type == 'EMPTY' and bpy_obj.name.startswith('Collision'):
+            create_collision_shapes(war3_model, bpy_obj, parent, settings)
+
+        elif bpy_obj.type == 'MESH' or bpy_obj.type == 'CURVE':
+            make_mesh(war3_model, billboard_lock, billboarded, context, materials, bpy_obj, parent, settings)
+
+        elif bpy_obj.type == 'EMPTY':
+            add_empties_animations(war3_model, billboard_lock, billboarded, bpy_obj, parent, settings)
+
+        elif bpy_obj.type == 'ARMATURE':
+            add_bones(war3_model, billboard_lock, billboarded, bpy_obj, parent, settings)
+
+        elif bpy_obj.type in ('LAMP', 'LIGHT'):
+            add_lights(war3_model, billboard_lock, billboarded, bpy_obj, settings)
+
+        elif bpy_obj.type == 'CAMERA':
+            war3_model.cameras.append(bpy_obj)

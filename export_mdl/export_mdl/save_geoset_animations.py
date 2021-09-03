@@ -1,8 +1,11 @@
+from typing import TextIO
+
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 from ..utils import f2s
 
 
-def save_geoset_animations(fw, model):
+def save_geoset_animations(fw: TextIO.write, model: War3Model):
     if len(model.geoset_anims):
         for anim in model.geoset_anims:
             fw("GeosetAnim {\n")

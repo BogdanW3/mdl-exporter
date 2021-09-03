@@ -31,11 +31,12 @@ from .save_ribbon_emitters import save_ribbon_emitters
 from .save_sequences import save_sequences
 from .save_texture_animations import save_texture_animations
 from .save_textures import save_textures
+from ..classes.War3ExportSettings import War3ExportSettings
 from ..classes.War3Model import War3Model
 from ..classes.model_utils.from_scene import from_scene
 
 
-def save(operator, context, settings, filepath="", mdl_version=800):
+def save(operator, context, settings: War3ExportSettings, filepath="", mdl_version=800):
 
     scene = context.scene
 

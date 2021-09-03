@@ -1,7 +1,10 @@
+from typing import TextIO
+
+from ..classes.War3Model import War3Model
 from ..utils import f2s, calc_bounds_radius
 
 
-def save_sequences(fw, model):
+def save_sequences(fw: TextIO.write, model: War3Model):
     fw("Sequences %d {\n" % len(model.sequences))
     for sequence in model.sequences:
         fw("\tAnim \"%s\" {\n" % sequence.name)

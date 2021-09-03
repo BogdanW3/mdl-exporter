@@ -1,9 +1,12 @@
+from typing import TextIO
+
 from .write_billboard import write_billboard
 from .write_mdl import write_mdl
+from ..classes.War3Model import War3Model
 from ..utils import f2s
 
 
-def save_lights(fw, model):
+def save_lights(fw: TextIO.write, model: War3Model):
     for light in model.objects['light']:
         l = light.object
         fw("Light \"%s\" {\n" % light.name)
