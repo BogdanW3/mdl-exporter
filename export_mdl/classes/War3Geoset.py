@@ -71,13 +71,21 @@ class War3Geoset:
             fw("\t}\n")
 
         # Faces
-        fw("\tFaces %d %d {\n" % (len(self.triangles), len(self.triangles) * 3))
+        # fw("\tFaces %d %d {\n" % (len(self.triangles), len(self.triangles) * 3))
+        fw("\tFaces %d %d {\n" % (1, len(self.triangles) * 3))
 
         fw("\t\tTriangles {\n")
         fw("\t\t\t{")
+        # for triangle in self.triangles:
+        #     fw(" %d, %d, %d," % triangle[:])
+
+        all_triangles = []
         for triangle in self.triangles:
-            fw(" %d, %d, %d," % triangle[:])
-        fw("\t\t\t},\n")
+            for index in triangle:
+                all_triangles.append(str(index))
+        fw(", ".join(all_triangles))
+        # fw("\t\t\t},\n")
+        fw("},\n")
         fw("\t\t}\n")
         # fw("\t\tTriangles {\n")
         # for triangle in self.triangles:
