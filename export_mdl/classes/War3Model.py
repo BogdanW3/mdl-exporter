@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Dict
 
 import bpy
 
@@ -17,7 +17,7 @@ class War3Model:
     def __init__(self, context: bpy.context):
         self.objects = defaultdict(set)
         self.objects_all: List[War3Object] = []
-        self.object_indices = {}
+        self.object_indices: Dict[str, int] = {}
         self.geosets: List[War3Geoset] = []
         self.geoset_map = {}
         self.geoset_anims: [War3GeosetAnim] = []

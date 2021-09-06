@@ -60,7 +60,7 @@ def from_scene(war3_model: War3Model, context: bpy.context, settings: War3Export
 
     # Demote bones to helpers if they have no attached geosets
     for bone in war3_model.objects['bone']:
-        if not any([g for g in war3_model.geosets if bone.name in itertools.chain.from_iterable(g.matrices)]):
+        if not any([geoset for geoset in war3_model.geosets if bone.name in itertools.chain.from_iterable(geoset.matrices)]):
             war3_model.objects['helper'].add(bone)
 
     war3_model.objects['bone'] -= war3_model.objects['helper']

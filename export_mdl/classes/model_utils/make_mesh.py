@@ -1,5 +1,6 @@
 import bpy
 from mathutils import Vector
+from typing import List
 
 # import export_mdl.classes.animation_curve_utils.get_wc3_animation_curve
 from ..War3AnimationCurve import War3AnimationCurve
@@ -48,25 +49,26 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
     for tri in bpy_mesh.loop_triangles:
         # p = bpy_mesh.polygons[f.index]
         # Textures and materials
-        mat_name = "default"
+        material_name = "default"
         if bpy_obj.material_slots and len(bpy_obj.material_slots):
-            mat = bpy_obj.material_slots[tri.material_index].material
-            if mat is not None:
-                mat_name = mat.name
-                mats.add(mat)
+            bpy_material = bpy_obj.material_slots[tri.material_index].material
+            if bpy_material is not None:
+                material_name = bpy_material.name
+                mats.add(bpy_material)
 
-        if (mat_name, geoset_anim_hash) in war3_model.geoset_map.keys():
-            geoset = war3_model.geoset_map[(mat_name, geoset_anim_hash)]
+        if (material_name, geoset_anim_hash) in war3_model.geoset_map.keys():
+            geoset = war3_model.geoset_map[(material_name, geoset_anim_hash)]
         else:
             geoset = War3Geoset()
-            geoset.mat_name = mat_name
+            geoset.mat_name = material_name
             if geoset_anim is not None:
                 geoset.geoset_anim = geoset_anim
                 geoset_anim.geoset = geoset
-            if settings.use_skinweights:
-                geoset.skin_matrices = temp_skin_matrices
 
-            war3_model.geoset_map[(mat_name, geoset_anim_hash)] = geoset
+            war3_model.geoset_map[(material_name, geoset_anim_hash)] = geoset
+
+        if settings.use_skinweights:
+            geoset.skin_matrices = temp_skin_matrices
 
         # Vertices, faces, and matrices
         vertex_map = {}
@@ -80,6 +82,8 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
             tvert = (rnd(uv.x), rnd(uv.y))
             groups = None
             skins = None
+            bone_list = None
+            weight_list = None
             matrix = 0
             if armature is not None:
                 vertex_groups = sorted(bpy_mesh.vertices[vert].groups[:], key=lambda x: x.weight, reverse=True)
@@ -87,7 +91,8 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
                 if len(vertex_groups) and not settings.use_skinweights:
                     groups = get_matrice_groups(bone_names, bpy_obj, vertex_groups)
                 elif len(vertex_groups) and settings.use_skinweights:
-                    skins = get_skins(bone_names, geoset, bpy_obj, vertex_groups)
+                    # skins = get_skins(bone_names, geoset, bpy_obj, vertex_groups)
+                    bone_list, weight_list = get_skins2(bone_names, geoset, bpy_obj, vertex_groups)
 
             if parent is not None and (groups is None or len(groups) == 0):
                 groups = [parent]
@@ -99,10 +104,11 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
 
             if settings.use_skinweights:
                 # vertex = (coord, norm, tvert, skins)
-                vertex = War3Vertex(coord, norm, tvert, None, skins, None)
+                vertex = War3Vertex(coord, norm, tvert, None, bone_list, weight_list, None)
             else:
                 # vertex = (coord, norm, tvert, matrix)
-                vertex = War3Vertex(coord, norm, tvert, matrix, None, None)
+                # vertex = War3Vertex(coord, norm, tvert, matrix, None, None)
+                vertex = War3Vertex(coord, norm, tvert, matrix, None, None, None)
 
             if vertex not in geoset.vertices:
                 geoset.vertices.append(vertex)
@@ -124,7 +130,20 @@ def make_mesh(war3_model: War3Model, billboard_lock, billboarded, context, mats,
     bpy.data.meshes.remove(bpy_mesh)
 
 
-def get_matrice_groups(bone_names, obj, vertex_groups):
+def get_matrice_groups(bone_names, obj, vertex_groups) -> List[str]:
+    # Warcraft 800 does not support vertex weights, so we exclude groups with too small influence
+    groups = list(obj.vertex_groups[vg.group].name for vg in vertex_groups if
+                  (obj.vertex_groups[vg.group].name in bone_names and vg.weight > 0.25))[:3]
+    if not len(groups):
+        for vg in vertex_groups:
+            # If we didn't find a group, just take the best match (the list is already sorted by weight)
+            if obj.vertex_groups[vg.group].name in bone_names:
+                groups = [obj.vertex_groups[vg.group].name]
+                break
+    return groups
+
+
+def get_matrice_groups1(bone_names, obj, vertex_groups):
     # Warcraft 800 does not support vertex weights, so we exclude groups with too small influence
     groups = list(obj.vertex_groups[vg.group].name for vg in vertex_groups if
                   (obj.vertex_groups[vg.group].name in bone_names and vg.weight > 0.25))[:3]
@@ -152,6 +171,23 @@ def get_skins(bone_names, geoset, obj, vertex_groups):
     weight_list[0] = int(weight_list[0] + weight_adjust)
     skins = bone_list + weight_list
     return skins
+
+
+def get_skins2(bone_names, geoset, obj, vertex_groups):
+    # Warcraft 800+ do support vertex (skin) weights; 4 per vertex which sum up to 255
+    bone_list = (list(obj.vertex_groups[vg.group].name for vg in vertex_groups if
+                      (obj.vertex_groups[vg.group].name in bone_names)))[:4]
+    weight_list = (list(vg.weight for vg in vertex_groups if (obj.vertex_groups[vg.group].name in bone_names)) + [
+        0] * 4)[:4]
+    tot_weight = sum(weight_list)
+    w_conv = 255 / tot_weight
+    weight_list = [round(i * w_conv) for i in weight_list]
+    # Ugly fix to make sure total weight is 255
+
+    weight_adjust = 255 - sum(weight_list)
+    weight_list[0] = int(weight_list[0] + weight_adjust)
+    # skins = bone_list + weight_list
+    return bone_list, weight_list
 
 
 def get_geoset_anim(obj, visibility, war3_model):

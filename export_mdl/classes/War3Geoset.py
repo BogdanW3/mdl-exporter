@@ -1,4 +1,4 @@
-from typing import TextIO, List
+from typing import TextIO, List, Dict
 
 from .War3Vertex import War3Vertex
 from ..utils import f2s, calc_bounds_radius
@@ -8,7 +8,7 @@ class War3Geoset:
     def __init__(self):
         self.vertices: List[War3Vertex] = []
         self.triangles: [float] = []
-        self.matrices = []
+        self.matrices: List[List[str]] = []
         self.skin_matrices = []
         self.skin_weights = []
         self.objects = []
@@ -29,7 +29,7 @@ class War3Geoset:
         # return hash(tuple(sorted(self.__dict__.items())))
         return hash((self.mat_name, hash(self.geoset_anim)))  # Different geoset anims should split geosets
 
-    def write_geoset(self, fw: TextIO.write, material_names, sequences, object_indices, settings):
+    def write_geoset(self, fw: TextIO.write, material_names, sequences, object_indices: Dict[str, int], settings):
         fw("Geoset {\n")
         # Vertices
         fw("\tVertices %d {\n" % len(self.vertices))
@@ -56,6 +56,14 @@ class War3Geoset:
                 fw("\t\t%d,\n" % vertex.matrix)
         fw("\t}\n")
 
+        sorted_dict = {}
+        if settings.use_skinweights:
+            skin_groups = {}
+            for name in object_indices:
+                skin_groups[object_indices[name]] = name
+            for index in range(0, len(skin_groups)):
+                sorted_dict[skin_groups[index]] = index
+
         if settings.use_skinweights:
             # Tangents
             fw("\tTangents %d {\n" % len(self.vertices))
@@ -67,7 +75,9 @@ class War3Geoset:
             # SkinWeights
             fw("\tSkinWeights %d {\n" % len(self.vertices))
             for vertex in self.vertices:
-                fw("\t\t%s, %s, %s, %s, %s, %s, %s, %s,\n" % tuple(vertex.skin))
+                bones = tuple((sorted_dict[name] for name in vertex.bone_list)) + tuple([0, 0, 0, 0])
+                fw("\t\t%s, %s, %s, %s, " % bones[0:4])
+                fw("%s, %s, %s, %s,\n" % tuple(vertex.weight_list))
             fw("\t}\n")
 
         # Faces
@@ -93,10 +103,18 @@ class War3Geoset:
         # fw("\t\t}\n")
         fw("\t}\n")
 
-        fw("\tGroups %d %d {\n" % (len(self.matrices), sum(len(mtrx) for mtrx in self.matrices)))
-        for matrix in self.matrices:
-            fw("\t\tMatrices {%s},\n" % ','.join(str(object_indices[g]) for g in matrix))
-        fw("\t}\n")
+        if settings.use_skinweights:
+            fw("\tGroups %d %d {\n" % (len(self.skin_matrices), sum(len(mtrx) for mtrx in self.skin_matrices)))
+            i = 0
+            for matrix in self.skin_matrices:
+                fw("\t\tMatrices {%s},\n" % ','.join(str(i) for _ in matrix))
+                i = i+1
+            fw("\t}\n")
+        else:
+            fw("\tGroups %d %d {\n" % (len(self.matrices), sum(len(mtrx) for mtrx in self.matrices)))
+            for matrix in self.matrices:
+                fw("\t\tMatrices {%s},\n" % ','.join(str(object_indices[g]) for g in matrix))
+            fw("\t}\n")
 
         fw("\tMinimumExtent {%s, %s, %s},\n" % tuple(map(f2s, self.min_extent)))
         fw("\tMaximumExtent {%s, %s, %s},\n" % tuple(map(f2s, self.max_extent)))
