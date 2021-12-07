@@ -154,7 +154,7 @@ def register():
         
     bpy.types.TOPBAR_MT_file_export.append(menu_func)
     
-    presets_path = os.path.join(bpy.utils.user_resource('SCRIPTS', "presets"), "mdl_exporter")
+    presets_path = os.path.join(bpy.utils.user_resource('SCRIPTS', path="presets"), "mdl_exporter")
     emitters_path = os.path.join(presets_path, "emitters")
     
     if not os.path.exists(emitters_path):
