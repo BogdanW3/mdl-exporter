@@ -3,7 +3,7 @@ from typing import TextIO
 from mathutils import Vector
 
 from ..classes.War3Model import War3Model
-from ..utils import f2s
+from ..utils import float2str
 
 
 def save_cameras(fw: TextIO.write, model: War3Model, settings):
@@ -11,7 +11,7 @@ def save_cameras(fw: TextIO.write, model: War3Model, settings):
         fw("Camera \"%s\" {\n" % camera.name)
         position = settings.global_matrix @ Vector(camera.location)
 
-        fw("\tPosition {%s, %s, %s},\n" % tuple(map(f2s, position)))
+        fw("\tPosition {%s, %s, %s},\n" % tuple(map(float2str, position)))
         fw("\tFieldOfView %f,\n" % camera.data.angle)
         fw("\tFarClip %f,\n" % (camera.data.clip_end * 10))
         fw("\tNearClip %f,\n" % (camera.data.clip_start * 10))
@@ -20,5 +20,5 @@ def save_cameras(fw: TextIO.write, model: War3Model, settings):
         target = position + matrix.to_quaternion() @ Vector(
             (0.0, 0.0, -1.0))  # Target is just a point in front of the camera
 
-        fw("\tTarget {\n\t\tPosition {%s, %s, %s},\n\t}\n" % tuple(map(f2s, target)))
+        fw("\tTarget {\n\t\tPosition {%s, %s, %s},\n\t}\n" % tuple(map(float2str, target)))
         fw("}\n")

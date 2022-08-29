@@ -1,13 +1,13 @@
 from typing import TextIO
 
 from ..classes.War3Model import War3Model
-from ..utils import f2s, calc_bounds_radius
+from ..utils import float2str, calc_bounds_radius
 
 
 def save_geosets(fw: TextIO.write, material_names, model: War3Model, settings):
     if len(model.geosets):
         for geoset in model.geosets:
-            geoset.write_geoset(fw, material_names, model.sequences, model.object_indices, settings)
+            geoset.write_geoset(fw, material_names, model.sequences, model.object_indices, settings.use_skinweights)
             # fw("Geoset {\n")
             # # Vertices
             # fw("\tVertices %d {\n" % len(geoset.vertices))

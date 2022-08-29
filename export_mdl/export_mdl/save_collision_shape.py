@@ -1,11 +1,11 @@
 from typing import TextIO
 
 from ..classes.War3Model import War3Model
-from ..utils import f2s, rnd
+from ..utils import float2str, rnd
 
 
 def save_collision_shape(fw: TextIO.write, model: War3Model):
-    for collider in model.objects['collisionshape']:
+    for collider in model.collision_shapes:
         fw("CollisionShape \"%s\" {\n" % collider.name)
         fw("\tObjectId %d,\n" % model.object_indices[collider.name])
         if collider.parent is not None:
@@ -17,8 +17,8 @@ def save_collision_shape(fw: TextIO.write, model: War3Model):
 
         fw("\tVertices %d {\n" % len(collider.verts))
         for vert in collider.verts:
-            fw("\t\t{%s, %s, %s},\n" % tuple(f2s(rnd(x)) for x in vert))
+            fw("\t\t{%s, %s, %s},\n" % tuple(float2str(rnd(x)) for x in vert))
         fw("\t}\n")
         if collider.type == 'Sphere':
-            fw("\tBoundsRadius %s,\n" % f2s(rnd(collider.radius)))
+            fw("\tBoundsRadius %s,\n" % float2str(rnd(collider.radius)))
         fw("}\n")

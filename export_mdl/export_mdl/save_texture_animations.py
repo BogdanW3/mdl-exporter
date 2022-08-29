@@ -1,33 +1,37 @@
-from typing import TextIO
+from typing import TextIO, List, Set
 
-from .write_mdl import write_mdl
+from .write_animation_chunk import write_animation_chunk
+from ..classes.War3Material import War3Material
 from ..classes.War3Model import War3Model
+from ..classes.War3TextureAnim import War3TextureAnim
 
 
-def save_texture_animations(fw: TextIO.write, model: War3Model):
-    if len(model.tvertex_anims):
-        fw("TextureAnims %d {\n" % len(model.tvertex_anims))
-        for uv_anim in model.tvertex_anims:
+def save_texture_animations(fw: TextIO.write,
+                            tvertex_anims: List[War3TextureAnim],
+                            materials: List[War3Material],
+                            global_seqs: Set[int]):
+    if len(tvertex_anims):
+        fw("TextureAnims %d {\n" % len(tvertex_anims))
+        for uv_anim in tvertex_anims:
             fw("\tTVertexAnim {\n")
             if uv_anim.translation is not None:
-                write_mdl(uv_anim.translation.keyframes, uv_anim.translation.type,
-                          uv_anim.translation.interpolation, uv_anim.translation.global_sequence,
-                          uv_anim.translation.handles_left, uv_anim.translation.handles_right,
-                          "Translation", fw, model.global_seqs, "\t\t")
+                write_animated(fw, uv_anim.translation, global_seqs, "Translation")
 
             if uv_anim.rotation is not None:
-                write_mdl(uv_anim.rotation.keyframes, uv_anim.rotation.type,
-                          uv_anim.rotation.interpolation, uv_anim.rotation.global_sequence,
-                          uv_anim.rotation.handles_left, uv_anim.rotation.handles_right,
-                          "Rotation", fw, model.global_seqs, "\t\t")
+                write_animated(fw, uv_anim.rotation, global_seqs, "Rotation")
 
             if uv_anim.scale is not None:
-                write_mdl(uv_anim.scaling.keyframes, uv_anim.scaling.type,
-                          uv_anim.scaling.interpolation, uv_anim.scaling.global_sequence,
-                          uv_anim.scaling.handles_left, uv_anim.scaling.handles_right,
-                          "Scaling", fw, model.global_seqs, "\t\t")
+                write_animated(fw, uv_anim.scale, global_seqs, "Scaling")
 
             fw("\t}\n")
         fw("}\n")
-    material_names = [mat.name for mat in model.materials]
+    material_names = [mat.name for mat in materials]
     return material_names
+
+
+def write_animated(fw, anim_curve, global_seqs, name):
+    write_animation_chunk(fw, anim_curve, name, global_seqs, "\t\t")
+    # write_animation_chunk(anim_curve.keyframes, anim_curve.type,
+    #                       anim_curve.interpolation, anim_curve.global_sequence,
+    #                       anim_curve.handles_left, anim_curve.handles_right,
+    #                       name, fw, global_seqs, "\t\t")

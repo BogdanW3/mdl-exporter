@@ -1,14 +1,23 @@
 import math
 from operator import itemgetter
+from typing import SupportsRound
 
 decimal_places = 5
 
 
-def rnd(val):
+def rnd(val: float) -> float:
     return round(val, decimal_places)
 
 
-def f2s(value):
+def rnd(val: int) -> int:
+    return round(val, decimal_places)
+
+
+# def rnd(val: SupportsRound[_Protocol[T_co]]):
+#     return round(val, decimal_places)
+
+
+def float2str(value: float) -> str:
     return ('%.6f' % value).rstrip('0').rstrip('.')
 
 

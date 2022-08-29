@@ -60,7 +60,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             unit='LENGTH'
             )
 
-    def execute(self, context):
+    def execute(self, context: bpy.types.Context):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
@@ -81,7 +81,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
 
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context: bpy.types.Context):
         layout = self.layout
 
         layout.prop(self, "use_selection")

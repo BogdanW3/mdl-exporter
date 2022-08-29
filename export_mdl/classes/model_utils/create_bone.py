@@ -1,10 +1,18 @@
+import bpy
 from mathutils import Vector
+from typing import Optional
 
-from ..War3Object import War3Object
+from ..War3AnimationCurve import War3AnimationCurve
+from ..War3Node import War3Node
 
 
-def create_bone(anim_loc, anim_rot, anim_scale, obj, parent, settings):
-    bone = War3Object(obj.name)
+def create_bone(anim_loc: Optional[War3AnimationCurve],
+                anim_rot: Optional[War3AnimationCurve],
+                anim_scale: Optional[War3AnimationCurve],
+                obj: bpy.types.Object,
+                parent: Optional[bpy.types.Object],
+                settings):
+    bone = War3Node(obj.name)
     if parent is not None:
         bone.parent = parent
     else:

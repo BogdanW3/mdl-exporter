@@ -1,12 +1,13 @@
-from typing import TextIO
+from typing import TextIO, List
 
+from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
 from ..classes.War3Model import War3Model
 
 
-def save_textures(fw: TextIO.write, model: War3Model):
-    if len(model.textures):
-        fw("Textures %d {\n" % len(model.textures))
-        for texture in model.textures:
+def save_textures(fw: TextIO.write, textures: List[WarCraft3Texture]):
+    if len(textures):
+        fw("Textures %d {\n" % len(textures))
+        for texture in textures:
             fw("\tBitmap {\n")
 
             if texture.startswith("ReplaceableId"):

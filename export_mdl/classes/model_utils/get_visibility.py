@@ -1,8 +1,13 @@
+from typing import Optional, List
+
+import bpy
+
+from ..War3AnimationAction import War3AnimationAction
 from ..War3AnimationCurve import War3AnimationCurve
 from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 
 
-def get_visibility(sequences, bpy_obj):
+def get_visibility(sequences: List[War3AnimationAction], bpy_obj: bpy.types.Object) -> Optional[War3AnimationCurve]:
     if bpy_obj.animation_data is not None:
         curve = get_wc3_animation_curve(bpy_obj.animation_data, 'hide_render', 1, sequences)
         if curve is not None:

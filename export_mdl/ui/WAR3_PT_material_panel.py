@@ -1,4 +1,4 @@
-from bpy.types import Panel
+from bpy.types import Panel, Context
 
 
 class WAR3_PT_material_panel(Panel):
@@ -10,10 +10,10 @@ class WAR3_PT_material_panel(Panel):
     bl_context = 'material'
 
     @classmethod
-    def poll(self,context):
+    def poll(cls, context):
         return context.active_object is not None and context.active_object.active_material is not None
 
-    def draw(self, context):
+    def draw(self, context: Context):
         layout = self.layout
         mat = context.active_object.active_material
 

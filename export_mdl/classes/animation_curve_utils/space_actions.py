@@ -1,4 +1,9 @@
-def space_actions(action_list):
+from typing import List
+
+from export_mdl.classes.War3AnimationAction import War3AnimationAction
+
+
+def space_actions(action_list: List[War3AnimationAction]):
     last_action_frame = 0
     action_spacing = 10
     for action in action_list:

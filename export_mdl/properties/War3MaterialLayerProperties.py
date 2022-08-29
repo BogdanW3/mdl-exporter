@@ -86,6 +86,8 @@ class War3MaterialLayerProperties(PropertyGroup):
     @classmethod
     def register(cls):
         bpy.types.Material.mdl_layers = CollectionProperty(type=War3MaterialLayerProperties, options={'HIDDEN'})
+        # bpy.types.Material.mdl_layers: CollectionProperty = CollectionProperty(type=War3MaterialLayerProperties, options={'HIDDEN'})
+        # bpy.types.Material.mdl_layers
         bpy.types.Material.mdl_layer_index = IntProperty(name="Layer index", description="", default=0, options={'HIDDEN'})
         bpy.types.Material.priority_plane = IntProperty(name="Priority Plane", description="Order at which this material will be rendered", default=0, options={'HIDDEN'})
 

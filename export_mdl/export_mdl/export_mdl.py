@@ -12,6 +12,8 @@
 import datetime
 import getpass
 
+import bpy
+
 from .save_attachment_points import save_attachment_points
 from .save_bones import save_bones
 from .save_cameras import save_cameras
@@ -36,15 +38,16 @@ from ..classes.War3Model import War3Model
 from ..classes.model_utils.from_scene import from_scene
 
 
-def save(operator, context, settings: War3ExportSettings, filepath="", mdl_version=800):
+def save(operator, context: bpy.types.Context, settings: War3ExportSettings, filepath="", mdl_version=800):
 
+    print("context: ", context)
     scene = context.scene
 
     current_frame = scene.frame_current
     scene.frame_set(0)
 
-    model = War3Model(context)
-    from_scene(model, context, settings)
+    frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
+    model = from_scene(context, settings)
 
     scene.frame_set(current_frame)
 
@@ -62,25 +65,25 @@ def save(operator, context, settings: War3ExportSettings, filepath="", mdl_versi
         save_model_header(fw, model)
 
         # SEQUENCES
-        save_sequences(fw, model)
+        save_sequences(fw, model.sequences, model.global_extents_min, model.global_extents_max)
 
         # GLOBAL SEQUENCES
-        save_global_sequences(fw, model)
+        save_global_sequences(fw, model.global_seqs)
 
         # TEXTURES
-        save_textures(fw, model)
+        save_textures(fw, model.textures)
 
         # MATERIALS
-        save_materials(fw, model)
+        save_materials(fw, model.materials, model.textures, model.tvertex_anims, model.global_seqs)
 
         # TEXTURE ANIMATIONS
-        material_names = save_texture_animations(fw, model)
+        material_names = save_texture_animations(fw, model.tvertex_anims, model.materials, model.global_seqs)
 
         # GEOSETS
         save_geosets(fw, material_names, model, settings)
 
         # GEOSET ANIMS
-        save_geoset_animations(fw, model)
+        save_geoset_animations(fw, model.geoset_anims, model.geosets, model.global_seqs)
 
         # BONES
         save_bones(fw, model)
@@ -92,13 +95,14 @@ def save(operator, context, settings: War3ExportSettings, filepath="", mdl_versi
         save_helpers(fw, model)
 
         # ATTACHMENT POINTS
-        save_attachment_points(fw, model)
+        # save_attachment_points(fw, model)
+        save_attachment_points(fw, model.attachments, model.global_seqs, model.object_indices)
 
         # PIVOT POINTS
-        save_pivot_points(fw, model)
+        save_pivot_points(fw, model.objects_all)
 
         # MODEL EMITTERS
-        save_model_emitters(fw, model)
+        save_model_emitters(fw, model.particle_systems, model.object_indices, model.global_seqs)
 
         # PARTICLE EMITTERS
         save_particle_emitters(fw, model)
@@ -110,7 +114,7 @@ def save(operator, context, settings: War3ExportSettings, filepath="", mdl_versi
         save_cameras(fw, model, settings)
 
         # EVENT OBJECTS
-        save_event_objects(fw, model)
+        save_event_objects(fw, model.event_objects, model.object_indices, model.global_seqs)
 
         # COLLISION SHAPES
         save_collision_shape(fw, model)

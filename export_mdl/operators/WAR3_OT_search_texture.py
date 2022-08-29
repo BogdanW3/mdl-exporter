@@ -1,3 +1,4 @@
+import bpy.types
 from bpy.props import EnumProperty
 import os
 from bpy.types import Operator
@@ -39,7 +40,7 @@ class WAR3_OT_search_texture(Operator):
         wm.invoke_search_popup(self)
         return {'FINISHED'}
 
-    def execute(self, context):
+    def execute(self, context: bpy.types.Context):
         try:
             if self.target == 'Material':
                 mat = context.active_object.active_material

@@ -1,7 +1,8 @@
 from mathutils import Quaternion
+from typing import Dict
 
 
-def transform_rot(keyframes, matrix):
+def transform_rot(keyframes: Dict[float, tuple], matrix):
     for frame in keyframes.keys():
         axis, angle = Quaternion(keyframes[frame]).to_axis_angle()
 

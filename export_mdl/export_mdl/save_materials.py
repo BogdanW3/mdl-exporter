@@ -1,14 +1,21 @@
-from typing import TextIO
+from typing import TextIO, Set, List
 
-from .write_mdl import write_mdl
+from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
+from .write_animation_chunk import write_animation_chunk
+from ..classes.War3Material import War3Material
 from ..classes.War3Model import War3Model
-from ..utils import f2s
+from ..classes.War3TextureAnim import War3TextureAnim
+from ..utils import float2str
 
 
-def save_materials(fw: TextIO.write, model: War3Model):
-    if len(model.materials):
-        fw("Materials %d {\n" % len(model.materials))
-        for material in model.materials:
+def save_materials(fw: TextIO.write,
+                   materials: List[War3Material],
+                   textures: List[WarCraft3Texture],
+                   tvertex_anims: List[War3TextureAnim],
+                   global_seqs: Set[int]):
+    if len(materials):
+        fw("Materials %d {\n" % len(materials))
+        for material in materials:
             fw("\tMaterial {\n")
 
             if material.use_const_color is True:
@@ -39,20 +46,20 @@ def save_materials(fw: TextIO.write, model: War3Model):
                     fw("\t\t\tNoDepthSet,\n")
 
                 if layer.texture is not None:
-                    fw("\t\t\tstatic TextureID %d,\n" % model.textures.index(layer.texture))
+                    fw("\t\t\tstatic TextureID %d,\n" % textures.index(layer.texture))
                 else:
                     fw("\t\t\tstatic TextureID 0,\n")
 
                 if layer.texture_anim is not None:
-                    fw("\t\t\tTVertexAnimId %d,\n" % model.tvertex_anims.index(layer.texture_anim))
+                    fw("\t\t\tTVertexAnimId %d,\n" % tvertex_anims.index(layer.texture_anim))
                 if layer.alpha_anim is not None:
-                    write_mdl(layer.alpha_anim.keyframes, layer.alpha_anim.type,
-                              layer.alpha_anim.interpolation, layer.alpha_anim.global_sequence,
-                              layer.alpha_anim.handles_left, layer.alpha_anim.handles_right,
-                              "Alpha", fw, model.global_seqs, "\t\t")
-                    # write_anim(layer.alpha_anim, "Alpha", fw, global_seqs, "\t\t")
+                    write_animation_chunk(fw, layer.alpha_anim, "Alpha", global_seqs, "\t\t")
+                    # write_animation_chunk(layer.alpha_anim.keyframes, layer.alpha_anim.type,
+                    #                       layer.alpha_anim.interpolation, layer.alpha_anim.global_sequence,
+                    #                       layer.alpha_anim.handles_left, layer.alpha_anim.handles_right,
+                    #           "Alpha", fw, global_seqs, "\t\t")
                 else:
-                    fw("\t\t\tstatic Alpha %s,\n" % f2s(layer.alpha_value))
+                    fw("\t\t\tstatic Alpha %s,\n" % float2str(layer.alpha_value))
 
                 fw("\t\t}\n")
             fw("\t}\n")

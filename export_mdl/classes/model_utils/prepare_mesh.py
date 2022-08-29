@@ -1,8 +1,9 @@
 import bmesh
 import bpy
+from bpy.types import Mesh
 
 
-def prepare_mesh(bpy_obj, context, matrix):
+def prepare_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mesh:
     mod = None
     if bpy_obj.data.use_auto_smooth:
         mod = bpy_obj.modifiers.new("EdgeSplitExport", 'EDGE_SPLIT')

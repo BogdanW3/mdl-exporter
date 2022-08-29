@@ -1,7 +1,9 @@
+import bpy
+
 from ..War3AnimationSequence import War3AnimationSequence
 
 
-def get_sequences(f2ms, scene):
+def get_sequences(f2ms: float, scene: bpy.types.Scene):
     sequences = []
 
     for sequence in scene.mdl_sequences:

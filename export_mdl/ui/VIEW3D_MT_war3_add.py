@@ -4,6 +4,7 @@ from ..operators.WAR3_OT_create_collision_shape import WAR3_OT_create_collision_
 from ..operators.WAR3_OT_add_anim_sequence import WAR3_OT_add_anim_sequence
 import bpy
 
+
 class VIEW_MT_war3_add(bpy.types.Menu):
     bl_idname = "VIEW_MT_war3_add"
     bl_label = "MDL add"

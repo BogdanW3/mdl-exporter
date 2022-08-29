@@ -39,11 +39,11 @@ class War3LightSettings(PropertyGroup):
     color: FloatVectorProperty(
         name="Color",
         subtype='COLOR',
-        default=(1.0, 1.0, 1.0),
+        default=[1.0, 1.0, 1.0],
         )
 
     amb_color: FloatVectorProperty(
         name="Ambient Color",
         subtype='COLOR',
-        default=(1.0, 1.0, 1.0),
+        default=[1.0, 1.0, 1.0],
         )

@@ -1,3 +1,4 @@
+import bpy
 from bpy.props import StringProperty, IntProperty, BoolProperty
 from bpy.types import Operator
 
@@ -33,7 +34,7 @@ class WAR3_OT_add_anim_sequence(Operator):
         default=False
         )
 
-    def invoke(self, context, event):
+    def invoke(self, context: bpy.types.Context, event):
         scene = context.window.scene
         for name in ["Stand", "Birth", "Death", "Decay", "Portrait"]:
             if name not in (s.name for s in scene.mdl_sequences):
@@ -47,7 +48,8 @@ class WAR3_OT_add_anim_sequence(Operator):
 
         return context.window_manager.invoke_props_dialog(self, width = 400)
 
-    def draw(self, context):
+    def draw(self, context: bpy.types.Context):
+        print("context: ", context)
         layout = self.layout
         layout.prop(self, "name")
         layout.prop(self, "start")
@@ -55,7 +57,7 @@ class WAR3_OT_add_anim_sequence(Operator):
         layout.prop(self, "rarity")
         layout.prop(self, "non_looping")
 
-    def execute(self, context):
+    def execute(self, context: bpy.types.Context):
         scene = context.window.scene
         sequences = scene.mdl_sequences
 
