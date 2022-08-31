@@ -3,7 +3,6 @@ from typing import List, Dict, Tuple, Set, Optional
 
 import bpy
 
-from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
 from .War3AnimationAction import War3AnimationAction
 from .War3AnimationCurve import War3AnimationCurve
 from .War3Attachment import War3Attachment
@@ -19,6 +18,7 @@ from .War3Node import War3Node
 from .War3ParticleEmitter import War3ParticleEmitter
 from .War3ParticleSystem import War3ParticleSystem
 from .War3RibbonEmitter import War3RibbonEmitter
+from .War3Texture import War3Texture
 from .War3TextureAnim import War3TextureAnim
 
 
@@ -54,7 +54,8 @@ class War3Model:
         self.const_color_mats = set()
         self.global_seqs: Set[int] = set()
         self.cameras: List = []
-        self.textures: List[WarCraft3Texture] = []
+        self.textures_paths: List[str] = []
+        self.textures: List[War3Texture] = []
         self.tvertex_anims: List[War3TextureAnim] = []
 
         # self.f2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion

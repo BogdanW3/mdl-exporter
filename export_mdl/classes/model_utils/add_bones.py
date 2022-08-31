@@ -18,16 +18,14 @@ def add_bones(sequences: List[War3AnimationAction], global_seqs: Set[int], bones
               billboard_lock: Tuple[bool, bool, bool],
               billboarded: bool,
               bpy_obj: bpy.types.Object,
-              parent: bpy.types.Object,
+              parent_name: Optional[str],
               settings: War3ExportSettings):
     visibility = get_visibility(sequences, bpy_obj)
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, bpy_obj, settings)
+    animation_data: bpy.types.AnimData = bpy_obj.animation_data
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, animation_data, settings)
     root_pivot = settings.global_matrix @ Vector(bpy_obj.location)
-    if parent is not None:
-        root_parent = parent.name
-    else:
-        root_parent = None
-    root = War3Bone(bpy_obj.name, anim_loc, anim_rot, anim_scale, root_parent, root_pivot)
+
+    root = War3Bone(bpy_obj.name, anim_loc, anim_rot, anim_scale, parent_name, root_pivot)
 
     # root.pivot = settings.global_matrix @ Vector(bpy_obj.location)
     # root.anim_loc = anim_loc
@@ -69,12 +67,11 @@ def add_bones(sequences: List[War3AnimationAction], global_seqs: Set[int], bones
         anim_rot = get_wc3_animation_curve(bpy_obj.animation_data, data_path % 'rotation_quaternion', 4, sequences)
         anim_scale = get_wc3_animation_curve(bpy_obj.animation_data, data_path % 'scale', 3, sequences)
 
-        if b.parent is not None:
-            parent = b.parent.name
-        else:
-            parent = root.name
+        b_parent = b.parent
+        bone_p_name = None if b_parent is None else b_parent.name
+
         pivot = bpy_obj.matrix_world @ Vector(b.bone.head_local)
-        bone = War3Bone(b.name, anim_loc, anim_rot, anim_scale, parent, settings.global_matrix @ Vector(pivot))
+        bone = War3Bone(b.name, anim_loc, anim_rot, anim_scale, bone_p_name, settings.global_matrix @ Vector(pivot))
 
         # bone.pivot = bpy_obj.matrix_world @ Vector(b.bone.head_local)  # Armature space to world space
         # bone.pivot = settings.global_matrix @ Vector(bone.pivot)  # Axis conversion

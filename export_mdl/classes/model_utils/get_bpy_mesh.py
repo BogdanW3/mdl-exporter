@@ -3,7 +3,7 @@ import bpy
 from bpy.types import Mesh
 
 
-def prepare_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mesh:
+def get_bpy_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mesh:
     mod = None
     if bpy_obj.data.use_auto_smooth:
         mod = bpy_obj.modifiers.new("EdgeSplitExport", 'EDGE_SPLIT')
@@ -31,5 +31,6 @@ def prepare_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mes
 
     bpy_mesh.calc_normals_split()
     bpy_mesh.calc_loop_triangles()
+    bpy_mesh.calc_tangents()
 
     return bpy_mesh

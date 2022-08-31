@@ -27,62 +27,62 @@ class War3Emitter(War3Node):
         self.visibility: Optional[War3AnimationCurve] = None
         self.emitter: War3ParticleSystemProperties = None
 
-    def set_from(self, obj: bpy.types.Object, sequences: List[War3AnimationAction], global_seqs: Set[int]):
-        settings: bpy.types.ParticleSettings = obj.particle_systems[0].settings
-
-        self.emitter: War3ParticleSystemProperties = settings.mdl_particle_sys
-        self.scale_anim: Optional[War3AnimationCurve] = get_anim(obj.animation_data, 'scale', 2, sequences)
-        self.register_global_sequence(global_seqs, self.scale_anim)
-        # register_global_sequence(model.global_seqs, self.scale_anim)
-
-        # Animated properties
-        bby_anim_data = settings.animation_data
-        if bby_anim_data is None:
-            self.emission_rate_anim: Optional[War3AnimationCurve] = None
-            self.speed_anim: Optional[War3AnimationCurve] = None
-            self.life_span_anim: Optional[War3AnimationCurve] = None
-            self.gravity_anim: Optional[War3AnimationCurve] = None
-            self.variation_anim: Optional[War3AnimationCurve] = None
-            self.latitude_anim: Optional[War3AnimationCurve] = None
-            self.longitude_anim: Optional[War3AnimationCurve] = None
-            self.alpha_anim: Optional[War3AnimationCurve] = None
-            self.ribbon_color_anim: Optional[War3AnimationCurve] = None
-        else:
-            self.emission_rate_anim = get_anim(bby_anim_data, 'mdl_particle_sys.emission_rate', 1, sequences)
-            self.register_global_sequence(global_seqs, self.emission_rate_anim)
-            # register_global_sequence(model.global_seqs, self.emission_rate_anim)
-
-            self.speed_anim = get_anim(bby_anim_data, 'mdl_particle_sys.speed', 1, sequences)
-            self.register_global_sequence(global_seqs, self.speed_anim)
-            # register_global_sequence(model.global_seqs, self.speed_anim)
-
-            self.life_span_anim = get_anim(bby_anim_data, 'mdl_particle_sys.life_span', 1, sequences)
-            self.register_global_sequence(global_seqs, self.life_span_anim)
-            # register_global_sequence(model.global_seqs, self.life_span_anim)
-
-            self.gravity_anim = get_anim(bby_anim_data, 'mdl_particle_sys.gravity', 1, sequences)
-            self.register_global_sequence(global_seqs, self.gravity_anim)
-            # register_global_sequence(model.global_seqs, self.gravity_anim)
-
-            self.variation_anim = get_anim(bby_anim_data, 'mdl_particle_sys.variation', 1, sequences)
-            self.register_global_sequence(global_seqs, self.variation_anim)
-            # register_global_sequence(model.global_seqs, self.variation_anim)
-
-            self.latitude_anim = get_anim(bby_anim_data, 'mdl_particle_sys.latitude', 1, sequences)
-            self.register_global_sequence(global_seqs, self.latitude_anim)
-            # register_global_sequence(model.global_seqs, self.latitude_anim)
-
-            self.longitude_anim = get_anim(bby_anim_data, 'mdl_particle_sys.longitude', 1, sequences)
-            self.register_global_sequence(global_seqs, self.longitude_anim)
-            # register_global_sequence(model.global_seqs, self.longitude_anim)
-
-            self.alpha_anim = get_anim(bby_anim_data, 'mdl_particle_sys.alpha', 1, sequences)
-            self.register_global_sequence(global_seqs, self.alpha_anim)
-            # register_global_sequence(model.global_seqs, self.alpha_anim)
-
-            self.ribbon_color_anim = get_anim(bby_anim_data, 'mdl_particle_sys.ribbon_color', 3, sequences)
-            self.register_global_sequence(global_seqs, self.ribbon_color_anim)
-            # register_global_sequence(model.global_seqs, self.ribbon_color_anim)
+    # def set_from(self, obj: bpy.types.Object, sequences: List[War3AnimationAction], global_seqs: Set[int]):
+    #     settings: bpy.types.ParticleSettings = obj.particle_systems[0].settings
+    #
+    #     self.emitter: War3ParticleSystemProperties = settings.mdl_particle_sys
+    #     self.scale_anim: Optional[War3AnimationCurve] = get_anim(obj.animation_data, 'scale', 2, sequences)
+    #     self.register_global_sequence(global_seqs, self.scale_anim)
+    #     # register_global_sequence(model.global_seqs, self.scale_anim)
+    #
+    #     # Animated properties
+    #     bby_anim_data = settings.animation_data
+    #     if bby_anim_data is None:
+    #         self.emission_rate_anim: Optional[War3AnimationCurve] = None
+    #         self.speed_anim: Optional[War3AnimationCurve] = None
+    #         self.life_span_anim: Optional[War3AnimationCurve] = None
+    #         self.gravity_anim: Optional[War3AnimationCurve] = None
+    #         self.variation_anim: Optional[War3AnimationCurve] = None
+    #         self.latitude_anim: Optional[War3AnimationCurve] = None
+    #         self.longitude_anim: Optional[War3AnimationCurve] = None
+    #         self.alpha_anim: Optional[War3AnimationCurve] = None
+    #         self.ribbon_color_anim: Optional[War3AnimationCurve] = None
+    #     else:
+    #         self.emission_rate_anim = get_anim(bby_anim_data, 'mdl_particle_sys.emission_rate', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.emission_rate_anim)
+    #         # register_global_sequence(model.global_seqs, self.emission_rate_anim)
+    #
+    #         self.speed_anim = get_anim(bby_anim_data, 'mdl_particle_sys.speed', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.speed_anim)
+    #         # register_global_sequence(model.global_seqs, self.speed_anim)
+    #
+    #         self.life_span_anim = get_anim(bby_anim_data, 'mdl_particle_sys.life_span', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.life_span_anim)
+    #         # register_global_sequence(model.global_seqs, self.life_span_anim)
+    #
+    #         self.gravity_anim = get_anim(bby_anim_data, 'mdl_particle_sys.gravity', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.gravity_anim)
+    #         # register_global_sequence(model.global_seqs, self.gravity_anim)
+    #
+    #         self.variation_anim = get_anim(bby_anim_data, 'mdl_particle_sys.variation', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.variation_anim)
+    #         # register_global_sequence(model.global_seqs, self.variation_anim)
+    #
+    #         self.latitude_anim = get_anim(bby_anim_data, 'mdl_particle_sys.latitude', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.latitude_anim)
+    #         # register_global_sequence(model.global_seqs, self.latitude_anim)
+    #
+    #         self.longitude_anim = get_anim(bby_anim_data, 'mdl_particle_sys.longitude', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.longitude_anim)
+    #         # register_global_sequence(model.global_seqs, self.longitude_anim)
+    #
+    #         self.alpha_anim = get_anim(bby_anim_data, 'mdl_particle_sys.alpha', 1, sequences)
+    #         self.register_global_sequence(global_seqs, self.alpha_anim)
+    #         # register_global_sequence(model.global_seqs, self.alpha_anim)
+    #
+    #         self.ribbon_color_anim = get_anim(bby_anim_data, 'mdl_particle_sys.ribbon_color', 3, sequences)
+    #         self.register_global_sequence(global_seqs, self.ribbon_color_anim)
+    #         # register_global_sequence(model.global_seqs, self.ribbon_color_anim)
 
     def write_particle(self, fw: TextIO.write,
                        object_indices: Dict[str, int],

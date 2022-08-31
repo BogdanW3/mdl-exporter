@@ -1,6 +1,6 @@
 import math
 from operator import itemgetter
-from typing import SupportsRound
+from typing import SupportsRound, List, Tuple
 
 decimal_places = 5
 
@@ -28,9 +28,9 @@ def calc_bounds_radius(min_ext, max_ext):
     return math.sqrt(math.pow(x, 2) + math.pow(y, 2) + math.pow(z, 2))
 
 
-def calc_extents(vertices):
-    max_extents = tuple(max(vertices, key=itemgetter(i))[i] for i in range(3))
-    min_extents = tuple(min(vertices, key=itemgetter(i))[i] for i in range(3))
+def calc_extents(vertices: List[List[float]]) -> Tuple[List[float], List[float]]:
+    max_extents = [max(vertices, key=itemgetter(i))[i] for i in range(3)]
+    min_extents = [min(vertices, key=itemgetter(i))[i] for i in range(3)]
     
     return min_extents, max_extents
 

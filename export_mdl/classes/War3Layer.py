@@ -1,12 +1,14 @@
 from typing import Optional
 
 from export_mdl.classes.War3AnimationCurve import War3AnimationCurve
+from export_mdl.classes.War3Texture import War3Texture
 from export_mdl.classes.War3TextureAnim import War3TextureAnim
 
 
 class War3Layer:
     def __init__(self):
-        self.texture: str = "Textures\\white.blp"
+        self.texture_path: str = "Textures\\white.blp"
+        self.texture: Optional[War3Texture] = None
         self.filter_mode: str = "None"
         self.unshaded: bool = False
         self.two_sided: bool = False

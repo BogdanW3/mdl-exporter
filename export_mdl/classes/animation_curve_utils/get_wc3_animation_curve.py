@@ -8,7 +8,7 @@ from ..War3AnimationAction import War3AnimationAction
 from ..War3AnimationCurve import War3AnimationCurve
 
 
-def get_wc3_animation_curve(anim_data: bpy.types.AnimData,
+def get_wc3_animation_curve(anim_data: Optional[bpy.types.AnimData],
                             data_path: str,
                             num_indices: int,
                             sequences: List[War3AnimationAction]) \

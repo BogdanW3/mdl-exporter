@@ -22,5 +22,5 @@ class War3Material:
         # return hash(tuple(sorted(self.__dict__.items())))
         return hash(self.name)
 
-    def write_mdl(fw):
+    def write_mdl(self, fw):
         pass

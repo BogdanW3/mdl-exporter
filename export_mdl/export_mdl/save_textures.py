@@ -1,20 +1,19 @@
 from typing import TextIO, List
 
-from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
-from ..classes.War3Model import War3Model
+from ..classes.War3Texture import War3Texture
 
 
-def save_textures(fw: TextIO.write, textures: List[WarCraft3Texture]):
+def save_textures(fw: TextIO.write, textures: List[War3Texture]):
     if len(textures):
         fw("Textures %d {\n" % len(textures))
         for texture in textures:
             fw("\tBitmap {\n")
 
-            if texture.startswith("ReplaceableId"):
+            if texture.texture_path.startswith("ReplaceableId"):
                 fw("\t\tImage \"\",\n")
                 fw("\t\t%s,\n" % texture)
             else:
-                fw("\t\tImage \"%s\",\n" % texture)
+                fw("\t\tImage \"%s\",\n" % texture.texture_path)
 
             fw("\t\tWrapHeight,\n")
             fw("\t\tWrapWidth,\n")

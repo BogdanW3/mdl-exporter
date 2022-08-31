@@ -1,16 +1,15 @@
 from typing import TextIO, Set, List
 
-from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
 from .write_animation_chunk import write_animation_chunk
 from ..classes.War3Material import War3Material
-from ..classes.War3Model import War3Model
+from ..classes.War3Texture import War3Texture
 from ..classes.War3TextureAnim import War3TextureAnim
 from ..utils import float2str
 
 
 def save_materials(fw: TextIO.write,
                    materials: List[War3Material],
-                   textures: List[WarCraft3Texture],
+                   textures: List[War3Texture],
                    tvertex_anims: List[War3TextureAnim],
                    global_seqs: Set[int]):
     if len(materials):

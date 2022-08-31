@@ -10,14 +10,14 @@ from ..utils import float2str, calc_bounds_radius
 class War3Geoset:
     def __init__(self):
         self.vertices: List[War3Vertex] = []
-        self.triangles: [float] = []
+        self.triangles: List[List[int]] = []
         self.matrices: List[List[str]] = []
         self.skin_matrices: Optional[List[List[str]]] = []
         self.skin_weights = []
-        self.objects: List[bpy.types.Object] = []
+        # self.objects: List[bpy.types.Object] = []
         self.min_extent = None
         self.max_extent = None
-        self.mat_name = None
+        self.mat_name: Optional[str] = None
         self.geoset_anim: Optional[War3GeosetAnim] = None
 
     def __eq__(self, other):

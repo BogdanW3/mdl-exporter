@@ -10,7 +10,7 @@ class WAR3_PT_sequences_panel(Panel):
     bl_context = 'scene'
 
     @classmethod
-    def poll(self,context):
+    def poll(self, context):
 
         sequences = context.scene.mdl_sequences
         return len(sequences) > 0

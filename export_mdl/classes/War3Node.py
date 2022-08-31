@@ -8,11 +8,12 @@ class War3Node:  # Stores information about an MDL object (not a blender object!
                  anim_loc: Optional[War3AnimationCurve] = None,
                  anim_rot: Optional[War3AnimationCurve] = None,
                  anim_scale: Optional[War3AnimationCurve] = None,
-                 parent: Optional[str] = None, pivot: Optional[List[float]] = None):
+                 parent: Optional[str] = None,
+                 pivot: List[float] = [0, 0, 0]):
         # self.parent: Optional[bpy.types.Object] = parent  # bpy parent
         self.parent: Optional[str] = parent  # bpy parent
         self.name: str = name
-        self.pivot: Optional[List[float]] = pivot  # TODO
+        self.pivot: List[float] = pivot  # TODO
         self.anim_loc: Optional[War3AnimationCurve] = anim_loc
         self.anim_rot: Optional[War3AnimationCurve] = anim_rot
         self.anim_scale: Optional[War3AnimationCurve] = anim_scale

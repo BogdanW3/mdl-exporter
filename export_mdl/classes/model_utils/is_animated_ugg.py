@@ -10,21 +10,18 @@ from ..animation_curve_utils.split_segment import split_segment
 
 
 def is_animated_ugg(sequences: List[War3AnimationAction],
-                    obj: bpy.types.Object,
+                    animation_data: bpy.types.AnimData,
                     settings: War3ExportSettings)\
         -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
-    # def is_animated_ugg(war3_model, obj, settings):
-    # sequences: List[War3AnimationAction] = war3_model.sequences
-
-    anim_loc = get_wc3_animation_curve(obj.animation_data, 'location', 3, sequences)
+    anim_loc = get_wc3_animation_curve(animation_data, 'location', 3, sequences)
     # get_curves(obj, 'location', (0, 1, 2))
 
     # get_curves(obj, 'rotation_quaternion', (0, 1, 2, 3))
-    anim_rot = get_wc3_animation_curve(obj.animation_data, 'rotation_quaternion', 4, sequences)
+    anim_rot = get_wc3_animation_curve(animation_data, 'rotation_quaternion', 4, sequences)
     if anim_rot is None:
-        anim_rot = get_wc3_animation_curve(obj.animation_data, 'rotation_euler', 3, sequences)
+        anim_rot = get_wc3_animation_curve(animation_data, 'rotation_euler', 3, sequences)
 
-    anim_scale = get_wc3_animation_curve(obj.animation_data, 'scale', 3, sequences)
+    anim_scale = get_wc3_animation_curve(animation_data, 'scale', 3, sequences)
     # get_curves(obj, 'scale', (0, 1, 2))
 
     if settings.optimize_animation:

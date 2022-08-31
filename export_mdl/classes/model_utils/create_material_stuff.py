@@ -6,28 +6,45 @@ from bpy_types import PropertyGroup
 
 from export_mdl.classes.War3AnimationAction import War3AnimationAction
 from export_mdl.classes.War3AnimationCurve import War3AnimationCurve
+from export_mdl.classes.War3Geoset import War3Geoset
 from export_mdl.classes.War3Material import War3Material
 from export_mdl.classes.War3Layer import War3Layer
 from export_mdl.classes.War3Model import War3Model
+from export_mdl.classes.War3Texture import War3Texture
 from export_mdl.classes.War3TextureAnim import War3TextureAnim
 from export_mdl.classes.animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 from export_mdl.properties import War3MaterialLayerProperties
 
 
-def get_new_material(mat: bpy.types.Material, model: War3Model):
-    material = War3Material(mat.name)
+def get_new_material(bpy_material: bpy.types.Material, geosets: List[War3Geoset], sequences: List[War3AnimationAction], global_seqs: Set[int]):
+    material = War3Material(bpy_material.name)
 
-    # Should we use vertex color?
-    for geoset in model.geosets:
-        if geoset.geoset_anim is not None and geoset.mat_name == mat.name:
+    for geoset in geosets:
+        if geoset.geoset_anim is not None and geoset.mat_name == bpy_material.name:
             if any((geoset.geoset_anim.color, geoset.geoset_anim.color_anim)):
                 material.use_const_color = True
 
-    material.priority_plane = mat.priority_plane
+    material.priority_plane = bpy_material.priority_plane
 
-    mdl_layers: List[War3MaterialLayerProperties] = mat.mdl_layers
+    mdl_layers: List[War3MaterialLayerProperties] = bpy_material.mdl_layers
     for i, layer_settings in enumerate(mdl_layers):
-        material.layers.append(parse_layer(i, layer_settings, mat, model.sequences, model.global_seqs))
+        material.layers.append(parse_layer(i, layer_settings, bpy_material, sequences, global_seqs))
+
+    if not len(material.layers):
+        material.layers.append(War3Layer())
+
+    return material
+
+
+def get_new_material2(bpy_material: bpy.types.Material, use_const_color: bool, sequences: List[War3AnimationAction], global_seqs: Set[int]):
+    material = War3Material(bpy_material.name)
+    material.use_const_color = use_const_color
+
+    material.priority_plane = bpy_material.priority_plane
+
+    mdl_layers: List[War3MaterialLayerProperties] = bpy_material.mdl_layers
+    for i, layer_settings in enumerate(mdl_layers):
+        material.layers.append(parse_layer(i, layer_settings, bpy_material, sequences, global_seqs))
 
     if not len(material.layers):
         material.layers.append(War3Layer())
@@ -42,12 +59,18 @@ def parse_layer(i: int,
                 global_seqs: Set[int]):
     print("parse layer2")
     layer = War3Layer()
-    layer.texture = layer_settings.path \
-        if layer_settings.texture_type == '0' \
-        else "ReplaceableId %s" % layer_settings.texture_type
+    texture_path = layer_settings.path
+
+    if layer_settings.texture_type == '0':
+        layer.texture_path = texture_path
+        layer.texture = War3Texture(texture_path)
+    else:
+        layer.texture_path = "ReplaceableId %s" % layer_settings.texture_type
+        layer.texture = War3Texture("ReplaceableId %s" % layer_settings.replaceable_id, layer_settings.texture_type)
 
     if layer_settings.texture_type == '36':
-        layer.texture = "ReplaceableId %s" % layer_settings.replaceable_id
+        layer.texture_path = "ReplaceableId %s" % layer_settings.replaceable_id
+        layer.texture = War3Texture("ReplaceableId %s" % layer_settings.replaceable_id, layer_settings.replaceable_id)
 
     layer.filter_mode = layer_settings.filter_mode
     layer.unshaded = layer_settings.unshaded

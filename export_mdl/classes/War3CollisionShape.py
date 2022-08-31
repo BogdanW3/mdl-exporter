@@ -12,5 +12,5 @@ class War3CollisionShape(War3Node):
                  parent: Optional[str], pivot: Optional):
         super().__init__(name, anim_loc, anim_rot, anim_scale, parent, pivot)
         self.type: str = 'Cylinder'
-        self.verts: Optional[List[List[float]]]
+        self.verts: Optional[List[List[float]]] = []
         self.radius: Optional[float]
