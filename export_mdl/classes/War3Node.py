@@ -1,5 +1,7 @@
 from typing import Optional, List
 
+from mathutils import Matrix
+
 from .War3AnimationCurve import War3AnimationCurve
 
 
@@ -9,7 +11,8 @@ class War3Node:  # Stores information about an MDL object (not a blender object!
                  anim_rot: Optional[War3AnimationCurve] = None,
                  anim_scale: Optional[War3AnimationCurve] = None,
                  parent: Optional[str] = None,
-                 pivot: List[float] = [0, 0, 0]):
+                 pivot: List[float] = [0, 0, 0],
+                 bindpose: Optional[Matrix] = None):
         # self.parent: Optional[bpy.types.Object] = parent  # bpy parent
         self.parent: Optional[str] = parent  # bpy parent
         self.name: str = name
@@ -19,7 +22,7 @@ class War3Node:  # Stores information about an MDL object (not a blender object!
         self.anim_scale: Optional[War3AnimationCurve] = anim_scale
         self.billboarded = False
         self.billboard_lock = (False, False, False)
-        self.bindpose = None  # TODO
+        self.bindpose: Optional[Matrix] = bindpose  # TODO
 
     # def set_billboard(self, billboard):
     #     bb = obj.mdl_billboard

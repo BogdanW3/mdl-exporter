@@ -27,22 +27,30 @@ class BpyGeoset:
                 for vert_index, loop in zip(tri.vertices, tri.loops):
                     vertex = bpy_mesh.vertices[vert_index]
                     vert_int_s = "%s, " % vert_index
-                    pos_s = "%s, %s, %s, " % tuple(vertex.co)
+                    # pos_s = "%s, %s, %s, " % tuple(vertex.co)
+                    pos_s = "%s, %s, %s, " % tuple(vertex.undeformed_co)
                     norm_s = "%s, %s, %s, " % tuple(vertex.normal)
                     mesh_uv_layers = bpy_mesh.uv_layers
                     uv: List[float] = [0.0, 0.0] \
                         if not len(mesh_uv_layers) \
                         else mesh_uv_layers.active.data[loop].uv
+                    uv[1] = 1 - uv[1]
+                    # blender [0,0],[1,1] = [bottom left, top right],
+                    # warcraft3 [0,0],[1,1] = [top left, bottom right]
                     uv_s = "%s, %s" % tuple(uv)
                     # tangent = bpy_mesh.loops[loop].tangent
                     tangent: List[float] = [0.7, 0.7, 0.0, 1.0] \
                         if not loop < len(bpy_mesh.loops) \
-                        else bpy_mesh.loops[loop].tangent
+                        else list(bpy_mesh.loops[loop].tangent)
+                    print("tangent:", tangent)
+                    if len(tangent) == 3:
+                        tangent.append(1)
                     vertex_key = vert_int_s + pos_s + norm_s + uv_s
                     if vertex_key not in self.vertex_map:
                         self.vertex_map[vertex_key] = len(self.vertex_list)
                         self.vertex_list.append(vertex)
-                        self.pos_list.append(vertex.co)
+                        # self.pos_list.append(vertex.co)
+                        self.pos_list.append(vertex.undeformed_co)
                         self.normal_list.append(vertex.normal)
                         self.tangent_list.append(tangent)
                         self.uv_list.append(uv)

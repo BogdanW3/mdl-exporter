@@ -1,7 +1,7 @@
 from typing import Optional, List, TextIO, Set, Dict
 
 import bpy
-from mathutils import Vector
+from mathutils import Vector, Matrix
 
 from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
 from .War3Material import War3Material
@@ -19,8 +19,9 @@ class War3RibbonEmitter(War3Emitter):
                  anim_loc: Optional[War3AnimationCurve],
                  anim_rot: Optional[War3AnimationCurve],
                  anim_scale: Optional[War3AnimationCurve],
-                 parent: Optional[str], pivot: Optional):
-        super().__init__(name, anim_loc, anim_rot, anim_scale, parent, pivot)
+                 parent: Optional[str], pivot: Optional,
+                 bindpose: Optional[Matrix] = None):
+        super().__init__(name, anim_loc, anim_rot, anim_scale, parent, pivot, bindpose)
         self.speed_anim: Optional[War3AnimationCurve] = None
         self.variation_anim: Optional[War3AnimationCurve] = None
         self.latitude_anim: Optional[War3AnimationCurve] = None

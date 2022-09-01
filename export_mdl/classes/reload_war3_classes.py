@@ -1,5 +1,6 @@
 import importlib
 from .animation_curve_utils import reload_anim_cuvre_utils
+from .bpy_helpers import reload_bpy_helpers
 from .model_utils import reload_war3_model_utils
 from .utils import reload_war3_utils
 from . import War3AnimationAction
@@ -26,6 +27,7 @@ try:
     print("    reloading WC3 class modules")
     # importlib.reload(WAR3_MT_emitter_presets)
     importlib.reload(reload_anim_cuvre_utils)
+    importlib.reload(reload_bpy_helpers)
     importlib.reload(reload_war3_model_utils)
     importlib.reload(reload_war3_utils)
     importlib.reload(War3AnimationAction)

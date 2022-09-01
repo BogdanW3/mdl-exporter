@@ -53,7 +53,7 @@ class War3Model:
         self.global_extents_max: int = 0
         self.const_color_mats = set()
         self.global_seqs: Set[int] = set()
-        self.cameras: List = []
+        self.cameras: List[bpy.types.Object] = []
         self.textures_paths: List[str] = []
         self.textures: List[War3Texture] = []
         self.tvertex_anims: List[War3TextureAnim] = []

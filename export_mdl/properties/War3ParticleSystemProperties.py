@@ -229,7 +229,7 @@ class War3ParticleSystemProperties(PropertyGroup):
     ribbon_color: FloatVectorProperty(
         name="Color",
         subtype='COLOR',
-        default=(1.0, 1.0, 1.0)
+        default=[1.0, 1.0, 1.0]
         )
 
     texture_path: StringProperty(

@@ -10,8 +10,28 @@ def get_bpy_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mes
         mod.split_angle = bpy_obj.data.auto_smooth_angle
         # mod.use_edge_angle = True
 
+    arm_mod = None
+    arm_show_r = True
+    arm_show_v = True
+    if bpy_obj.find_armature():
+        for mod_ in bpy_obj.modifiers:
+            if mod_.type == 'ARMATURE':
+                arm_mod = mod_
+                break
+
+    if arm_mod is not None:
+        # to make sure that we are not exporting the mesh in an animated state
+        arm_show_r = arm_mod.show_render
+        arm_show_v = arm_mod.show_viewport
+        arm_mod.show_render = False
+        arm_mod.show_viewport = False
+
     deps_graph = context.evaluated_depsgraph_get()
     bpy_mesh = bpy.data.meshes.new_from_object(bpy_obj.evaluated_get(deps_graph), preserve_all_data_layers=True, depsgraph=deps_graph)
+
+    if arm_mod is not None:
+        arm_mod.show_render = arm_show_r
+        arm_mod.show_viewport = arm_show_v
 
     if bpy_obj.data.use_auto_smooth:
         bpy_obj.modifiers.remove(mod)

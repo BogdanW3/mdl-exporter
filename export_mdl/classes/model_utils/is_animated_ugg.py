@@ -33,6 +33,31 @@ def is_animated_ugg(sequences: List[War3AnimationAction],
     return anim_loc, anim_rot, anim_scale
 
 
+def is_animated_ugg(sequences: List[War3AnimationAction],
+                    animation_data: bpy.types.AnimData,
+                    optimize_animation: bool,
+                    optimize_tolerance: bool)\
+        -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
+    anim_loc = get_wc3_animation_curve(animation_data, 'location', 3, sequences)
+    # get_curves(obj, 'location', (0, 1, 2))
+
+    # get_curves(obj, 'rotation_quaternion', (0, 1, 2, 3))
+    anim_rot = get_wc3_animation_curve(animation_data, 'rotation_quaternion', 4, sequences)
+    if anim_rot is None:
+        anim_rot = get_wc3_animation_curve(animation_data, 'rotation_euler', 3, sequences)
+
+    anim_scale = get_wc3_animation_curve(animation_data, 'scale', 3, sequences)
+    # get_curves(obj, 'scale', (0, 1, 2))
+
+    if optimize_animation:
+        tolerance: float = optimize_tolerance
+        optimize_anim(anim_loc, tolerance, sequences)
+        optimize_anim(anim_rot, tolerance, sequences)
+        optimize_anim(anim_scale, tolerance, sequences)
+
+    return anim_loc, anim_rot, anim_scale
+
+
 def optimize_anim(anim, tolerance: float, sequences: List[War3AnimationAction]):
     if anim is not None:
         anim.optimize(tolerance, sequences)

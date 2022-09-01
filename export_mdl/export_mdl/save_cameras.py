@@ -17,8 +17,10 @@ def save_cameras(fw: TextIO.write, model: War3Model, settings):
         fw("\tNearClip %f,\n" % (camera.data.clip_start * 10))
 
         matrix = settings.global_matrix @ camera.matrix_world
+        target_loc = Vector((camera.location.x, camera.location.y, 0)).length
         target = position + matrix.to_quaternion() @ Vector(
-            (0.0, 0.0, -1.0))  # Target is just a point in front of the camera
+            (0.0, 0.0, -target_loc))  # Target is just a point in front of the camera
 
-        fw("\tTarget {\n\t\tPosition {%s, %s, %s},\n\t}\n" % tuple(map(float2str, target)))
+        fw("\tTarget {\n\t\tPosition {%s, %s, %s},\n" % tuple(map(float2str, target)))
+        fw("\t}\n")
         fw("}\n")

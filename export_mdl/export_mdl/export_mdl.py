@@ -11,8 +11,10 @@
 # ------------------ #
 import datetime
 import getpass
+from typing import List
 
 import bpy
+from mathutils import Matrix
 
 from .save_attachment_points import save_attachment_points
 from .save_bones import save_bones
@@ -36,6 +38,7 @@ from .save_textures import save_textures
 from ..classes.War3ExportSettings import War3ExportSettings
 from ..classes.War3Model import War3Model
 from ..classes.model_utils.from_scene import from_scene
+from ..utils import float2str
 
 
 def save(operator, context: bpy.types.Context, settings: War3ExportSettings, filepath="", mdl_version=800):
@@ -47,10 +50,15 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
     scene.frame_set(0)
 
     frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
-    model = from_scene(context, settings)
+    model: War3Model = from_scene(context, settings)
+
 
     scene.frame_set(current_frame)
 
+    write_model_file(filepath, mdl_version, model, settings)
+
+
+def write_model_file(filepath: str, mdl_version: int, model: War3Model, settings: War3ExportSettings):
     with open(filepath, 'w') as output:
         fw = output.write
 
@@ -95,7 +103,6 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
         save_helpers(fw, model)
 
         # ATTACHMENT POINTS
-        # save_attachment_points(fw, model)
         save_attachment_points(fw, model.attachments, model.global_seqs, model.object_indices)
 
         # PIVOT POINTS
@@ -118,3 +125,30 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
 
         # COLLISION SHAPES
         save_collision_shape(fw, model)
+
+        if settings.use_skinweights:
+            fw("BindPose {\n")
+            fw("\tMatrices %s {\n" % (len(model.objects_all) + len(model.cameras)))
+            for obj in model.objects_all:
+                print(obj)
+                obj_mat = mat_to_tuple(obj.bindpose)
+                # bp = tuple(obj.bindpose) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                bp = tuple(obj_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }" % tuple(obj.bindpose))
+                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }\n" % bp[0:12])
+                fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
+            for cam in model.cameras:
+                cam_mat = mat_to_tuple(Matrix(cam.matrix_basis))
+                bp = tuple(cam_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }" % tuple(cam.matrix_local[:12]))
+                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }\n" % bp[0:12])
+                fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
+            fw("\t}\n")
+            fw("}\n")
+
+
+def mat_to_tuple(mat: Matrix):
+    v_list: List[float] = []
+    for row in mat:
+        v_list.extend(list(row))
+    return tuple(v_list)

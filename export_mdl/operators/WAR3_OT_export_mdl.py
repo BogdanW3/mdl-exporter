@@ -76,8 +76,8 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         settings.use_actions = self.use_actions
         settings.use_skinweights = self.use_skinweights
 
-        from ..export_mdl import export_mdl2
-        export_mdl2.save(self, context, settings, filepath=filepath, mdl_version=800)
+        from ..export_mdl import export_mdl
+        export_mdl.save(self, context, settings, filepath=filepath, mdl_version=800)
 
         return {'FINISHED'}
 
