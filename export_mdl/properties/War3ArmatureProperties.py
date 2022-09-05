@@ -6,7 +6,7 @@ ACTION_NAME_UNANIMATED = '#UNANIMATED'
 
 
 def set_animation(arm_property, context: bpy.types.Context):
-    animation_name = context.armature.warcraft_3.sequencesList[context.armature.warcraft_3.sequencesListIndex].name
+    animation_name = context.armature.war_3.sequencesList[context.armature.war_3.sequencesListIndex].name
     if len(animation_name) and bpy.data.actions.get(animation_name):
         prepare_action(context, animation_name)
         for action in bpy.data.actions:
@@ -41,6 +41,17 @@ def prepare_action(context: bpy.types.Context, animation_name: str):
 
 
 class War3ArmatureProperties(bpy.types.PropertyGroup):
-    bpy_type = bpy.types.Armature
     sequencesList: bpy.props.CollectionProperty(type=War3ArmatureSequenceList)
     sequencesListIndex: bpy.props.IntProperty(update=set_animation)
+
+    @classmethod
+    def register(cls):
+        bpy.types.Armature.war_3 = bpy.props.PointerProperty(type=War3ArmatureProperties, options={'HIDDEN'})
+        # bpy.types.Armature.sequencesList = bpy.props.CollectionProperty(type=War3ArmatureSequenceList)
+        # bpy.types.Armature.sequencesListIndex = bpy.props.IntProperty(update=set_animation)
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Armature.war_3
+        # del bpy.types.Armature.sequencesList
+        # del bpy.types.Armature.sequencesListIndex

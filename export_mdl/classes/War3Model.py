@@ -62,6 +62,7 @@ class War3Model:
         # self.name = bpy.path.basename(context.blend_data.filepath).replace(".blend", "")
         self.frame2ms: float = 1000 / 60  # Frame to millisecond conversion
         self.name: str = name
+        self.file: str = ''
 
     def register_global_sequence(self, curve: Optional[War3AnimationCurve]):
         if curve is not None and curve.global_sequence > 0:

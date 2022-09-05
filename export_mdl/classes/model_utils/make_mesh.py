@@ -1,8 +1,7 @@
 import bpy
-import numpy
-from bpy.types import Modifier, Armature, ArmatureModifier, Mesh, MeshLoopTriangle, VertexGroupElement
+from bpy.types import ArmatureModifier, Mesh
 from mathutils import Vector
-from typing import List, Optional, Tuple, Set, Dict
+from typing import List, Optional, Tuple
 
 from ..War3AnimationCurve import War3AnimationCurve
 from ..War3Bone import War3Bone
@@ -12,13 +11,11 @@ from ..War3GeosetAnim import War3GeosetAnim
 from ..War3Model import War3Model
 from ..War3Vertex import War3Vertex
 from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
-from .is_animated_ugg import is_animated_ugg
-from .get_visibility import get_visibility
-from .register_global_sequence import register_global_sequence
+from .is_animated_ugg import is_animated_ugg, get_visibility
 from ..bpy_helpers.BpyGeoset import BpyGeoset
 from ..bpy_helpers.BpySceneObjects import BpySceneObjects
-from ..utils.transform_rot import transform_rot
-from ..utils.transform_vec import transform_vec1
+from export_mdl.classes.animation_curve_utils.transform_rot import transform_rot
+from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec1
 
 
 def make_mesh(war3_model: War3Model,
@@ -30,10 +27,12 @@ def make_mesh(war3_model: War3Model,
               settings: War3ExportSettings):
     sequences = war3_model.sequences
     global_seqs = war3_model.global_seqs
-    visibility = get_visibility(sequences, bpy_obj)
+    visibility = get_visibility(sequences, global_seqs, bpy_obj)
     animation_data: bpy.types.AnimData = bpy_obj.animation_data
 
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, animation_data, settings)
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', animation_data,
+                                                     settings.optimize_tolerance)
+
     bpy_mesh: Mesh = bpy_scene_objects.bpy_meshes[bpy_obj.name][1]
 
     # Geoset Animation
@@ -47,10 +46,6 @@ def make_mesh(war3_model: War3Model,
         bone.billboarded = billboarded
         bone.billboard_lock = billboard_lock
 
-        register_global_sequence(global_seqs, anim_loc)
-        register_global_sequence(global_seqs, anim_rot)
-
-        register_global_sequence(global_seqs, anim_scale)
         if anim_loc is not None:
             transform_vec1(anim_loc, bpy_obj.matrix_world.inverted())
             transform_vec1(anim_loc, settings.global_matrix)
@@ -87,7 +82,7 @@ def get_arm_mod(bpy_obj: bpy.types.Object) -> Optional[ArmatureModifier]:
 
 def get_geoset_anim(obj: bpy.types.Object, visibility: Optional[War3AnimationCurve], war3_model: War3Model)\
         -> Tuple[Optional[War3GeosetAnim], int]:
-    vertex_color_anim = get_wc3_animation_curve(obj.animation_data, 'color', 3, war3_model.sequences)
+    vertex_color_anim = get_wc3_animation_curve(obj.animation_data, 'color', 3, war3_model.sequences, war3_model.global_seqs)
     vertex_color = None
     if any(i < 0.999 for i in obj.color[:3]):
         vertex_color = tuple(obj.color[:3])
@@ -101,7 +96,7 @@ def get_geoset_anim(obj: bpy.types.Object, visibility: Optional[War3AnimationCur
                 if hasattr(mat.node_tree, "animation_data"):
                     vertex_color_anim = get_wc3_animation_curve(
                         mat.node_tree.animation_data, 'nodes["VertexColor"].%s[0].default_value' % attr, 3,
-                        war3_model.sequences)
+                        war3_model.sequences, war3_model.global_seqs)
     geoset_anim: Optional[War3GeosetAnim] = None
     geoset_anim_hash = 0
     if any((vertex_color, vertex_color_anim, visibility)):
@@ -113,6 +108,9 @@ def get_geoset_anim(obj: bpy.types.Object, visibility: Optional[War3AnimationCur
 def create_geoset(bpy_geoset: BpyGeoset, bone_names: List[str]) -> War3Geoset:
     geoset = War3Geoset()
     geoset.mat_name = bpy_geoset.material_name
+
+
+    # visibility = get_visibility(sequences, bpy_geoset.bpy_obj)
 
     # geoset_anim: Optional[War3GeosetAnim] = None
     # # geoset.matrices.extend(matrices)

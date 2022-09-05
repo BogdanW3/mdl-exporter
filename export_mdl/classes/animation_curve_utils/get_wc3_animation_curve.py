@@ -11,7 +11,7 @@ from ..War3AnimationCurve import War3AnimationCurve
 def get_wc3_animation_curve(anim_data: Optional[bpy.types.AnimData],
                             data_path: str,
                             num_indices: int,
-                            sequences: List[War3AnimationAction]) \
+                            sequences: List[War3AnimationAction], global_seqs: Set[int]) \
         -> Optional[War3AnimationCurve]:
     curves = {}
     scale = 1
@@ -24,8 +24,15 @@ def get_wc3_animation_curve(anim_data: Optional[bpy.types.AnimData],
                 # Hence, the split returns the name after the last dot.
 
     if len(curves):
-        return get_anim_curve(curves, data_path, sequences, scale)
+        anim_curve = get_anim_curve(curves, data_path, sequences, scale)
+        register_global_sequence(global_seqs, anim_curve)
+        return anim_curve
     return None
+
+
+def register_global_sequence(global_seqs: Set[int], curve: Optional[War3AnimationCurve]):
+    if curve is not None and curve.global_sequence > 0:
+        global_seqs.add(curve.global_sequence)
 
 
 def get_anim_curve(fcurves: Dict[Tuple[str, int], Union[int, bpy.types.FCurve]],

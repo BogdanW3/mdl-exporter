@@ -1,7 +1,7 @@
-from bpy.types import Panel, Context
+import bpy
 
 
-class WAR3_PT_material_panel(Panel):
+class WAR3_PT_material_panel(bpy.types.Panel):
     """Creates a material editor Panel in the Material window"""
     bl_idname = "WAR3_PT_material_panel"
     bl_label = "MDL Material Settings"
@@ -10,10 +10,10 @@ class WAR3_PT_material_panel(Panel):
     bl_context = 'material'
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, context: bpy.types.Context):
         return context.active_object is not None and context.active_object.active_material is not None
 
-    def draw(self, context: Context):
+    def draw(self, context: bpy.types.Context):
         layout = self.layout
         mat = context.active_object.active_material
 
@@ -30,11 +30,11 @@ class WAR3_PT_material_panel(Panel):
             row.template_list("WAR3_UL_material_layer_list", "", mat, "mdl_layers", mat, "mdl_layer_index", rows=2)
 
             col = row.column(align=True)
-            col.operator("custom.list_action", icon='ADD', text="").action = 'ADD'
-            col.operator("custom.list_action", icon='REMOVE', text="").action = 'REMOVE'
+            col.operator("war_3.list_action", icon='ADD', text="").action = 'ADD'
+            col.operator("war_3.list_action", icon='REMOVE', text="").action = 'REMOVE'
             col.separator()
-            col.operator("custom.list_action", icon='TRIA_UP', text="").action = 'UP'
-            col.operator("custom.list_action", icon='TRIA_DOWN', text="").action = 'DOWN'
+            col.operator("war_3.list_action", icon='TRIA_UP', text="").action = 'UP'
+            col.operator("war_3.list_action", icon='TRIA_DOWN', text="").action = 'DOWN'
 
             col = layout.column(align=True)
 

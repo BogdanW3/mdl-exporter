@@ -42,29 +42,6 @@ class War3AnimationCurve:
         values.append(tuple(sorted(self.handles_right.items())))
         return hash(tuple(values))
 
-    def optimize(self, tolerance: float, sequences: List[War3AnimationAction]):
-
-        f2ms = 1000 / bpy.context.scene.render.fps
-
-        if self.interpolation == 'Bezier':
-            self.interpolation = 'Linear'  # This feature doesn't support bezier as of right now
-
-        print('Before: %d' % len(self.keyframes))
-
-        new_keys = []
-        for sequence in sequences:
-            start = int(round(sequence.start / f2ms))
-            end = int(round(sequence.end / f2ms))
-            start_value = self.keyframes[start]
-            start_ = (start, self.keyframes[start])
-            end_ = (end, self.keyframes[end])
-            end_value = self.keyframes[end]
-            new_keys += [start_, end_]
-            new_keys += split_segment(self.keyframes, self.type, start, start_value, end, end_value, tolerance)
-
-        self.keyframes.clear()
-        self.keyframes.update(new_keys)
-        print('After: %d' % len(self.keyframes))
 # import math
 #
 # import bpy

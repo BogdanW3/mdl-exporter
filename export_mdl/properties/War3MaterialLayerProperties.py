@@ -4,6 +4,7 @@ from bpy.types import PropertyGroup
 
 
 class War3MaterialLayerProperties(PropertyGroup):
+    # bpy_type = bpy.types.Material
     name: StringProperty(
         name="Name",
         description="Name of this layer - this value is not exported.",

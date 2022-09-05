@@ -9,6 +9,7 @@ from . import WAR3_OT_material_list_action
 from . import WAR3_OT_search_event_id
 from . import WAR3_OT_search_event_type
 from . import WAR3_OT_search_texture
+from . import WAR3_OT_import_mdlx
 
 try:
     print("    reloading operator modules")
@@ -22,5 +23,6 @@ try:
     importlib.reload(WAR3_OT_search_event_id)
     importlib.reload(WAR3_OT_search_event_type)
     importlib.reload(WAR3_OT_search_texture)
+    importlib.reload(WAR3_OT_import_mdlx)
 except ImportError:
     print("    could not reload operator modules")

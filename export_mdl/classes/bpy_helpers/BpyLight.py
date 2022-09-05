@@ -3,7 +3,7 @@ from typing import Optional, Tuple, List
 import bpy
 from mathutils import Vector, Matrix
 
-from export_mdl.classes.model_utils.get_parent import get_parent_name
+from export_mdl.classes.model_utils.get_parent_name import get_parent_name
 from export_mdl.properties import War3LightSettings
 
 

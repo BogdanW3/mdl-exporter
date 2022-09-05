@@ -42,7 +42,7 @@ class BpyGeoset:
                     tangent: List[float] = [0.7, 0.7, 0.0, 1.0] \
                         if not loop < len(bpy_mesh.loops) \
                         else list(bpy_mesh.loops[loop].tangent)
-                    print("tangent:", tangent)
+                    # print("tangent:", tangent)
                     if len(tangent) == 3:
                         tangent.append(1)
                     vertex_key = vert_int_s + pos_s + norm_s + uv_s

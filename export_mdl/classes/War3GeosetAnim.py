@@ -6,11 +6,15 @@ from export_mdl.utils import float2str
 
 
 class War3GeosetAnim:
-    def __init__(self, color, color_anim: Optional[War3AnimationCurve], alpha_anim: Optional[War3AnimationCurve]):
+    def __init__(self, color,
+                 color_anim: Optional[War3AnimationCurve],
+                 alpha_anim: Optional[War3AnimationCurve]):
         self.color = color
         self.color_anim: Optional[War3AnimationCurve] = color_anim
         self.alpha_anim: Optional[War3AnimationCurve] = alpha_anim
         self.geoset = None
+        self.geoset_name = "0"
+        self.geoset_id: int = 0
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):

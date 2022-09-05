@@ -5,6 +5,7 @@ from bpy.types import Operator
 class WAR3_OT_material_list_action(Operator):
     """Move items up and down, add and remove"""
     bl_idname = "custom.list_action"
+    bl_idname = "war_3.list_action"
     bl_label = "List Actions"
     bl_description = "Move items up and down, add and remove"
     bl_options = {'REGISTER', 'INTERNAL'}

@@ -112,6 +112,12 @@ INTERPOLATION_TYPE_BLEND_NAMES = {
     2: 'BEZIER',
     3: 'BEZIER'
     }
+INTERPOLATION_NAME_BLEND_NAME = {
+    'DontInterp': 'CONSTANT',
+    'Linear': 'LINEAR',
+    'Hermite': 'BEZIER',
+    'Bezier': 'BEZIER'
+}
 INTERPOLATION_TYPE_NUMBERS = {
     'DontInterp': 0,
     'Linear': 1,

@@ -8,10 +8,7 @@ from .BpyEmitter import BpyEmitter
 from .BpyEmptyNode import BpyEmptyNode
 from .BpyGeoset import BpyGeoset
 from .BpyLight import BpyLight
-from ..War3CollisionShape import War3CollisionShape
-from ..War3Emitter import War3Emitter
 from ..War3ExportSettings import War3ExportSettings
-from ..War3Model import War3Model
 from ..model_utils.get_bpy_mesh import get_bpy_mesh
 from ...properties import War3SequenceProperties, War3ParticleSystemProperties
 
@@ -22,11 +19,9 @@ class BpySceneObjects:
         self.sequences: List[War3SequenceProperties] = []
         self.materials: Set[bpy.types.Material] = set()
 
-        self.bpy_objects: Dict[str, List[bpy.types.Object]] = {
-            'Camera': [],
-            'Armature': [],
-            'Mesh': [],
-        }
+        self.meshes: List[bpy.types.Object] = []
+        self.cameras: List[bpy.types.Object] = []
+
         self.particle1s: List[BpyEmitter] = []
         self.particle2s: List[BpyEmitter] = []
         self.ribbons: List[BpyEmitter] = []
@@ -42,7 +37,8 @@ class BpySceneObjects:
 
         # self.bpy_nodes: Dict[bpy.types.Object, List[bpy.types.PoseBone]] = {}
         # self.bpy_meshes: Dict[bpy.types.Object, bpy.types.Mesh] = {}
-        self.bpy_nodes: Dict[str, Tuple[bpy.types.Object, List[bpy.types.PoseBone]]] = {}
+        self.armatures: List[bpy.types.Object] = []
+        self.bpy_nodes: Dict[str, List[bpy.types.PoseBone]] = {}
         self.bpy_meshes: Dict[str, Tuple[bpy.types.Object, bpy.types.Mesh]] = {}
         self.from_scene(context, settings)
 
@@ -67,7 +63,7 @@ class BpySceneObjects:
             self.parse_bpy_objects(bpy_obj, settings.global_matrix)
 
         for armature_id, arm_pose_bones in self.bpy_nodes.items():
-            for pose_bone in arm_pose_bones[1]:
+            for pose_bone in arm_pose_bones:
                 self.bone_names.append(pose_bone.name)
 
         for bpy_emitter in self.ribbons:
@@ -75,7 +71,7 @@ class BpySceneObjects:
             mat: bpy.types.Material = particle_settings.ribbon_material
             self.materials.add(mat)
 
-        for bpy_obj in self.bpy_objects['Mesh']:
+        for bpy_obj in self.meshes:
             bpy_mesh = get_bpy_mesh(bpy_obj, context, settings.global_matrix @ bpy_obj.matrix_world)
             # self.bpy_meshes[bpy_obj] = bpy_mesh
             self.bpy_meshes[bpy_obj.name] = (bpy_obj, bpy_mesh)
@@ -98,9 +94,12 @@ class BpySceneObjects:
                     self.ribbons.append(BpyEmitter(bpy_obj, global_matrix, particle_settings))
 
         elif bpy_obj.type == 'MESH' or bpy_obj.type == 'CURVE':
-            self.bpy_objects['Mesh'].append(bpy_obj)
+            self.meshes.append(bpy_obj)
 
         elif bpy_obj.type == 'EMPTY':
+            print("empty, mat:", bpy_obj.matrix_world)
+            print("mat is mat:", isinstance(bpy_obj.matrix_world, Matrix))
+            print("mat is list:", isinstance(bpy_obj.matrix_world, List))
             if obj_name.startswith("SND") \
                     or obj_name.startswith("UBR") \
                     or obj_name.startswith("FTP") \
@@ -114,8 +113,8 @@ class BpySceneObjects:
                 self.helpers.append(BpyEmptyNode(bpy_obj, global_matrix))
 
         elif bpy_obj.type == 'ARMATURE':
-            self.bpy_objects['Armature'].append(bpy_obj)
-            self.bpy_nodes[bpy_obj.name] = (bpy_obj, bpy_obj.pose.bones)
+            self.armatures.append(bpy_obj)
+            self.bpy_nodes[bpy_obj.name] = bpy_obj.pose.bones
 
         elif bpy_obj.type in ('LAMP', 'LIGHT'):
             if isinstance(bpy_obj, bpy.types.Light):
@@ -127,7 +126,7 @@ class BpySceneObjects:
             self.lights.append(BpyLight(bpy_obj, global_matrix))
 
         elif bpy_obj.type == 'CAMERA':
-            self.bpy_objects['Camera'].append(bpy_obj)
+            self.cameras.append(bpy_obj)
 
     def make_bpy_geosets(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):
         for i, m in enumerate(bpy_mesh.materials):

@@ -11,11 +11,12 @@ class War3Geoset:
         self.triangles: List[List[int]] = []
         self.matrices: List[List[str]] = []
         self.skin_matrices: Optional[List[List[str]]] = []
-        self.skin_weights = []
+        # self.skin_weights = []
         # self.objects: List[bpy.types.Object] = []
         self.min_extent = None
         self.max_extent = None
         self.mat_name: Optional[str] = None
+        self.name: Optional[str] = None
         self.geoset_anim: Optional[War3GeosetAnim] = None
 
     def __eq__(self, other):

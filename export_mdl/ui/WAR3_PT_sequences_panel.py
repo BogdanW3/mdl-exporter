@@ -25,7 +25,7 @@ class WAR3_PT_sequences_panel(Panel):
         sequences = getattr(scene, "mdl_sequences", None)
         index = getattr(scene, "mdl_sequence_index", None)
 
-        layout.operator("custom.add_anim_sequence", text="Add Sequence")
+        layout.operator("war_3.add_anim_sequence", text="Add Sequence")
 
         if sequences is not None and len(sequences):
             active_sequence = sequences[index]

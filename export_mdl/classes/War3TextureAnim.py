@@ -1,10 +1,6 @@
 from typing import Optional, List
 
-from bpy.types import AnimData, Node
-
-from .War3AnimationAction import War3AnimationAction
 from .War3AnimationCurve import War3AnimationCurve
-from .animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 
 
 class War3TextureAnim:

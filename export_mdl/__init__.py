@@ -58,12 +58,16 @@ from .ui.WAR3_PT_particle_editor_panel import WAR3_PT_particle_editor_panel
 from .ui.WAR3_PT_sequences_panel import WAR3_PT_sequences_panel
 from .ui.WAR3_UL_material_layer_list import WAR3_UL_material_layer_list
 from .ui.WAR3_UL_sequence_list import WAR3_UL_sequence_list
+from .ui.WAR3_PT_Armature_Sequences import WAR3_PT_Armature_Sequences
 from .properties.War3BillboardProperties import War3BillboardProperties
 from .properties.War3EventProperties import War3EventProperties
 from .properties.War3LightSettings import War3LightSettings
 from .properties.War3MaterialLayerProperties import War3MaterialLayerProperties
 from .properties.War3ParticleSystemProperties import War3ParticleSystemProperties
+from .properties.War3ArmatureSequenceList import War3ArmatureSequenceList
 from .properties.War3SequenceProperties import War3SequenceProperties
+from .properties.War3Preferences import War3Preferences
+from .properties.War3ArmatureProperties import War3ArmatureProperties
 from .operators.WAR3_MT_emitter_presets import WAR3_MT_emitter_presets
 from .operators.WAR3_OT_add_anim_sequence import WAR3_OT_add_anim_sequence
 from .operators.WAR3_OT_create_collision_shape import WAR3_OT_create_collision_shape
@@ -74,6 +78,9 @@ from .operators.WAR3_OT_material_list_action import WAR3_OT_material_list_action
 from .operators.WAR3_OT_search_event_id import WAR3_OT_search_event_id
 from .operators.WAR3_OT_search_event_type import WAR3_OT_search_event_type
 from .operators.WAR3_OT_search_texture import WAR3_OT_search_texture
+from .operators.WAR3_OT_add_seq_to_armature import WAR3_OT_add_seq_to_armature
+from .operators.WAR3_OT_remove_seq_from_armature import WAR3_OT_remove_seq_from_armature
+from .operators.WAR3_OT_import_mdlx import WAR3_OT_import_mdlx
 
 bl_info = {
     "name": "Warcraft MDL Exporter",
@@ -87,15 +94,19 @@ bl_info = {
 
 
 prop_classes = (
+    War3Preferences,
     War3MaterialLayerProperties,
     War3EventProperties,
     War3SequenceProperties,
     War3BillboardProperties,
     War3ParticleSystemProperties,
-    War3LightSettings
+    War3LightSettings,
+    War3ArmatureSequenceList,
+    War3ArmatureProperties
 )
 
 op_classes = (
+    WAR3_OT_import_mdlx,
     WAR3_OT_export_mdl,
     WAR3_OT_search_event_type,
     WAR3_OT_search_event_id,
@@ -105,6 +116,8 @@ op_classes = (
     WAR3_OT_material_list_action,
     WAR3_OT_emitter_preset_add,
     WAR3_OT_add_anim_sequence,
+    WAR3_OT_add_seq_to_armature,
+    WAR3_OT_remove_seq_from_armature,
     WAR3_MT_emitter_presets
 )
 
@@ -116,7 +129,8 @@ ui_classes = (
     WAR3_PT_billboard_panel,
     WAR3_PT_material_panel,
     WAR3_PT_particle_editor_panel,
-    WAR3_PT_light_panel
+    WAR3_PT_light_panel,
+    WAR3_PT_Armature_Sequences
 )
 
 
@@ -124,6 +138,10 @@ def menu_func(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
     # self.layout.operator(WAR3_OT_export_mdl.WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
     self.layout.operator(WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
+
+
+def menu_import_mdx(self, context):
+    self.layout.operator(WAR3_OT_import_mdlx.bl_idname, text='EE-Warcraft 3 (.mdl/.mdx)')
 
 
 def register():
@@ -137,6 +155,9 @@ def register():
         # print("\t", cls)
         register_class(cls)
 
+    # bpy.types.Armature.war_3 = bpy.props.PointerProperty(type=War3ArmatureProperties)
+    # WarCraft3BoneProperties.bpy_type.war_3 = bpy.props.PointerProperty(type=WarCraft3BoneProperties)
+
     print("  register operator classes")
     for cls in op_classes:
         # print("\t", cls)
@@ -148,7 +169,8 @@ def register():
         register_class(cls)
         
     bpy.types.TOPBAR_MT_file_export.append(menu_func)
-    
+    bpy.types.TOPBAR_MT_file_import.append(menu_import_mdx)
+
     presets_path = os.path.join(bpy.utils.user_resource('SCRIPTS', path="presets"), "mdl_exporter")
     emitters_path = os.path.join(presets_path, "emitters")
     

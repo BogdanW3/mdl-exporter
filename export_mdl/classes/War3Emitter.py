@@ -5,11 +5,9 @@ from mathutils import Vector, Matrix
 
 from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
 from ..export_mdl.write_animation_chunk import write_animation_chunk
-from ..utils import float2str, calc_bounds_radius, rnd
-from .War3AnimationAction import War3AnimationAction
+from ..utils import float2str, rnd
 from .War3Node import War3Node
 from .War3AnimationCurve import War3AnimationCurve
-from .animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve as get_anim
 from ..properties import War3ParticleSystemProperties
 
 
