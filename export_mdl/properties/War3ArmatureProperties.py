@@ -6,9 +6,11 @@ ACTION_NAME_UNANIMATED = '#UNANIMATED'
 
 
 def set_animation(arm_property, context: bpy.types.Context):
-    animation_name = context.armature.war_3.sequencesList[context.armature.war_3.sequencesListIndex].name
+    armature_prop = context.armature.war_3
+    seq_prop = armature_prop.sequencesList[armature_prop.sequencesListIndex]
+    animation_name = seq_prop.name
     if len(animation_name) and bpy.data.actions.get(animation_name):
-        prepare_action(context, animation_name)
+        prepare_action(context, animation_name, seq_prop.length)
         for action in bpy.data.actions:
             for bpy_object in bpy.context.scene.objects:
                 object_animation_name = animation_name + ' ' + bpy_object.name
@@ -20,7 +22,7 @@ def set_animation(arm_property, context: bpy.types.Context):
         unanimated = ACTION_NAME_UNANIMATED
         action = bpy.data.actions.get(unanimated, None)
         if action:
-            prepare_action(context, unanimated)
+            prepare_action(context, unanimated, 1)
             for bpy_object in bpy.context.scene.objects:
                 object_action_name = unanimated + ' ' + bpy_object.name
                 if bpy.data.actions.get(object_action_name, None):
@@ -29,15 +31,18 @@ def set_animation(arm_property, context: bpy.types.Context):
                     bpy_object.animation_data.action = bpy.data.actions[object_action_name]
 
 
-def prepare_action(context: bpy.types.Context, animation_name: str):
+def prepare_action(context: bpy.types.Context, animation_name: str, anim_length):
     armature_object = context.object
     if armature_object.animation_data is None:
         armature_object.animation_data_create()
     bpy_action = bpy.data.actions[animation_name]
     # bpy_action = bpy.data.actions.get(animation_name)
     armature_object.animation_data.action = bpy_action
-    bpy.context.scene.frame_start = bpy_action.frame_range[0]
-    bpy.context.scene.frame_end = bpy_action.frame_range[1]
+    # bpy.context.scene.frame_start = bpy_action.frame_range[0]
+    # bpy.context.scene.frame_end = bpy_action.frame_range[1]
+    print(animation_name, 0, "-", anim_length)
+    bpy.context.scene.frame_start = 0
+    bpy.context.scene.frame_end = anim_length
 
 
 class War3ArmatureProperties(bpy.types.PropertyGroup):

@@ -28,6 +28,7 @@ def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Obje
     edit_bones = bpy_armature.edit_bones
     for indexNode, war3_node in enumerate(war3_nodes):
         e_bone = edit_bones[indexNode]
+        print(war3_node.name, war3_node.parent)
         if war3_node.parent is not None:
             e_parent = edit_bones[war3_node_inds[war3_node.parent]]
             e_bone.parent = e_parent

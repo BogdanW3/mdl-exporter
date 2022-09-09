@@ -65,12 +65,12 @@ def write_animation_chunk(fw: TextIO.write,
                           name: str,
                           global_seqs: Set[int],
                           indent="\t"):
-    keyframes: Dict[float, tuple] = animation.keyframes
+    keyframes: Dict[float, List[float]] = animation.keyframes
     type1: str = animation.type
     interpolation: str = animation.interpolation
     global_sequence: int = animation.global_sequence
-    handles_left: Dict[float, tuple] = animation.handles_left
-    handles_right: Dict[float, tuple] = animation.handles_right
+    handles_left: Dict[float, List[float]] = animation.handles_left
+    handles_right: Dict[float, List[float]] = animation.handles_right
     # name: str
     # global_seqs: Set[int]
 
@@ -124,10 +124,10 @@ def write_animation_chunk(fw: TextIO.write,
     fw(indent+"}\n")
 
 
-def wxyz_to_xyzw(quat: Tuple[float]):
+def wxyz_to_xyzw(quat: List[float]):
     ugg: float = quat[0]
     quat1: List[float] = []
     quat1.extend(quat[1:])
     quat1.extend(quat[:1])
-    quat: Tuple[float] = tuple(quat1)
+    quat: List[float] = list(quat1)
     return quat

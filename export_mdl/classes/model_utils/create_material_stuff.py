@@ -14,6 +14,7 @@ from export_mdl.properties import War3MaterialLayerProperties
 
 def get_new_material2(bpy_material: bpy.types.Material,
                       use_const_color: bool,
+                      actions: List[bpy.types.Action],
                       sequences: List[War3AnimationAction],
                       global_seqs: Set[int]):
     material = War3Material(bpy_material.name)
@@ -23,10 +24,12 @@ def get_new_material2(bpy_material: bpy.types.Material,
 
     mdl_layers: List[War3MaterialLayerProperties] = bpy_material.mdl_layers
     for i, layer_settings in enumerate(mdl_layers):
-        material.layers.append(parse_layer(i, layer_settings, bpy_material, sequences, global_seqs))
+        material.layers.append(parse_layer(i, layer_settings, bpy_material, sequences, actions, global_seqs))
 
     if not len(material.layers):
-        material.layers.append(War3Layer())
+        layer = War3Layer()
+        layer.texture = War3Texture()
+        material.layers.append(layer)
 
     return material
 
@@ -35,6 +38,7 @@ def parse_layer(i: int,
                 layer_settings: War3MaterialLayerProperties,
                 mat: bpy.types.Material,
                 sequences: List[War3AnimationAction],
+                actions: List[bpy.types.Action],
                 global_seqs: Set[int]):
     print("parse layer2")
     layer = War3Layer()
@@ -59,14 +63,14 @@ def parse_layer(i: int,
 
     layer.alpha_value = layer_settings.alpha
     animation_data = mat.animation_data
-    alpha_anim = get_wc3_animation_curve(animation_data, 'mdl_layers[%d].alpha' % i, 1, sequences, global_seqs)
+    alpha_anim = get_wc3_animation_curve('mdl_layers[%d].alpha' % i, actions, 1, sequences, global_seqs)
     layer.alpha_anim = alpha_anim
 
     # get_curve(mat, {'mdl_layers[%d].alpha' % i})
     if mat.use_nodes:
         uv_node: Optional[bpy.types.Node] = mat.node_tree.nodes.get(layer_settings.name)
         animation_data = mat.node_tree.animation_data
-        texture_anim = get_texture_anim(animation_data, sequences, global_seqs, uv_node)
+        texture_anim = get_texture_anim(animation_data, sequences, actions, global_seqs, uv_node)
         if texture_anim is not None:
             layer.texture_anim = texture_anim
         # uv_node = mat.node_tree.nodes.get(layer_settings.name)
@@ -77,6 +81,7 @@ def parse_layer(i: int,
 
 def get_texture_anim(animation_data: Optional[bpy.types.AnimData],
                      sequences: List[War3AnimationAction],
+                     actions: List[bpy.types.Action],
                      global_seqs: Set[int],
                      uv_node: Optional[bpy.types.Node]) -> Optional[War3TextureAnim]:
     if uv_node is not None and animation_data is not None:
@@ -92,11 +97,11 @@ def get_texture_anim(animation_data: Optional[bpy.types.AnimData],
                 loc_value = 'nodes["%s"].translation'
                 rot_value = 'nodes["%s"].rotation'
                 scl_value = 'nodes["%s"].scale'
-            translation = get_wc3_animation_curve(animation_data, loc_value % uv_node.name, 3, sequences, global_seqs)
+            translation = get_wc3_animation_curve(loc_value % uv_node.name, actions, 3, sequences, global_seqs)
 
-            rotation = get_wc3_animation_curve(animation_data, rot_value % uv_node.name, 3, sequences, global_seqs)
+            rotation = get_wc3_animation_curve(rot_value % uv_node.name, actions, 3, sequences, global_seqs)
 
-            scale = get_wc3_animation_curve(animation_data, scl_value % uv_node.name, 3, sequences, global_seqs)
+            scale = get_wc3_animation_curve(scl_value % uv_node.name, actions, 3, sequences, global_seqs)
 
             if any((translation, rotation, scale)):
                 texture_anim = War3TextureAnim()

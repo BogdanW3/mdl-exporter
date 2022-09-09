@@ -12,7 +12,7 @@ from ..War3ExportSettings import War3ExportSettings
 from ..model_utils.get_bpy_mesh import get_bpy_mesh
 from ...properties import War3SequenceProperties, War3ParticleSystemProperties
 
-
+# This is a helper class to collect all relevant blender objects in preparation for saving
 class BpySceneObjects:
     def __init__(self, context: bpy.types.Context, settings: War3ExportSettings):
         self.actions: List[bpy.types.Action] = []
@@ -133,8 +133,8 @@ class BpySceneObjects:
             self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, i))
 
     def collect_material(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):
-        anim_tuple: Tuple[Optional[Tuple[float]], Tuple[str, bpy.types.AnimData]] \
-            = self.get_anim_tuple(bpy_obj)
+        # anim_tuple: Tuple[Optional[Tuple[float]], Tuple[str, bpy.types.AnimData]] \
+        #     = self.get_anim_tuple(bpy_obj)
         for bpy_material in bpy_mesh.materials:
             if bpy_material is not None:
                 self.materials.add(bpy_material)

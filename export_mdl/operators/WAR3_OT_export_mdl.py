@@ -41,6 +41,12 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             description="Remove keyframes if the resulting motion deviates less than the tolerance value."
             )
 
+    demote_to_helper: BoolProperty(
+            name="Demote Bones To Helpers",
+            description="Save bones not used for mesh as helpers.",
+            default=True
+            )
+
     use_actions: BoolProperty(
             name="Use Actions",
             description="Use actions instead of mdl-sequences"
@@ -72,6 +78,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
 
         settings.use_selection = self.use_selection
         settings.optimize_animation = self.optimize_animation
+        settings.demote_to_helper = self.demote_to_helper
         settings.optimize_tolerance = self.optimize_tolerance
         settings.use_actions = self.use_actions
         settings.use_skinweights = self.use_skinweights
@@ -90,6 +97,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         layout.prop(self, "axis_up")
         layout.separator()
         layout.prop(self, 'optimize_animation')
+        layout.prop(self, 'demote_to_helper')
         layout.prop(self, 'use_actions')
         layout.prop(self, 'use_skinweights')
         if self.optimize_animation:

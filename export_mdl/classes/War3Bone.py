@@ -11,7 +11,7 @@ class War3Bone(War3Node):
                  anim_loc: Optional[War3AnimationCurve] = None,
                  anim_rot: Optional[War3AnimationCurve] = None,
                  anim_scale: Optional[War3AnimationCurve] = None,
-                 parent: Optional[str] = None, pivot: Optional[List[float]] = None,
+                 parent: Optional[str] = None, pivot: List[float] = [0, 0, 0],
                  bindpose: Optional[Matrix] = None):
         super().__init__(name, anim_loc, anim_rot, anim_scale, parent, pivot, bindpose)
 

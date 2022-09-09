@@ -3,7 +3,7 @@ from typing import Optional, List, TextIO, Set, Dict
 import bpy
 from mathutils import Vector, Matrix
 
-from io_scene_warcraft_3.classes.WarCraft3Texture import WarCraft3Texture
+from .War3Texture import War3Texture
 from ..export_mdl.write_animation_chunk import write_animation_chunk
 from ..utils import float2str, rnd
 from .War3Node import War3Node
@@ -17,7 +17,7 @@ class War3Emitter(War3Node):
                  anim_rot: Optional[War3AnimationCurve],
                  anim_scale: Optional[War3AnimationCurve],
                  parent: Optional[str],
-                 pivot: Optional,
+                 pivot: List[float] = [0, 0, 0],
                  bindpose: Optional[Matrix] = None):
         super().__init__(name, anim_loc, anim_rot, anim_scale, parent, pivot, bindpose)
         self.emission_rate_anim: Optional[War3AnimationCurve] = None
@@ -87,7 +87,7 @@ class War3Emitter(War3Node):
     def write_particle(self, fw: TextIO.write,
                        object_indices: Dict[str, int],
                        global_seqs: Set[int],
-                       textures: List[WarCraft3Texture]):
+                       textures: List[War3Texture]):
         fw("ParticleEmitter2 \"%s\" {\n" % self.name)
         if len(object_indices) > 1:
             fw("\tObjectId %d,\n" % object_indices[self.name])

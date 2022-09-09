@@ -8,7 +8,7 @@ from ...classes.War3GeosetAnim import War3GeosetAnim
 
 
 def parse_geoset_animations(data: str) -> War3GeosetAnim:
-    geoset_animation = War3GeosetAnim([1, 1, 1], None, None)
+    geoset_animation = War3GeosetAnim([1, 1, 1], [1], None, None)
     geoset_animation.geoset_id = 0
     geoset_id = get_between(data, "GeosetId", ",")
 

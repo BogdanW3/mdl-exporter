@@ -28,19 +28,19 @@ def parse_geoset_transformation(node_chunk: str) -> War3AnimationCurve:
                 line_values = extract_float_values(stuff)
 
                 if len(line_values) == 4:
-                    line_values = (line_values[3], line_values[0], line_values[1], line_values[2])
+                    # print("float from \"%s\" =" % stuff, line_values)
+                    line_values = [line_values[3], line_values[0], line_values[1], line_values[2]]
 
                 if line_start == "InTan":
                     in_tan = line_values
+                    transformation.handles_left[time] = in_tan
 
                 if line_start == "OutTan":
                     out_tan = line_values
+                    transformation.handles_right[time] = out_tan
 
                 if re.match("\\d+", line_start):
                     values = line_values
-                    if len(values) == 1:
-                        transformation.keyframes[time] = (values[0])
-                    else:
-                        transformation.keyframes[time] = values
+                    transformation.keyframes[time] = values
 
     return transformation

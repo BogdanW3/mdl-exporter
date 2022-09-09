@@ -79,7 +79,7 @@ def extract_float_values(line: str) -> List[float]:
     line_values = []
     if re.match('[\\s\\S]*\\d+[\\s\\S]*', no_bracket_line):
         for l_string in line_value_strings:
-            v_strings = re.split("[^\\d.\\-]+", l_string.strip())
+            v_strings = re.split("[^\\d.\\-+eE]+", l_string.strip())
             v_string = v_strings[len(v_strings)-1]
             line_values.append(float(v_string))
     return line_values

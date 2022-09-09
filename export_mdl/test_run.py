@@ -3,6 +3,7 @@ from export_mdl.import_stuff.MDXImportProperties import MDXImportProperties
 from export_mdl.import_stuff.mdl_parser.load_mdl import load_mdl
 # run this with
 # "PATH\TO\BLENDER\blender" --background --python "PATH\TO\test_run.py" "PATH\TO\model.mdx"
+from export_mdl.import_stuff.mdx_parser.load_mdx import load_mdx
 
 
 def test_run(filepath):
@@ -17,8 +18,8 @@ def test_run(filepath):
 
     if ".mdl" in filepath:
         load_mdl(import_properties)
-    # else:
-    #     load_mdx(import_properties)
+    else:
+        load_mdx(import_properties)
     return {'FINISHED'}
 
 

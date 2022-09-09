@@ -15,9 +15,12 @@ from ..bpy_helpers.BpyLight import BpyLight
 from ...properties import War3LightSettings
 
 
-def get_lights(sequences: List[War3AnimationAction], global_seqs: Set[int],
-               bpy_light: BpyLight, global_matrix: Matrix):
-    visibility = get_visibility(sequences, global_seqs, bpy_light.bpy_obj)
+def get_lights(sequences: List[War3AnimationAction],
+               global_seqs: Set[int],
+               actions: List[bpy.types.Action],
+               bpy_light: BpyLight,
+               global_matrix: Matrix):
+    visibility = get_visibility(sequences, global_seqs, actions, bpy_light.bpy_obj)
 
     pivot = global_matrix @ Vector(bpy_light.location)
     light = War3Light(bpy_light.name, pivot, bpy_light.bpy_obj.matrix_basis)
@@ -40,27 +43,31 @@ def get_lights(sequences: List[War3AnimationAction], global_seqs: Set[int],
         light.type = light_data.light_type
 
         light.intensity = light_data.intensity
-        light.intensity_anim = anim_stuff(animation_data, 'mdl_light.intensity', 1, sequences, global_seqs)
+        light.intensity_anim = anim_stuff(animation_data, actions, 'mdl_light.intensity', 1, sequences, global_seqs)
 
         light.atten_start = light_data.atten_start
-        light.atten_start_anim = anim_stuff(animation_data, 'mdl_light.atten_start', 1, sequences, global_seqs)
+        light.atten_start_anim = anim_stuff(animation_data, actions, 'mdl_light.atten_start', 1, sequences, global_seqs)
 
         light.atten_end = light_data.atten_end
-        light.atten_end_anim = anim_stuff(animation_data, 'mdl_light.atten_end', 1, sequences, global_seqs)
+        light.atten_end_anim = anim_stuff(animation_data, actions, 'mdl_light.atten_end', 1, sequences, global_seqs)
 
         light.color = light_data.color
-        light.color_anim = anim_stuff(animation_data, 'mdl_light.color', 3, sequences, global_seqs)
+        light.color_anim = anim_stuff(animation_data, actions, 'mdl_light.color', 3, sequences, global_seqs)
 
         light.amb_color = light_data.amb_color
-        light.amb_color_anim = anim_stuff(animation_data, 'mdl_light.amb_color', 3, sequences, global_seqs)
+        light.amb_color_anim = anim_stuff(animation_data, actions, 'mdl_light.amb_color', 3, sequences, global_seqs)
 
         light.amb_intensity = light_data.amb_intensity
-        light.amb_intensity_anim = anim_stuff(animation_data, 'mdl_light.amb_intensity', 1, sequences, global_seqs)
+        light.amb_intensity_anim = anim_stuff(animation_data, actions, 'mdl_light.amb_intensity', 1, sequences, global_seqs)
 
     return light
 
 
-def anim_stuff(animation_data: Optional[bpy.types.AnimData], data_path: str, num_indices: int,
-               sequences: List[War3AnimationAction], global_seqs: Set[int]):
-    curve = get_wc3_animation_curve(animation_data, data_path, num_indices, sequences, global_seqs)
+def anim_stuff(animation_data: Optional[bpy.types.AnimData],
+               actions: List[bpy.types.Action],
+               data_path: str,
+               num_indices: int,
+               sequences: List[War3AnimationAction],
+               global_seqs: Set[int]):
+    curve = get_wc3_animation_curve(data_path, actions, num_indices, sequences, global_seqs)
     return curve

@@ -1,8 +1,9 @@
 import bpy
 from bpy.types import ArmatureModifier, Mesh
 from mathutils import Vector
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 
+from ..War3AnimationAction import War3AnimationAction
 from ..War3AnimationCurve import War3AnimationCurve
 from ..War3Bone import War3Bone
 from ..War3ExportSettings import War3ExportSettings
@@ -19,7 +20,7 @@ from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec
 
 
 def make_mesh(war3_model: War3Model,
-              bpy_scene_objects: BpySceneObjects,
+              bpy_scene_objects: BpySceneObjects, actions: List[bpy.types.Action],
               billboard_lock: Tuple[bool, bool, bool],
               billboarded: bool,
               bpy_obj: bpy.types.Object,
@@ -27,10 +28,10 @@ def make_mesh(war3_model: War3Model,
               settings: War3ExportSettings):
     sequences = war3_model.sequences
     global_seqs = war3_model.global_seqs
-    visibility = get_visibility(sequences, global_seqs, bpy_obj)
+    visibility = get_visibility(sequences, global_seqs, actions, bpy_obj)
     animation_data: bpy.types.AnimData = bpy_obj.animation_data
 
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', animation_data,
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data,
                                                      settings.optimize_tolerance)
 
     bpy_mesh: Mesh = bpy_scene_objects.bpy_meshes[bpy_obj.name][1]
@@ -82,31 +83,67 @@ def get_arm_mod(bpy_obj: bpy.types.Object) -> Optional[ArmatureModifier]:
 
 def get_geoset_anim(obj: bpy.types.Object, visibility: Optional[War3AnimationCurve], war3_model: War3Model)\
         -> Tuple[Optional[War3GeosetAnim], int]:
-    vertex_color_anim = get_wc3_animation_curve(obj.animation_data, 'color', 3, war3_model.sequences, war3_model.global_seqs)
+    vertex_color_anim = get_wc3_animation_curve('color', 3, war3_model.sequences, war3_model.global_seqs)
     vertex_color = None
     if any(i < 0.999 for i in obj.color[:3]):
-        vertex_color = tuple(obj.color[:3])
+        vertex_color = list(obj.color[:3])
     if not any((vertex_color, vertex_color_anim)):
         mat = obj.active_material
         if mat is not None and hasattr(mat, "node_tree") and mat.node_tree is not None:
             node = mat.node_tree.nodes.get("VertexColor")
             if node is not None:
                 attr = "outputs" if node.bl_idname == 'ShaderNodeRGB' else "inputs"
-                vertex_color = tuple(getattr(node, attr)[0].default_value[:3])
+                vertex_color = list(getattr(node, attr)[0].default_value[:3])
                 if hasattr(mat.node_tree, "animation_data"):
                     vertex_color_anim = get_wc3_animation_curve(
-                        mat.node_tree.animation_data, 'nodes["VertexColor"].%s[0].default_value' % attr, 3,
+                        'nodes["VertexColor"].%s[0].default_value' % attr, 3,
                         war3_model.sequences, war3_model.global_seqs)
     geoset_anim: Optional[War3GeosetAnim] = None
     geoset_anim_hash = 0
     if any((vertex_color, vertex_color_anim, visibility)):
-        geoset_anim = War3GeosetAnim(vertex_color, vertex_color_anim, visibility)
+        geoset_anim = War3GeosetAnim(vertex_color, [1], vertex_color_anim, visibility)
         geoset_anim_hash = hash(geoset_anim)  # The hash is a bit complex, so we precompute it
     return geoset_anim, geoset_anim_hash
 
 
+def get_geoset_anim2(bpy_geoset: BpyGeoset,
+                     actions: List[bpy.types.Action],
+                     visibility: Optional[War3AnimationCurve],
+                     sequences: List[War3AnimationAction],
+                     global_seqs: Set[int])\
+        -> Optional[War3GeosetAnim]:
+    geo_color_anim = get_wc3_animation_curve(bpy_geoset.get_geo_color_path(), actions, 3, sequences, global_seqs)
+    # for index in range(3):
+    #     curve = action.fcurves.find(data_path)
+    print("geo_color_anim:", geo_color_anim)
+    geo_color = [1.0, 1.0, 1.0]
+    color_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Color")
+    if color_node:
+        print("color_node:", color_node)
+        geo_color = color_node.outputs[0].default_value
+        # node_tree.nodes["Geoset Anim Color"].outputs[0].default_value
+    print(geo_color)
+
+    geo_alpha_anim = get_wc3_animation_curve(bpy_geoset.get_geo_alpha_path(), actions, 1, sequences, global_seqs)
+    if not geo_alpha_anim:
+        geo_alpha_anim = visibility
+    geo_alpha = 1.0
+    alpha_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Alpha")
+    if alpha_node:
+        geo_alpha = alpha_node.inputs[1].default_value
+    print(geo_alpha)
+
+    geoset_anim: Optional[War3GeosetAnim] = None
+    if geo_color_anim or geo_alpha_anim or geo_color != [1.0, 1.0, 1.0] or geo_alpha != 1.0:
+        geoset_anim = War3GeosetAnim(geo_color, [geo_alpha], geo_color_anim, geo_alpha_anim)
+        geoset_anim.geoset_name = bpy_geoset.name
+
+    return geoset_anim
+
+
 def create_geoset(bpy_geoset: BpyGeoset, bone_names: List[str]) -> War3Geoset:
     geoset = War3Geoset()
+    geoset.name = bpy_geoset.name
     geoset.mat_name = bpy_geoset.material_name
 
 

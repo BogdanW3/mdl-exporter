@@ -11,6 +11,7 @@ from . import get_sequences
 from . import get_visibility
 from . import is_animated_ugg
 from . import make_mesh
+from . import make_bones
 from . import get_bpy_mesh
 
 
@@ -29,6 +30,7 @@ try:
     importlib.reload(get_visibility)
     importlib.reload(is_animated_ugg)
     importlib.reload(make_mesh)
+    importlib.reload(make_bones)
     importlib.reload(get_bpy_mesh)
 except ImportError:
     print("    could not reload model util modules")

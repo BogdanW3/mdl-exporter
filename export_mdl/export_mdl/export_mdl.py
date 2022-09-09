@@ -43,7 +43,7 @@ from ..utils import float2str
 
 def save(operator, context: bpy.types.Context, settings: War3ExportSettings, filepath="", mdl_version=800):
 
-    print("context: ", context)
+    print("Save, context: ", context)
     scene = context.scene
 
     current_frame = scene.frame_current

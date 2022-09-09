@@ -150,6 +150,15 @@ TEAM_COLOR_IMAGE_PATH = 'ReplaceableTextures\\TeamColor\\TeamColor'
 TEAM_GLOW_IMAGE_PATH = 'ReplaceableTextures\\TeamGlow\\TeamGlow'
 TEAM_IMAGE_EXT = '.blp'
 
+FILTER_MODES = {
+    0: 'None',
+    1: 'Blend',
+    2: 'Transparent',
+    3: 'Additive',
+    4: 'AddAlpha',
+    5: 'Modulate',
+    6: 'Modulate2x'
+}
 
 def get_team_color(teamColorIndex):
     return TEAM_COLOR_IMAGE_PATH + '{0:0>2}'.format(teamColorIndex) + TEAM_IMAGE_EXT

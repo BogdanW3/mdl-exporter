@@ -20,8 +20,7 @@ from .add_particle_systems import get_particle_emitter, get_particle_emitter2, g
 from .get_sequences import get_sequences
 from .get_actions import get_actions
 from ..War3Node import War3Node
-from ..animation_curve_utils.space_actions import space_actions
-from .make_mesh import create_geoset
+from .make_mesh import create_geoset, get_geoset_anim2
 from ..bpy_helpers.BpySceneObjects import BpySceneObjects
 from ...utils import calc_extents
 
@@ -30,19 +29,22 @@ def from_scene(context: bpy.types.Context,
                settings: War3ExportSettings) -> War3Model:
     print("context: ", context)
 
+    print("from_scene!")
+
     bpy_scene_objects = BpySceneObjects(context, settings)
 
     frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
     model_name = bpy.path.basename(context.blend_data.filepath).replace(".blend", "")
     war3_model = War3Model(model_name)
 
-    if settings.use_actions:
-        war3_model.sequences = get_actions(frame2ms, bpy_scene_objects.actions)
-        space_actions(war3_model.sequences)
-    else:
-        war3_model.sequences = get_sequences(frame2ms, bpy_scene_objects.sequences)
+    war3_model.sequences, actions = get_actions(frame2ms, bpy_scene_objects.actions,
+                                                settings.use_actions, bpy_scene_objects.sequences)
+    # if settings.use_actions:
+    #     war3_model.sequences, actions = get_actions(frame2ms, bpy_scene_objects.actions, settings.use_actions, bpy_scene_objects.sequences)
+    # else:
+    #     war3_model.sequences = get_sequences(frame2ms, bpy_scene_objects.sequences)
 
-    parse_bpy_objects2(bpy_scene_objects, settings, war3_model)
+    parse_bpy_objects2(bpy_scene_objects, settings, war3_model, actions)
 
     for bpy_geoset in bpy_scene_objects.geosets:
         print("creating geoset!")
@@ -52,13 +54,18 @@ def from_scene(context: bpy.types.Context,
             bone_zero: str = war3_model.bones[0].name
             for vertex in war_geoset.vertices:
                 fix_skin_bones(vertex.bone_list, vertex.weight_list, bone_zero)
+        geo_anim = get_geoset_anim2(bpy_geoset, actions, None, war3_model.sequences, war3_model.global_seqs)
+        war_geoset.geoset_anim = geo_anim
+        if geo_anim:
+            geo_anim.geoset = war_geoset
+            geo_anim.geoset_id = len(war3_model.geosets)-1
 
     for bpy_material in bpy_scene_objects.materials:
         use_const_color = any([g for g in war3_model.geosets
                                if g.mat_name == bpy_material.name
                                and g.geoset_anim is not None
                                and any((g.geoset_anim.color, g.geoset_anim.color_anim))])
-        new_material = get_new_material2(bpy_material, use_const_color, war3_model.sequences, war3_model.global_seqs)
+        new_material = get_new_material2(bpy_material, use_const_color, actions, war3_model.sequences, war3_model.global_seqs)
         war3_model.materials.append(new_material)
 
 
@@ -76,8 +83,9 @@ def from_scene(context: bpy.types.Context,
     war3_model.tvertex_anims.extend(set((layer.texture_anim for layer in layers if layer.texture_anim is not None)))
     # Convert to set and back to list for unique entries
 
-    # Demote bones to helpers if they have no attached geosets
-    demote_to_helpers(war3_model)
+    if settings.demote_to_helper:
+        # Demote bones to helpers if they have no attached geosets
+        demote_to_helpers(war3_model)
 
     # We also need the textures used by emitters
     emitters: List[War3Emitter] = []
@@ -119,7 +127,7 @@ def from_scene(context: bpy.types.Context,
     return war3_model
 
 
-def demote_to_helpers(war3_model):
+def demote_to_helpers(war3_model: War3Model):
     bones_to_remove = []
     for bone in war3_model.bones:
         if not any([geoset for geoset in war3_model.geosets if
@@ -135,7 +143,10 @@ def demote_to_helpers(war3_model):
         war3_model.bones.remove(bone)
 
 
-def collect_all_pos(model_objects_all, object_indices, vertices_all, war3_model):
+def collect_all_pos(model_objects_all: List[War3Node],
+                    object_indices: Dict[str, int],
+                    vertices_all: List[List[float]],
+                    war3_model: War3Model):
     index = 0
     for war3_node in war3_model.bones:
         index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
@@ -173,54 +184,56 @@ def collect_all_nodes(index: int,
 
 def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,
                        settings: War3ExportSettings,
-                       war3_model: War3Model):
+                       war3_model: War3Model,
+                       actions: List[bpy.types.Action]):
     global_matrix: Matrix = settings.global_matrix
     optimize_animation: bool = settings.optimize_animation
     optimize_tolerance: float = settings.optimize_tolerance if optimize_animation else -1
     sequences: List[War3AnimationAction] = war3_model.sequences
     global_seqs: Set[int] = war3_model.global_seqs
 
+    print("parse_bpy_objects2!")
     war3_model.bones.extend(parse_armatures(bpy_scene_objects, global_matrix,
-                                            optimize_tolerance,
+                                            optimize_tolerance, actions,
                                             sequences, global_seqs))
 
     for bpy_empty_node in bpy_scene_objects.collisions:
         war3_model.collision_shapes.append(get_collision(bpy_empty_node, global_matrix))
 
     for bpy_emitter in bpy_scene_objects.particle1s:
-        particle_emitter = get_particle_emitter(sequences, global_seqs, bpy_emitter,
+        particle_emitter = get_particle_emitter(sequences, global_seqs, actions, bpy_emitter,
                                                 optimize_tolerance,
                                                 global_matrix)
         war3_model.particle_systems.append(particle_emitter)
 
     for bpy_emitter in bpy_scene_objects.particle2s:
-        emitter_ = get_particle_emitter2(sequences, global_seqs, bpy_emitter,
+        emitter_ = get_particle_emitter2(sequences, global_seqs, actions, bpy_emitter,
                                          optimize_tolerance,
                                          global_matrix)
         war3_model.particle_systems2.append(emitter_)
 
     for bpy_emitter in bpy_scene_objects.ribbons:
-        ribbon_emitter = get_ribbon_emitter(sequences, global_seqs, bpy_emitter,
+        ribbon_emitter = get_ribbon_emitter(sequences, global_seqs, actions, bpy_emitter,
                                             optimize_tolerance,
                                             global_matrix)
         war3_model.particle_ribbon.append(ribbon_emitter)
 
     for bpy_light in bpy_scene_objects.lights:
-        light = get_lights(sequences, global_seqs, bpy_light, global_matrix)
+        light = get_lights(sequences, global_seqs, actions, bpy_light, global_matrix)
         war3_model.lights.append(light)
 
     for bpy_empty_node in bpy_scene_objects.events:
-        event = get_event(sequences, global_seqs, bpy_empty_node,
+        event = get_event(sequences, global_seqs, actions, bpy_empty_node,
                           optimize_tolerance, global_matrix)
         war3_model.event_objects.append(event)
 
     for bpy_empty_node in bpy_scene_objects.helpers:
-        helper = get_helper(sequences, global_seqs, bpy_empty_node,
+        helper = get_helper(sequences, global_seqs, actions, bpy_empty_node,
                             optimize_tolerance, global_matrix)
         war3_model.helpers.append(helper)
 
     for bpy_empty_node in bpy_scene_objects.attachments:
-        attachment = get_attachment(sequences, global_seqs, bpy_empty_node,
+        attachment = get_attachment(sequences, global_seqs, actions, bpy_empty_node,
                                     optimize_tolerance, global_matrix)
         war3_model.attachments.append(attachment)
 

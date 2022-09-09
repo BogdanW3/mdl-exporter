@@ -4,11 +4,12 @@ import bpy
 
 from export_mdl.classes.War3Geoset import War3Geoset
 from export_mdl.classes.War3Model import War3Model
+from export_mdl.import_stuff.War3BpyMaterial import War3BpyMaterial
 
 
 def create_mesh_objects(model: War3Model,
                         bpy_armature_object: bpy.types.Object,
-                        bpy_materials: Dict[str, bpy.types.Material]):
+                        bpy_materials: Dict[str, War3BpyMaterial]):
     print("creating mesh")
     bpy_mesh_objects = []
 
@@ -28,7 +29,7 @@ def create_mesh_objects(model: War3Model,
             bpy_vert.normal = vertex.normal
 
         bpy_material = bpy_materials[war3_geoset.mat_name]
-        bpy_mesh.materials.append(bpy_material)
+        bpy_mesh.materials.append(bpy_material.bpy_material)
 
         for bone in model.bones:
             bpy_object.vertex_groups.new(name=str(bone.name))

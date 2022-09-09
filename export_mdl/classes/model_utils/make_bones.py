@@ -14,14 +14,17 @@ from export_mdl.classes.model_utils.is_animated_ugg import is_animated_ugg
 def parse_armatures(bpy_scene_objects: BpySceneObjects,
                     global_matrix: Matrix,
                     optimize_tolerance: float,
+                    actions: List[bpy.types.Action],
                     sequences: List[War3AnimationAction],
                     global_seqs: Set[int]) -> List[War3Bone]:
+    print("parsing armature!")
     bones: List[War3Bone] = []
     for armature in bpy_scene_objects.armatures:
         animation_data: bpy.types.AnimData = armature.animation_data
         matrix_world = Matrix(armature.matrix_world)
         for pose_bone in bpy_scene_objects.bpy_nodes[armature.name]:
-            bone = get_wc3_bone(animation_data, global_matrix, global_seqs, matrix_world, pose_bone, sequences,
+            print("armature.pose_bone", pose_bone)
+            bone = get_wc3_bone(animation_data, global_matrix, global_seqs, matrix_world, pose_bone, actions, sequences,
                                 optimize_tolerance)
             bones.append(bone)
     return bones
@@ -32,12 +35,13 @@ def get_wc3_bone(animation_data: bpy.types.AnimData,
                  global_seqs: Set[int],
                  matrix_world: Matrix,
                  pose_bone: bpy.types.PoseBone,
+                 actions: List[bpy.types.Action],
                  sequences: List[War3AnimationAction],
                  optimize_tolerance: float):
     data_path = 'pose.bones[\"' + pose_bone.name + '\"].%s'
     anim_loc, anim_rot, anim_scale = get_animation_data(animation_data, pose_bone, data_path, global_matrix,
                                                         global_seqs,
-                                                        matrix_world, sequences, optimize_tolerance)
+                                                        matrix_world, actions, sequences, optimize_tolerance)
     b_parent = pose_bone.parent
     bone_p_name = None if b_parent is None else b_parent.name
     pivot_ = matrix_world @ Vector(pose_bone.bone.head_local)  # Armature space to world space
@@ -52,9 +56,10 @@ def get_animation_data(animation_data: bpy.types.AnimData,
                        global_matrix: Matrix,
                        global_seqs: Set[int],
                        matrix_world: Matrix,
+                       actions: List[bpy.types.Action],
                        sequences: List[War3AnimationAction],
                        optimize_tolerance: float):
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, data_path, animation_data,
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, data_path, actions, animation_data,
                                                      optimize_tolerance)
     #
     # anim_loc = get_wc3_animation_curve(animation_data, data_path % 'location', 3, sequences)

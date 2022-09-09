@@ -14,10 +14,14 @@ class War3AnimationCurve:
         self.global_sequence: int = -1
         self.type = 'Default'
 
-        self.keyframes: Dict[float, tuple] = {}
-        self.handles_right: Dict[float, tuple] = {}
-        self.handles_left: Dict[float, tuple] = {}
-        self.curves: List[int, bpy.types.FCurve] = []
+        self.keyframes: Dict[float, List[float]] = {}
+        self.handles_right: Dict[float, List[float]] = {}
+        self.handles_left: Dict[float, List[float]] = {}
+        self.curves: List[bpy.types.FCurve] = []
+        # self.keyframes: Dict[float, tuple] = {}
+        # self.handles_right: Dict[float, tuple] = {}
+        # self.handles_left: Dict[float, tuple] = {}
+        # self.curves: List[bpy.types.FCurve] = []
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):

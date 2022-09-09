@@ -2,7 +2,6 @@ from typing import List
 
 from .mdl_reader import chunkifier, extract_bracket_content, extract_float_values, extract_int_values
 
-from .get_vertex_groups import get_vertex_groups
 from ...classes.War3Geoset import War3Geoset
 from ...classes.War3Vertex import War3Vertex
 
@@ -12,8 +11,8 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
     geoset = War3Geoset()
     geoset.name = ''
 
-    matrix_indices = []
-    matrix_groups_sizes = []
+    matrix_indices: List[int] = []
+    matrix_groups_sizes: List[int] = []
     vert_matrix_groups: List[int] = []
     matrix_groups: List[List[int]] = []
 
@@ -81,8 +80,6 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
                 sw_bones.append([str(s) for s in sw_vals[0:4]])
                 sw_weights.append(sw_vals[4:8])
 
-    # vert_bones: List[List[str]] = []
-    # vert_weights: List[List[int]] = []
     if not len(sw_bones):
         for group in vert_matrix_groups:
             v_b: List[str] = []
@@ -96,9 +93,6 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
     for loc, norm, uv, v_b, v_w in zip(locations, normals, uvs, sw_bones, sw_weights):
         geoset.vertices.append(War3Vertex(loc, norm, uv, None, v_b, v_w))
 
-    # vertex_groups, vertex_groups_ids = get_vertex_groups(vert_matrix_groups, matrix_groups_sizes, matrix_indices)
-    # geoset.vertex_groups = vertex_groups
-    # geoset.vertex_groups_ids = vertex_groups_ids
     geoset.matrices = sw_bones
 
     return geoset

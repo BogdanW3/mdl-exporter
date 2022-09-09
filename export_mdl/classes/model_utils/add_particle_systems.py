@@ -14,14 +14,14 @@ from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec
 
 
 def get_particle_emitter(sequences: List[War3AnimationAction],
-                         global_seqs: Set[int],
+                         global_seqs: Set[int], actions: List[bpy.types.Action],
                          bpy_emitter: BpyEmitter,
                          optimize_tolerance: float,
                          global_matrix: Matrix):
-    visibility = get_visibility(sequences, global_seqs, bpy_emitter.bpy_obj)
+    visibility = get_visibility(sequences, global_seqs, actions, bpy_emitter.bpy_obj)
 
     animation_data: bpy.types.AnimData = bpy_emitter.bpy_obj.animation_data
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', animation_data, optimize_tolerance)
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data, optimize_tolerance)
 
     if anim_loc is not None:
         transform_vec1(anim_loc, global_matrix)
@@ -34,7 +34,7 @@ def get_particle_emitter(sequences: List[War3AnimationAction],
     particle_sys: War3ParticleEmitter = War3ParticleEmitter(bpy_emitter.bpy_obj.name, anim_loc, anim_rot, anim_scale,
                                                             bpy_emitter.parent_name, pivot,
                                                             bpy_emitter.bpy_obj.matrix_basis)
-    particle_sys.set_from(bpy_emitter.bpy_obj, sequences, global_seqs)
+    particle_sys.set_from(bpy_emitter.bpy_obj, actions, sequences, global_seqs)
     particle_sys.visibility = visibility
 
     particle_sys.billboarded = bpy_emitter.billboarded
@@ -44,14 +44,14 @@ def get_particle_emitter(sequences: List[War3AnimationAction],
 
 
 def get_particle_emitter2(sequences: List[War3AnimationAction],
-                          global_seqs: Set[int],
+                          global_seqs: Set[int], actions: List[bpy.types.Action],
                           bpy_emitter: BpyEmitter,
                           optimize_tolerance: float,
                           global_matrix: Matrix):
-    visibility = get_visibility(sequences, global_seqs, bpy_emitter.bpy_obj)
+    visibility = get_visibility(sequences, global_seqs, actions, bpy_emitter.bpy_obj)
 
     animation_data: bpy.types.AnimData = bpy_emitter.bpy_obj.animation_data
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', animation_data,
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data,
                                                      optimize_tolerance)
 
     if anim_loc is not None:
@@ -64,7 +64,7 @@ def get_particle_emitter2(sequences: List[War3AnimationAction],
 
 
     particle_sys: War3ParticleSystem = War3ParticleSystem(bpy_emitter.bpy_obj.name, anim_loc, anim_rot, anim_scale, bpy_emitter.parent_name, pivot, bpy_emitter.bpy_obj.matrix_basis)
-    particle_sys.set_from(bpy_emitter.bpy_obj, sequences, global_seqs)
+    particle_sys.set_from(bpy_emitter.bpy_obj, actions, sequences, global_seqs)
     particle_sys.dimensions = Vector(map(abs, global_matrix @ bpy_emitter.bpy_obj.dimensions))
     particle_sys.visibility = visibility
 
@@ -75,13 +75,15 @@ def get_particle_emitter2(sequences: List[War3AnimationAction],
 
 
 def get_ribbon_emitter(sequences: List[War3AnimationAction],
-                       global_seqs: Set[int], bpy_emitter: BpyEmitter,
+                       global_seqs: Set[int],
+                       actions: List[bpy.types.Action],
+                       bpy_emitter: BpyEmitter,
                        optimize_tolerance: float,
                        global_matrix: Matrix):
-    visibility = get_visibility(sequences, global_seqs, bpy_emitter.bpy_obj)
+    visibility = get_visibility(sequences, global_seqs, actions, bpy_emitter.bpy_obj)
 
     animation_data: bpy.types.AnimData = bpy_emitter.bpy_obj.animation_data
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', animation_data,
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data,
                                                      optimize_tolerance)
 
     if anim_loc is not None:
@@ -95,7 +97,7 @@ def get_ribbon_emitter(sequences: List[War3AnimationAction],
     particle_sys: War3RibbonEmitter = War3RibbonEmitter(bpy_emitter.name, anim_loc, anim_rot, anim_scale,
                                                         bpy_emitter.parent_name, pivot,
                                                         bpy_emitter.bpy_obj.matrix_basis)
-    particle_sys.set_from(bpy_emitter.bpy_obj, sequences, global_seqs)
+    particle_sys.set_from(bpy_emitter.bpy_obj, actions, sequences, global_seqs)
     particle_sys.dimensions = Vector(map(abs, global_matrix @ bpy_emitter.bpy_obj.dimensions))
     particle_sys.visibility = visibility
 

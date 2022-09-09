@@ -1,8 +1,8 @@
 from mathutils import Quaternion
-from typing import Dict
+from typing import Dict, List
 
 
-def transform_rot(keyframes: Dict[float, tuple], matrix):
+def transform_rot(keyframes: Dict[float, List[float]], matrix):
     for frame in keyframes.keys():
         axis, angle = Quaternion(keyframes[frame]).to_axis_angle()
 
@@ -10,4 +10,4 @@ def transform_rot(keyframes: Dict[float, tuple], matrix):
         quat = Quaternion(axis, angle)
         quat.normalize()
 
-        keyframes[frame] = tuple(quat)
+        keyframes[frame] = list(quat)

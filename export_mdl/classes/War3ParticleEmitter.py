@@ -17,7 +17,8 @@ class War3ParticleEmitter(War3Emitter):
                  anim_loc: Optional[War3AnimationCurve],
                  anim_rot: Optional[War3AnimationCurve],
                  anim_scale: Optional[War3AnimationCurve],
-                 parent: Optional[str], pivot: Optional,
+                 parent: Optional[str],
+                 pivot: List[float] = [0, 0, 0],
                  bindpose: Optional[Matrix] = None):
         super().__init__(name, anim_loc, anim_rot, anim_scale, parent, pivot, bindpose)
         self.speed_anim: Optional[War3AnimationCurve] = None
@@ -28,12 +29,12 @@ class War3ParticleEmitter(War3Emitter):
         self.scale_anim: Optional[War3AnimationCurve] = None
         self.object_path: str = ""
 
-    def set_from(self, obj: bpy.types.Object, sequences: List[War3AnimationAction], global_seqs: Set[int]):
+    def set_from(self, obj: bpy.types.Object, actions: List[bpy.types.Action], sequences: List[War3AnimationAction], global_seqs: Set[int]):
         settings: bpy.types.ParticleSettings = obj.particle_systems[0].settings
 
         self.emitter: War3ParticleSystemProperties = settings.mdl_particle_sys
         animation_data: Optional[bpy.types.AnimData] = obj.animation_data
-        self.scale_anim: Optional[War3AnimationCurve] = self.anim_stuff(animation_data, 'scale', 2,
+        self.scale_anim: Optional[War3AnimationCurve] = self.anim_stuff(animation_data, 'scale', actions, 2,
                                                                         sequences, global_seqs)
 
         # Animated properties
@@ -49,36 +50,39 @@ class War3ParticleEmitter(War3Emitter):
             self.alpha_anim: Optional[War3AnimationCurve] = None
             # self.ribbon_color_anim: Optional[War3AnimationCurve] = None
         else:
-            self.emission_rate_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.emission_rate', 1,
+            self.emission_rate_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.emission_rate', actions, 1,
                                                       sequences, global_seqs)
 
-            self.speed_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.speed', 1,
+            self.speed_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.speed', actions, 1,
                                               sequences, global_seqs)
 
-            self.life_span_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.life_span', 1,
+            self.life_span_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.life_span', actions, 1,
                                                   sequences, global_seqs)
 
-            self.gravity_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.gravity', 1,
+            self.gravity_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.gravity', actions, 1,
                                                 sequences, global_seqs)
 
-            self.variation_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.variation', 1,
+            self.variation_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.variation', actions, 1,
                                                   sequences, global_seqs)
 
-            self.latitude_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.latitude', 1,
+            self.latitude_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.latitude', actions, 1,
                                                  sequences, global_seqs)
 
-            self.longitude_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.longitude', 1,
+            self.longitude_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.longitude', actions, 1,
                                                   sequences, global_seqs)
 
-            self.alpha_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.alpha', 1,
+            self.alpha_anim = self.anim_stuff(bby_anim_data, 'mdl_particle_sys.alpha', actions, 1,
                                               sequences, global_seqs)
 
             # self.ribbon_color_anim = get_anim(bby_anim_data, 'mdl_particle_sys.ribbon_color', 3, sequences)
             # self.register_global_sequence(global_seqs, self.ribbon_color_anim)
 
-    def anim_stuff(self, animation_data: Optional[bpy.types.AnimData], data_path: str, num_indices: int,
-                   sequences: List[War3AnimationAction], global_seqs: Set[int]):
-        curve = get_wc3_animation_curve(animation_data, data_path, num_indices, sequences, global_seqs)
+    def anim_stuff(self, animation_data: Optional[bpy.types.AnimData],
+                   data_path: str, actions: List[bpy.types.Action],
+                   num_indices: int,
+                   sequences: List[War3AnimationAction],
+                   global_seqs: Set[int]):
+        curve = get_wc3_animation_curve(data_path, actions, num_indices, sequences, global_seqs)
         return curve
 
     def write_particle(self, fw: TextIO.write,

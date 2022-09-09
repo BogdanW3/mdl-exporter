@@ -1,11 +1,11 @@
 from mathutils import Vector, Quaternion
-from typing import Dict
+from typing import Dict, List
 
 
-def split_segment(keyframes: Dict[float, tuple],
+def split_segment(keyframes: Dict[float, List[float]],
                   transform_type: str,
-                  start_time: int, start_value: tuple,
-                  end_time: int, end_value: tuple,
+                  start_time: int, start_value: List[float],
+                  end_time: int, end_value: List[float],
                   tolerance: float):
     length = float(end_time - start_time)
     error = -1
@@ -32,11 +32,11 @@ def split_segment(keyframes: Dict[float, tuple],
     return []
 
 
-def get_dist_from_real(end_value: tuple,
+def get_dist_from_real(end_value: List[float],
                        time_diff: int,
                        length: float,
-                       middle: tuple,
-                       start_value: tuple,
+                       middle: List[float],
+                       start_value: List[float],
                        transform_type: str):
     t = max(0.0, min(1.0, float(time_diff) / length))  # Interpolation factor
     if transform_type == 'Translation' or transform_type == 'Scale':

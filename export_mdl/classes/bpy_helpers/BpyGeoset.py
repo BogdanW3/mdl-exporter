@@ -6,8 +6,11 @@ import bpy
 class BpyGeoset:
     def __init__(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object, material_slot: int):
         # self.vertex_list: List[int] = []  # indices
+        self.name = bpy_obj.name
+        print("BpyGeoset - name:", self.name)
         self.bpy_mesh: bpy.types.Mesh = bpy_mesh
         self.material_slot: int = material_slot
+        self.bpy_material: bpy.types.Material = bpy_mesh.materials[material_slot]
         self.material_name: str = bpy_mesh.materials[material_slot].name
         self.vertex_list: List[bpy.types.MeshVertex] = []  # vertices
         self.pos_list: List[List[float]] = []  # location
@@ -76,4 +79,13 @@ class BpyGeoset:
         # skins = bone_list + weight_list
         return weight_list
 
+    def get_path(self):
+        return 'bpy.data.materials["{0}"]'.format(self.material_name)
 
+    def get_geo_color_path(self):
+        # return self.get_path() + '.node_tree.nodes["Geoset Anim Color"].outputs[0].default_value'
+        return self.get_path() + '.node_tree.nodes["Geoset Anim Color"].outputs[0]'
+
+    def get_geo_alpha_path(self):
+        # return self.get_path() + '.node_tree.nodes["Geoset Anim Alpha"].inputs[1].default_value'
+        return self.get_path() + '.node_tree.nodes["Geoset Anim Alpha"].inputs[1]'

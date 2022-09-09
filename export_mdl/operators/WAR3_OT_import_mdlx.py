@@ -6,6 +6,7 @@ from bpy_extras import io_utils
 from export_mdl import constants
 from export_mdl.import_stuff.MDXImportProperties import MDXImportProperties
 from export_mdl.import_stuff.mdl_parser.load_mdl import load_mdl
+from export_mdl.import_stuff.mdx_parser.load_mdx import load_mdx
 
 
 def set_team_color_property(operator, something):
@@ -79,8 +80,8 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
         constants.os_path_separator = os.path
         if ".mdl" in self.filepath:
             load_mdl(import_properties)
-        # else:
-            # load_mdx(import_properties)
+        else:
+            load_mdx(import_properties)
         return {'FINISHED'}
 
     def invoke(self, context, event):

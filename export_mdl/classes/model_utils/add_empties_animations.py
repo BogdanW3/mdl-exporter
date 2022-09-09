@@ -18,6 +18,7 @@ from ...utils import calc_extents
 
 def get_event(sequences: List[War3AnimationAction],
               global_seqs: Set[int],
+              actions: List[bpy.types.Action],
               bpy_empty_node: BpyEmptyNode,
               optimize_tolerance: float,
               global_matrix: Matrix):
@@ -26,19 +27,20 @@ def get_event(sequences: List[War3AnimationAction],
     pivot = global_matrix @ Vector(bpy_empty_node.bpy_obj.location)
 
     matrix_world = bpy_empty_node.bpy_obj.matrix_world
-    anim_loc, anim_rot, anim_scale = get_anims(animation_data, global_matrix, global_seqs, matrix_world,
+    anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
                                                optimize_tolerance, sequences)
 
     event_obj = War3EventObject(obj_name, anim_loc, anim_rot, anim_scale, bpy_empty_node.parent_name, pivot,
                                 bpy_empty_node.bpy_obj.matrix_basis)
     for datapath in ('["event_track"]', '["eventtrack"]', '["EventTrack"]'):
-        event_obj.track = get_wc3_animation_curve(animation_data, datapath, 1, sequences, global_seqs)
+        event_obj.track = get_wc3_animation_curve(datapath, actions, 1, sequences, global_seqs)
 
     return event_obj
 
 
 def get_attachment(sequences: List[War3AnimationAction],
                    global_seqs: Set[int],
+                   actions: List[bpy.types.Action],
                    bpy_empty_node: BpyEmptyNode,
                    optimize_tolerance: float,
                    global_matrix: Matrix):
@@ -47,12 +49,12 @@ def get_attachment(sequences: List[War3AnimationAction],
     pivot = global_matrix @ Vector(bpy_empty_node.bpy_obj.location)
 
     matrix_world = bpy_empty_node.bpy_obj.matrix_world
-    anim_loc, anim_rot, anim_scale = get_anims(animation_data, global_matrix, global_seqs, matrix_world,
+    anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
                                                optimize_tolerance, sequences)
 
     att = War3Attachment(obj_name, anim_loc, anim_rot, anim_scale, bpy_empty_node.parent_name, pivot,
                          bpy_empty_node.bpy_obj.matrix_basis)
-    visibility = get_visibility(sequences, global_seqs, bpy_empty_node.bpy_obj)
+    visibility = get_visibility(sequences, global_seqs, actions, bpy_empty_node.bpy_obj)
     att.visibility = visibility
     att.billboarded = bpy_empty_node.billboarded
     att.billboard_lock = bpy_empty_node.billboard_lock
@@ -61,6 +63,7 @@ def get_attachment(sequences: List[War3AnimationAction],
 
 def get_helper(sequences: List[War3AnimationAction],
                global_seqs: Set[int],
+               actions: List[bpy.types.Action],
                bpy_empty_node: BpyEmptyNode,
                optimize_tolerance: float,
                global_matrix: Matrix):
@@ -69,7 +72,7 @@ def get_helper(sequences: List[War3AnimationAction],
     pivot = global_matrix @ Vector(bpy_empty_node.bpy_obj.location)
 
     matrix_world = bpy_empty_node.bpy_obj.matrix_world
-    anim_loc, anim_rot, anim_scale = get_anims(animation_data, global_matrix, global_seqs, matrix_world,
+    anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
                                                optimize_tolerance, sequences)
 
     helper = War3Helper(obj_name, anim_loc, anim_rot, anim_scale, bpy_empty_node.parent_name, pivot,
@@ -80,8 +83,14 @@ def get_helper(sequences: List[War3AnimationAction],
     return helper
 
 
-def get_anims(animation_data, global_matrix, global_seqs, matrix_world, optimize_tolerance, sequences):
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', animation_data, optimize_tolerance)
+def get_anims(animation_data: bpy.types.AnimData,
+              actions: List[bpy.types.Action],
+              global_matrix: Matrix,
+              global_seqs: Set[int],
+              matrix_world: Matrix,
+              optimize_tolerance: bool,
+              sequences: List[War3AnimationAction]):
+    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data, optimize_tolerance)
     if anim_loc is not None:
         transform_vec1(anim_loc, matrix_world.inverted())
         transform_vec1(anim_loc, global_matrix)

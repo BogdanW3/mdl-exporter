@@ -6,10 +6,12 @@ from export_mdl.utils import float2str
 
 
 class War3GeosetAnim:
-    def __init__(self, color,
+    def __init__(self, color: List[float], alpha: List[float],
                  color_anim: Optional[War3AnimationCurve],
                  alpha_anim: Optional[War3AnimationCurve]):
-        self.color = color
+        self.color: List[float] = color
+        self.alpha: List[float] = alpha
+        # self.alpha = 1
         self.color_anim: Optional[War3AnimationCurve] = color_anim
         self.alpha_anim: Optional[War3AnimationCurve] = alpha_anim
         self.geoset = None
@@ -51,7 +53,7 @@ class War3GeosetAnim:
             #                       alpha.handles_left, alpha.handles_right,
             #           "Alpha", fw, global_seqs, "\t")
         else:
-            fw("\tstatic Alpha 1.0,\n")
+            fw("\tstatic Alpha %s,\n" % self.alpha[0])
 
         if self.color_anim is not None:
             write_animation_chunk(fw, self.color_anim, "Color", global_seqs, "\t")
