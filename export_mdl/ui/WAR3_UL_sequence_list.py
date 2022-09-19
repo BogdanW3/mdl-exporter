@@ -14,7 +14,9 @@ class WAR3_UL_sequence_list(UIList):
     #               flt_flag: int = 0):
     def draw_item(self, context: Context, layout: UILayout, data, item, icon: int, active_data, propname) -> None:
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon='TIME')
+            # layout.prop(item, "name", text="", emboss=False, icon='TIME')
+            layout.prop(item, "name", text="", emboss=False)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label(text="", icon_value='TIME')
+            # layout.label(text="", icon_value='TIME')
+            layout.label(text="")

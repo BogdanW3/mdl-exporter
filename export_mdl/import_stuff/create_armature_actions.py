@@ -12,7 +12,10 @@ from export_mdl.classes.War3Node import War3Node
 
 def create_armature_actions(armature_object: bpy.types.Object, model: War3Model, fps_ratio: float):
     print("adding animations")
-    nodes: List[War3Node] = model.objects_all
+    nodes: List[War3Node] = []
+    # nodes.extend(model.objects_all)
+    nodes.extend(model.bones)
+    nodes.extend(model.helpers)
     sequences: List[War3AnimationAction] = model.sequences
     armature: bpy.types.Armature = armature_object.data
     action_unanimated = bpy.data.actions.new(name='#UNANIMATED')
@@ -23,7 +26,7 @@ def create_armature_actions(armature_object: bpy.types.Object, model: War3Model,
     war3_armature_properties.sequencesList.add().name = 'all sequences'
 
     for node in nodes:
-        print("adding unanimated to: ", node.name)
+        # print("adding unanimated to: ", node.name)
         add_unanimated_to_bones(action_unanimated, node, node.name)
         add_unanimated_to_bones(action_all, node, node.name)
 
@@ -45,7 +48,7 @@ def create_armature_actions(armature_object: bpy.types.Object, model: War3Model,
         action: bpy.types.Action = bpy.data.actions.get(sequence.name)
 
         for node in nodes:
-            print("adding action %s to: " % sequence.name, node.name)
+            # print("adding action %s to: " % sequence.name, node.name)
             matrix: Matrix = rotation_adjust.get(node.name, identity)
             add_actions_to_node(action, fps_ratio, 0, sequence.end, sequence.start, node, matrix)
             # add_actions_to_node2(action, fps_ratio, 0, sequence, node, matrix)
@@ -81,13 +84,13 @@ def create_bpy_actions(sequences: List[War3AnimationAction],
                        war3_armature_properties: War3ArmatureProperties,
                        fps_ratio: float):
     for sequence in sequences:
-        print("adding sequence " + sequence.name)
+        # print("adding sequence " + sequence.name)
         bpy_action = bpy.data.actions.new(name=sequence.name)
         # bpy_action.frame_range = (0, (sequence.end - sequence.start))
         # bpy_action.use_frame_range = True
         # bpy_action.frame_end = sequence.end - sequence.start
         # bpy_action.use_cyclic = not sequence.non_looping
-        print("frame_range: ", bpy_action.frame_range)
+        # print("frame_range: ", bpy_action.frame_range)
         # bpy_action.fcurves.new()
         war3_Sequence = war3_armature_properties.sequencesList.add()
         war3_Sequence.name = sequence.name

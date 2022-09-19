@@ -20,7 +20,7 @@ from .add_particle_systems import get_particle_emitter, get_particle_emitter2, g
 from .get_sequences import get_sequences
 from .get_actions import get_actions
 from ..War3Node import War3Node
-from .make_mesh import create_geoset, get_geoset_anim2
+from .make_mesh import create_geoset, get_geoset_anim
 from ..bpy_helpers.BpySceneObjects import BpySceneObjects
 from ...utils import calc_extents
 
@@ -37,8 +37,9 @@ def from_scene(context: bpy.types.Context,
     model_name = bpy.path.basename(context.blend_data.filepath).replace(".blend", "")
     war3_model = War3Model(model_name)
 
-    war3_model.sequences, actions = get_actions(frame2ms, bpy_scene_objects.actions,
-                                                settings.use_actions, bpy_scene_objects.sequences)
+    sequences, actions = get_actions(frame2ms, bpy_scene_objects.actions,
+                                     settings.use_actions, bpy_scene_objects.sequences)
+    war3_model.sequences.extend(sequences)
     # if settings.use_actions:
     #     war3_model.sequences, actions = get_actions(frame2ms, bpy_scene_objects.actions, settings.use_actions, bpy_scene_objects.sequences)
     # else:
@@ -54,11 +55,12 @@ def from_scene(context: bpy.types.Context,
             bone_zero: str = war3_model.bones[0].name
             for vertex in war_geoset.vertices:
                 fix_skin_bones(vertex.bone_list, vertex.weight_list, bone_zero)
-        geo_anim = get_geoset_anim2(bpy_geoset, actions, None, war3_model.sequences, war3_model.global_seqs)
-        war_geoset.geoset_anim = geo_anim
-        if geo_anim:
-            geo_anim.geoset = war_geoset
-            geo_anim.geoset_id = len(war3_model.geosets)-1
+        if bpy_geoset.bpy_material.node_tree:
+            geo_anim = get_geoset_anim(bpy_geoset, actions, war3_model.sequences, war3_model.global_seqs)
+            war_geoset.geoset_anim = geo_anim
+            if geo_anim:
+                geo_anim.geoset = war_geoset
+                geo_anim.geoset_id = len(war3_model.geosets)-1
 
     for bpy_material in bpy_scene_objects.materials:
         use_const_color = any([g for g in war3_model.geosets
@@ -67,7 +69,6 @@ def from_scene(context: bpy.types.Context,
                                and any((g.geoset_anim.color, g.geoset_anim.color_anim))])
         new_material = get_new_material2(bpy_material, use_const_color, actions, war3_model.sequences, war3_model.global_seqs)
         war3_model.materials.append(new_material)
-
 
     # Add default material if no other materials present
     if any((x for x in war3_model.geosets if x.mat_name == "default")):
@@ -114,10 +115,10 @@ def from_scene(context: bpy.types.Context,
             for bone in itertools.chain.from_iterable(geoset.matrices):
                 war3_model.geoset_anim_map[bone] = geoset.geoset_anim
 
-    # Account for particle systems when calculating bounds
-    for particle_sys in list(war3_model.particle_systems) + list(war3_model.particle_systems2) + list(war3_model.particle_ribbon):
-        vertices_all.append([x + y/2 for x, y in zip(particle_sys.pivot, particle_sys.dimensions)])
-        vertices_all.append([x - y/2 for x, y in zip(particle_sys.pivot, particle_sys.dimensions)])
+    # # Account for particle systems when calculating bounds
+    # for particle_sys in list(war3_model.particle_systems) + list(war3_model.particle_systems2) + list(war3_model.particle_ribbon):
+    #     vertices_all.append([x + y/2 for x, y in zip(particle_sys.pivot, particle_sys.dimensions)])
+    #     vertices_all.append([x - y/2 for x, y in zip(particle_sys.pivot, particle_sys.dimensions)])
 
     war3_model.geoset_anims = list(set(g.geoset_anim for g in war3_model.geosets if g.geoset_anim is not None))
 
@@ -242,22 +243,46 @@ def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,
 
 
 def fix_skin_bones(bone_list: List[str], weight_list: List[int], bone_zero: str):
-    # Warcraft 800+ do support vertex (skin) weights; 4 per vertex which sum up to 255
-    numBones = len(bone_list)
-    bone_list = bone_list[:min(4, numBones)]
-    weight_list = weight_list[:min(4, numBones)]
+    # Warcraft 800+ do support vertex (skin) weights;
+    # 4 bone bindings per vertex whose weight sum up to 255
+    # This will ensure that the weight of the (up to) 4 first bones sums up to 255
+    numBones = len(weight_list)
 
-    tot_weight = sum(weight_list)
-    w_conv = 255 / tot_weight
-    weight_list = [round(i * w_conv) for i in weight_list]
     # Ugly fix to make sure total weight is 255
 
-    weight_adjust = 255 - sum(weight_list)
+    tot_weight = sum(weight_list[:min(4, numBones)])
+    w_conv = 255.0 / tot_weight
+    weight_adjust = 255
+    for i in range(numBones):
+        weight_list[i] = round(i * w_conv)
+        weight_adjust -= weight_list[i]
+
+    if len(weight_list) == 1 or weight_list[1] - weight_adjust < 0 and 0 < (weight_list[1] - weight_adjust):
+        print("ugg")
+
+    if weight_adjust < 0 and 1 < len(weight_list) and 0 < (weight_list[1] - weight_adjust):
+        print("ugg")
+
+
+def fix_skin_bones1(bone_list: List[str], weight_list: List[int], bone_zero: str):
+    # Warcraft 800+ do support vertex (skin) weights;
+    # 4 bone bindings per vertex whose weight sum up to 255
+    # This will ensure that the weight of the (up to) 4 first bones sums up to 255
+    numBones = len(weight_list)
+    weight_list_temp = weight_list[:min(4, numBones)]
+
+    tot_weight = sum(weight_list_temp)
+    w_conv = 255.0 / tot_weight
+    weight_list_temp = [round(i * w_conv) for i in weight_list_temp]
+    # Ugly fix to make sure total weight is 255
+
+    weight_adjust = 255 - sum(weight_list_temp)
     weight_list[0] = int(weight_list[0] + weight_adjust)
 
-    if numBones < 4:
-        print("not enough bones:", numBones)
-        for i in range(4-numBones):
-            print("adding bone!")
-            bone_list.append(bone_zero)
-            weight_list.append(0)
+    # bone_list = bone_list[:min(4, numBones)]
+    # if numBones < 4:
+    #     print("not enough bones:", numBones)
+    #     for i in range(4-numBones):
+    #         print("adding bone!")
+    #         bone_list.append(bone_zero)
+    #         weight_list.append(0)

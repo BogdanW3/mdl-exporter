@@ -1,11 +1,13 @@
 import importlib
 import typing
+from . import WAR3_MT_sequence_context_menu
 from . import WAR3_PT_billboard_panel
 from . import WAR3_PT_event_panel
 from . import WAR3_PT_light_panel
 from . import WAR3_PT_material_panel
 from . import WAR3_PT_particle_editor_panel
 from . import WAR3_PT_sequences_panel
+from . import WAR3_PT_Armature_Sequences
 from . import WAR3_UL_material_layer_list
 from . import WAR3_UL_sequence_list
 # from . import __init__
@@ -52,12 +54,14 @@ from . import WAR3_UL_sequence_list
 #     except ImportError:
 #         print("    could not reload UI module:", member)
 try:
+    importlib.reload(WAR3_MT_sequence_context_menu)
     importlib.reload(WAR3_PT_billboard_panel)
     importlib.reload(WAR3_PT_event_panel)
     importlib.reload(WAR3_PT_light_panel)
     importlib.reload(WAR3_PT_material_panel)
     importlib.reload(WAR3_PT_particle_editor_panel)
     importlib.reload(WAR3_PT_sequences_panel)
+    importlib.reload(WAR3_PT_Armature_Sequences)
     importlib.reload(WAR3_UL_material_layer_list)
     importlib.reload(WAR3_UL_sequence_list)
 

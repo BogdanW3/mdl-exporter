@@ -12,10 +12,12 @@ from ..War3ExportSettings import War3ExportSettings
 from ..model_utils.get_bpy_mesh import get_bpy_mesh
 from ...properties import War3SequenceProperties, War3ParticleSystemProperties
 
+
 # This is a helper class to collect all relevant blender objects in preparation for saving
 class BpySceneObjects:
     def __init__(self, context: bpy.types.Context, settings: War3ExportSettings):
         self.actions: List[bpy.types.Action] = []
+        # self.actions2: Dict[str, bpy.types.Action] = {}
         self.sequences: List[War3SequenceProperties] = []
         self.materials: Set[bpy.types.Material] = set()
 
@@ -35,8 +37,6 @@ class BpySceneObjects:
         self.geosets: List[BpyGeoset] = []
         self.bone_names: List[str] = []
 
-        # self.bpy_nodes: Dict[bpy.types.Object, List[bpy.types.PoseBone]] = {}
-        # self.bpy_meshes: Dict[bpy.types.Object, bpy.types.Mesh] = {}
         self.armatures: List[bpy.types.Object] = []
         self.bpy_nodes: Dict[str, List[bpy.types.PoseBone]] = {}
         self.bpy_meshes: Dict[str, Tuple[bpy.types.Object, bpy.types.Mesh]] = {}
@@ -49,8 +49,7 @@ class BpySceneObjects:
         scene: bpy.types.Scene = context.scene
 
         frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
-        self.actions.extend(bpy.data.actions)
-        self.sequences.extend(scene.mdl_sequences)
+
 
         objects: List[bpy.types.Object]
 
@@ -73,15 +72,28 @@ class BpySceneObjects:
 
         for bpy_obj in self.meshes:
             bpy_mesh = get_bpy_mesh(bpy_obj, context, settings.global_matrix @ bpy_obj.matrix_world)
-            # self.bpy_meshes[bpy_obj] = bpy_mesh
             self.bpy_meshes[bpy_obj.name] = (bpy_obj, bpy_mesh)
             self.collect_material(bpy_mesh, bpy_obj)
             self.make_bpy_geosets(bpy_mesh, bpy_obj)
 
+        # for action in bpy.data.actions:
+        #     self.actions2[action.name] = action
+        if settings.use_actions:
+            self.actions.extend(bpy.data.actions)
+        else:
+            actions_all = bpy.data.actions.get("all sequences")
+            if actions_all:
+                self.actions.append(actions_all)
+            elif len(self.armatures):
+                self.actions.append(self.armatures[0].animation_data.action)
+            elif len(bpy.data.actions):
+                self.actions.append(bpy.data.actions[0])
+            self.sequences.extend(scene.mdl_sequences)
+
     def parse_bpy_objects(self, bpy_obj: bpy.types.Object, global_matrix: Matrix):
         obj_name = bpy_obj.name
 
-        # Particle Systems
+        # Particle Systems (Blenders particle systems is attached to objects of type 'MESH')
         if len(bpy_obj.particle_systems):
             data = bpy_obj.particle_systems[0].settings
             if getattr(data, "mdl_particle_sys"):
@@ -107,7 +119,7 @@ class BpySceneObjects:
                 self.events.append(BpyEmptyNode(bpy_obj, global_matrix))
             elif bpy_obj.type == 'EMPTY' and obj_name.startswith('Collision'):
                 self.collisions.append(BpyEmptyNode(bpy_obj, global_matrix))
-            elif obj_name.endswith(" Ref"):
+            elif obj_name.endswith((" Ref", " Ref.001",  " Ref.002")):
                 self.attachments.append(BpyEmptyNode(bpy_obj, global_matrix))
             elif obj_name.startswith("Bone_"):
                 self.helpers.append(BpyEmptyNode(bpy_obj, global_matrix))
@@ -139,22 +151,3 @@ class BpySceneObjects:
             if bpy_material is not None:
                 self.materials.add(bpy_material)
 
-
-
-    def get_anim_tuple(self, obj: bpy.types.Object)\
-            -> Tuple[Optional[Tuple[float]], Tuple[str, bpy.types.AnimData]]:
-        vertex_color_anim = ('color', obj.animation_data)
-        vertex_color: Optional[Tuple[float]] = None
-        if any(i < 0.999 for i in obj.color[:3]):
-            vertex_color = tuple(obj.color[:3])
-        if not any((vertex_color, vertex_color_anim)):
-            mat = obj.active_material
-            if mat is not None and hasattr(mat, "node_tree") and mat.node_tree is not None:
-                node = mat.node_tree.nodes.get("VertexColor")
-                if node is not None:
-                    attr = "outputs" if node.bl_idname == 'ShaderNodeRGB' else "inputs"
-                    vertex_color = tuple(getattr(node, attr)[0].default_value[:3])
-                    if hasattr(mat.node_tree, "animation_data"):
-                        vertex_color_anim = ('nodes["VertexColor"].%s[0].default_value', mat.node_tree.animation_data)
-
-        return vertex_color, vertex_color_anim

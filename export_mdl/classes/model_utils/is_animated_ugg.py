@@ -4,41 +4,16 @@ import bpy.types
 
 from ..War3AnimationAction import War3AnimationAction
 from ..War3AnimationCurve import War3AnimationCurve
-from ..War3ExportSettings import War3ExportSettings
 from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 from ..animation_curve_utils.split_segment import split_segment
 
 
-# def is_animated_ugg(sequences: List[War3AnimationAction],
-#                     global_seqs: Set[int],
-#                     animation_data: bpy.types.AnimData,
-#                     optimize_tolerance: float)\
-#         -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
-#     anim_loc = get_wc3_animation_curve(animation_data, 'location', 3, sequences, global_seqs)
-#     optimize_anim(anim_loc, optimize_tolerance, sequences)
-#
-#     anim_rot = get_wc3_animation_curve(animation_data, 'rotation_quaternion', 4, sequences, global_seqs)
-#     if anim_rot is None:
-#         anim_rot = get_wc3_animation_curve(animation_data, 'rotation_euler', 3, sequences, global_seqs)
-#     optimize_anim(anim_rot, optimize_tolerance, sequences)
-#
-#     # anim_rot_quat = get_wc3_animation_curve(animation_data, data_path % 'rotation_quaternion', 4, sequences)
-#     # anim_rot_euler = get_wc3_animation_curve(animation_data, data_path % 'rotation_euler', 3, sequences)
-#     # anim_rot = anim_rot_quat if anim_rot_quat is not None else anim_rot_euler
-#     # register_global_sequence(global_seqs, anim_rot)
-#
-#     anim_scale = get_wc3_animation_curve(animation_data, 'scale', 3, sequences, global_seqs)
-#     optimize_anim(anim_scale, optimize_tolerance, sequences)
-#
-#     return anim_loc, anim_rot, anim_scale
-
-
-def is_animated_ugg(sequences: List[War3AnimationAction],
-                    global_seqs: Set[int],
-                    data_path: str,
-                    actions: List[bpy.types.Action],
-                    animation_data: bpy.types.AnimData,
-                    optimize_tolerance: float)\
+def get_loc_rot_scale(sequences: List[War3AnimationAction],
+                      global_seqs: Set[int],
+                      data_path: str,
+                      actions: List[bpy.types.Action],
+                      animation_data: bpy.types.AnimData,
+                      optimize_tolerance: float)\
         -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
     anim_loc = get_wc3_animation_curve(data_path % 'location', actions, 3, sequences, global_seqs)
     optimize_anim(anim_loc, optimize_tolerance, sequences)
@@ -106,7 +81,3 @@ def optimize(anim_curve: War3AnimationCurve, tolerance: float, sequences: List[W
     keyframes.update(new_keys)
     print('After: %d' % len(keyframes))
 
-
-def register_global_sequence(global_seqs: Set[int], curve: Optional[War3AnimationCurve]):
-    if curve is not None and curve.global_sequence > 0:
-        global_seqs.add(curve.global_sequence)

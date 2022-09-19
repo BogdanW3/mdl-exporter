@@ -8,11 +8,14 @@ from export_mdl.properties import War3ParticleSystemProperties
 
 
 class BpyEmitter:
-    def __init__(self, bpy_obj: bpy.types.Object, global_matrix: Matrix, particle_settings: War3ParticleSystemProperties):
-        self.bpy_obj = bpy_obj
+    def __init__(self, bpy_obj: bpy.types.Object,
+                 global_matrix: Matrix,
+                 particle_settings: War3ParticleSystemProperties):
+        self.bpy_obj: bpy.types.Object = bpy_obj
+        self.matrix_world: Matrix = bpy_obj.matrix_world
         self.location: Vector = Vector(bpy_obj.location)
-        self.pivot = global_matrix @ Vector(bpy_obj.location)
-        self.name = bpy_obj.name
+        self.pivot: Vector = global_matrix @ Vector(bpy_obj.location)
+        self.name: str = bpy_obj.name
 
         self.particle_system: bpy.types.ParticleSystem = bpy_obj.particle_systems[0]
         self.particle_settings: War3ParticleSystemProperties = particle_settings

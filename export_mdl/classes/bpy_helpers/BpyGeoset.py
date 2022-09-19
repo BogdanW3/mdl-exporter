@@ -9,6 +9,7 @@ class BpyGeoset:
         self.name = bpy_obj.name
         print("BpyGeoset - name:", self.name)
         self.bpy_mesh: bpy.types.Mesh = bpy_mesh
+        self.bpy_obj: bpy.types.Object = bpy_obj
         self.material_slot: int = material_slot
         self.bpy_material: bpy.types.Material = bpy_mesh.materials[material_slot]
         self.material_name: str = bpy_mesh.materials[material_slot].name
@@ -58,8 +59,12 @@ class BpyGeoset:
                         self.tangent_list.append(tangent)
                         self.uv_list.append(uv)
                         vertex_groups: List[bpy.types.VertexGroupElement] = sorted(vertex.groups[:], key=lambda x: x.weight, reverse=True)
-                        self.bone_list.append(list(all_vgs[vg.group].name for vg in vertex_groups if vg.weight != 0))
-                        self.weight_list.append(self.get_int_weights(list(vg.weight for vg in vertex_groups if vg.weight != 0)))
+                        if all_vgs:
+                            self.bone_list.append(list(all_vgs[vg.group].name for vg in vertex_groups if vg.weight != 0))
+                            self.weight_list.append(self.get_int_weights(list(vg.weight for vg in vertex_groups if vg.weight != 0)))
+                        else:
+                            self.bone_list.append([""])
+                            self.weight_list.append([1])
 
                     tri_vert_map[vert_index] = self.vertex_map[vertex_key]
                 # new_tri = (tri_vert_map[tri.vertices[0]], tri_vert_map[tri.vertices[1]], tri_vert_map[tri.vertices[2]])

@@ -29,9 +29,17 @@ def calc_bounds_radius(min_ext, max_ext):
 
 
 def calc_extents(vertices: List[List[float]]) -> Tuple[List[float], List[float]]:
-    max_extents = [max(vertices, key=itemgetter(i))[i] for i in range(3)]
-    min_extents = [min(vertices, key=itemgetter(i))[i] for i in range(3)]
-    
+    # max_extents = [max(vertices, key=itemgetter(i))[i] for i in range(3)]
+    # min_extents = [min(vertices, key=itemgetter(i))[i] for i in range(3)]
+
+    max_extents = [0.0, 0.0, 0.0]
+    min_extents = [0.0, 0.0, 0.0]
+
+    for vertex in vertices:
+        for i, v in enumerate(vertex):
+            max_extents[i] = max(max_extents[i], v)
+            min_extents[i] = min(max_extents[i], v)
+
     return min_extents, max_extents
 
 

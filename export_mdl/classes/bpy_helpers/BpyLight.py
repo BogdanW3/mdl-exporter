@@ -9,10 +9,11 @@ from export_mdl.properties import War3LightSettings
 
 class BpyLight:
     def __init__(self, bpy_obj: bpy.types.Object, global_matrix: Matrix):
-        self.bpy_obj = bpy_obj
+        self.bpy_obj: bpy.types.Object = bpy_obj
+        self.matrix_world: Matrix = bpy_obj.matrix_world
         self.location: Vector = Vector(bpy_obj.location)
-        self.pivot = global_matrix @ Vector(bpy_obj.location)
-        self.name = bpy_obj.name
+        self.pivot: Vector = global_matrix @ Vector(bpy_obj.location)
+        self.name: str = bpy_obj.name
 
         self.bpy_light: bpy.types.Light = bpy_obj.data
         if hasattr(self.bpy_light, "mdl_light"):

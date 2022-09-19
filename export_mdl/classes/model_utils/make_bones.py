@@ -8,7 +8,7 @@ from export_mdl.classes.War3Bone import War3Bone
 from export_mdl.classes.animation_curve_utils.transform_rot import transform_rot
 from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec1
 from export_mdl.classes.bpy_helpers.BpySceneObjects import BpySceneObjects
-from export_mdl.classes.model_utils.is_animated_ugg import is_animated_ugg
+from export_mdl.classes.model_utils.is_animated_ugg import get_loc_rot_scale
 
 
 def parse_armatures(bpy_scene_objects: BpySceneObjects,
@@ -59,8 +59,8 @@ def get_animation_data(animation_data: bpy.types.AnimData,
                        actions: List[bpy.types.Action],
                        sequences: List[War3AnimationAction],
                        optimize_tolerance: float):
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, data_path, actions, animation_data,
-                                                     optimize_tolerance)
+    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, data_path, actions, animation_data,
+                                                       optimize_tolerance)
     #
     # anim_loc = get_wc3_animation_curve(animation_data, data_path % 'location', 3, sequences)
     # register_global_sequence(global_seqs, anim_loc)

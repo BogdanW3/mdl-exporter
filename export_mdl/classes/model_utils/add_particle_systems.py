@@ -6,7 +6,7 @@ from mathutils import Vector, Matrix
 from ..War3AnimationAction import War3AnimationAction
 from ..War3ParticleEmitter import War3ParticleEmitter
 from ..War3ParticleSystem import War3ParticleSystem
-from .is_animated_ugg import is_animated_ugg, get_visibility
+from .is_animated_ugg import get_loc_rot_scale, get_visibility
 from ..War3RibbonEmitter import War3RibbonEmitter
 from ..bpy_helpers.BpyEmitter import BpyEmitter
 from export_mdl.classes.animation_curve_utils.transform_rot import transform_rot
@@ -21,7 +21,7 @@ def get_particle_emitter(sequences: List[War3AnimationAction],
     visibility = get_visibility(sequences, global_seqs, actions, bpy_emitter.bpy_obj)
 
     animation_data: bpy.types.AnimData = bpy_emitter.bpy_obj.animation_data
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data, optimize_tolerance)
+    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data, optimize_tolerance)
 
     if anim_loc is not None:
         transform_vec1(anim_loc, global_matrix)
@@ -51,8 +51,8 @@ def get_particle_emitter2(sequences: List[War3AnimationAction],
     visibility = get_visibility(sequences, global_seqs, actions, bpy_emitter.bpy_obj)
 
     animation_data: bpy.types.AnimData = bpy_emitter.bpy_obj.animation_data
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data,
-                                                     optimize_tolerance)
+    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data,
+                                                       optimize_tolerance)
 
     if anim_loc is not None:
         transform_vec1(anim_loc, global_matrix)
@@ -83,8 +83,8 @@ def get_ribbon_emitter(sequences: List[War3AnimationAction],
     visibility = get_visibility(sequences, global_seqs, actions, bpy_emitter.bpy_obj)
 
     animation_data: bpy.types.AnimData = bpy_emitter.bpy_obj.animation_data
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data,
-                                                     optimize_tolerance)
+    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data,
+                                                       optimize_tolerance)
 
     if anim_loc is not None:
         transform_vec1(anim_loc, global_matrix)

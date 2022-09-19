@@ -5,6 +5,8 @@ from . import War3LightSettings
 from . import War3MaterialLayerProperties
 from . import War3ParticleSystemProperties
 from . import War3SequenceProperties
+from . import War3ArmatureProperties
+# from . import War3ArmatureSequenceList
 
 try:
     print("    reloading property modules")
@@ -14,5 +16,7 @@ try:
     importlib.reload(War3MaterialLayerProperties)
     importlib.reload(War3ParticleSystemProperties)
     importlib.reload(War3SequenceProperties)
+    # importlib.reload(War3ArmatureSequenceList)
+    importlib.reload(War3ArmatureProperties)
 except ImportError:
     print("    could not reload property modules")

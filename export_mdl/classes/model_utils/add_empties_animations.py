@@ -9,7 +9,7 @@ from ..War3CollisionShape import War3CollisionShape
 from ..War3EventObject import War3EventObject
 from ..War3Helper import War3Helper
 from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
-from .is_animated_ugg import is_animated_ugg, get_visibility
+from .is_animated_ugg import get_loc_rot_scale, get_visibility
 from ..bpy_helpers.BpyEmptyNode import BpyEmptyNode
 from export_mdl.classes.animation_curve_utils.transform_rot import transform_rot
 from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec1
@@ -90,7 +90,7 @@ def get_anims(animation_data: bpy.types.AnimData,
               matrix_world: Matrix,
               optimize_tolerance: bool,
               sequences: List[War3AnimationAction]):
-    anim_loc, anim_rot, anim_scale = is_animated_ugg(sequences, global_seqs, '%s', actions, animation_data, optimize_tolerance)
+    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data, optimize_tolerance)
     if anim_loc is not None:
         transform_vec1(anim_loc, matrix_world.inverted())
         transform_vec1(anim_loc, global_matrix)
@@ -124,13 +124,13 @@ def get_collision(bpy_empty_node: BpyEmptyNode, global_matrix: Matrix):
         collider.verts.extend([v_min, v_max])  # TODO: World space or relative to pivot??
     elif 'Sphere' in bpy_empty_node.name or bpy_empty_node.display_type == 'SPHERE':
         collider.type = 'Sphere'
-        collider.verts.append([pivot])
+        collider.verts.append(list(pivot))
         collider.radius = global_matrix.median_scale * max(
             abs(x * bpy_empty_node.bpy_obj.empty_display_size) for x in bpy_empty_node.bpy_obj.scale)
     # elif 'Cylinder' in bpy_empty_node.name:
     else:
         collider.type = 'Cylinder'
-        collider.verts.append([pivot])
+        collider.verts.append(list(pivot))
         collider.radius = global_matrix.median_scale * max(
             abs(x * bpy_empty_node.bpy_obj.empty_display_size) for x in bpy_empty_node.bpy_obj.scale)
     return collider

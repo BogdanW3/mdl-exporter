@@ -40,11 +40,15 @@ def parse_node(data: str, node: War3Node, id_to_node: Dict[str, War3Node]):
         label = node_chunk.strip().split(" ")[0]
         if label == "Translation":
             node.anim_loc = parse_geoset_transformation(node_chunk)
+            node.anim_loc.type = "Translation"
         if label == "Rotation":
             node.anim_rot = parse_geoset_transformation(node_chunk)
+            node.anim_rot.type = "Rotation"
         if label == "Scaling":
             node.anim_scale = parse_geoset_transformation(node_chunk)
+            node.anim_scale.type = "Scaling"
         if label == "Visibility":
             node.visibility = parse_geoset_transformation(node_chunk)
+            node.visibility.type = "Visibility"
 
     return node

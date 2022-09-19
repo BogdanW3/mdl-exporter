@@ -105,7 +105,7 @@ def create_object_actions(model: War3Model,
         if not action:
             action = bpy.data.actions.new(name='#UNANIMATED')
         for i in range(4):
-            color_curve = action.fcurves.new(data_path_color, index=i, action_group=geosetAnimation.geoset_name)
+            color_curve = action.fcurves.new('["' + geosetAnimation.geoset_name + '"].' +data_path_color, index=i, action_group=geosetAnimation.geoset_name)
             # color_curve.keyframe_points.insert(0.0, 1.0)
             color_curve.keyframe_points.insert(0.0, color1[i])
             color_curves.append(color_curve)

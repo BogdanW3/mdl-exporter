@@ -30,12 +30,14 @@ else:
         from .operators import reload_operator_classes
         from .classes import reload_war3_classes
         from .export_mdl import reload_export_classes
+        from . import utils
         try:
             importlib.reload(reload_ui_classes)
             importlib.reload(reload_property_classes)
             importlib.reload(reload_operator_classes)
             importlib.reload(reload_war3_classes)
             importlib.reload(reload_export_classes)
+            importlib.reload(utils)
         except ImportError:
             print("  could not reload module")
     else:
@@ -59,12 +61,13 @@ from .ui.WAR3_PT_sequences_panel import WAR3_PT_sequences_panel
 from .ui.WAR3_UL_material_layer_list import WAR3_UL_material_layer_list
 from .ui.WAR3_UL_sequence_list import WAR3_UL_sequence_list
 from .ui.WAR3_PT_Armature_Sequences import WAR3_PT_Armature_Sequences
+from .ui.WAR3_MT_sequence_context_menu import WAR3_MT_sequence_context_menu
 from .properties.War3BillboardProperties import War3BillboardProperties
 from .properties.War3EventProperties import War3EventProperties
 from .properties.War3LightSettings import War3LightSettings
 from .properties.War3MaterialLayerProperties import War3MaterialLayerProperties
 from .properties.War3ParticleSystemProperties import War3ParticleSystemProperties
-from .properties.War3ArmatureSequenceList import War3ArmatureSequenceList
+from .properties.War3ArmatureSequenceListItem import War3ArmatureSequenceListItem
 from .properties.War3SequenceProperties import War3SequenceProperties
 from .properties.War3Preferences import War3Preferences
 from .properties.War3ArmatureProperties import War3ArmatureProperties
@@ -81,6 +84,10 @@ from .operators.WAR3_OT_search_texture import WAR3_OT_search_texture
 from .operators.WAR3_OT_add_seq_to_armature import WAR3_OT_add_seq_to_armature
 from .operators.WAR3_OT_remove_seq_from_armature import WAR3_OT_remove_seq_from_armature
 from .operators.WAR3_OT_import_mdlx import WAR3_OT_import_mdlx
+from .operators.WAR3_OT_move_seq_up import WAR3_OT_move_seq_up
+from .operators.WAR3_OT_move_seq_down import WAR3_OT_move_seq_down
+from .operators.WAR3_OT_generate_from_actions import WAR3_OT_generate_from_actions
+from .operators.WAR3_OT_move_seq_in_list import WAR3_OT_move_seq_in_list
 
 bl_info = {
     "name": "Warcraft MDL Exporter",
@@ -101,7 +108,7 @@ prop_classes = (
     War3BillboardProperties,
     War3ParticleSystemProperties,
     War3LightSettings,
-    War3ArmatureSequenceList,
+    War3ArmatureSequenceListItem,
     War3ArmatureProperties
 )
 
@@ -118,10 +125,15 @@ op_classes = (
     WAR3_OT_add_anim_sequence,
     WAR3_OT_add_seq_to_armature,
     WAR3_OT_remove_seq_from_armature,
-    WAR3_MT_emitter_presets
+    WAR3_MT_emitter_presets,
+    WAR3_OT_move_seq_up,
+    WAR3_OT_move_seq_down,
+    WAR3_OT_generate_from_actions,
+    WAR3_OT_move_seq_in_list
 )
 
 ui_classes = (
+    WAR3_MT_sequence_context_menu,
     WAR3_UL_sequence_list,
     WAR3_UL_material_layer_list,
     WAR3_PT_sequences_panel,
