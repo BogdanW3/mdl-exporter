@@ -51,10 +51,12 @@ def from_scene(context: bpy.types.Context,
         print("creating geoset!")
         war_geoset = create_geoset(bpy_geoset, bpy_scene_objects.bone_names)
         war3_model.geosets.append(war_geoset)
-        if settings.use_skinweights:
-            bone_zero: str = war3_model.bones[0].name
-            for vertex in war_geoset.vertices:
-                fix_skin_bones(vertex.bone_list, vertex.weight_list, bone_zero)
+
+        # Needs fixing. supposed to make sure that the 4 first weights adds up to 255.
+        # if settings.use_skinweights:
+        #     bone_zero: str = war3_model.bones[0].name
+        #     for vertex in war_geoset.vertices:
+        #         fix_skin_bones(vertex.bone_list, vertex.weight_list, bone_zero)
         if bpy_geoset.bpy_material.node_tree:
             geo_anim = get_geoset_anim(bpy_geoset, actions, war3_model.sequences, war3_model.global_seqs)
             war_geoset.geoset_anim = geo_anim
