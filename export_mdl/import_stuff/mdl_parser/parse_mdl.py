@@ -19,6 +19,7 @@ from ..MDXImportProperties import MDXImportProperties
 from ..load_warcraft_3_model import load_warcraft_3_model
 from ...classes.War3Model import War3Model
 from ...classes.War3Node import War3Node
+from ...classes.War3Texture import War3Texture
 
 
 def parse_mdl(data: str, import_properties: MDXImportProperties):
@@ -105,9 +106,14 @@ def parse_mdl(data: str, import_properties: MDXImportProperties):
                 vert.bone_list.extend(b_names)
 
     # print("model.materials:", model.materials)
+    if len(model.textures) == 0:
+        model.textures.append(War3Texture())
     for material in model.materials:
         for layer in material.layers:
-            layer.texture = model.textures[int(layer.texture_path)]
+            if int(layer.texture_path) < len(model.textures):
+                layer.texture = model.textures[int(layer.texture_path)]
+            else:
+                layer.texture = model.textures[0]
 
     model.objects_all.extend(model.bones)
     model.objects_all.extend(model.helpers)

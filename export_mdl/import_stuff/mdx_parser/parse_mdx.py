@@ -20,6 +20,7 @@ from .parse_textures import parse_textures
 from .parse_version import parse_version
 from .parse_lights import parse_lights
 from ...classes.War3Node import War3Node
+from ...classes.War3Texture import War3Texture
 
 
 def parse_mdx(data: bytes, import_properties: MDXImportProperties):
@@ -97,9 +98,14 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
                 vert.bone_list.extend(b_names)
 
     # print("model.materials:", model.materials)
+    if len(model.textures) == 0:
+        model.textures.append(War3Texture())
     for material in model.materials:
         for layer in material.layers:
-            layer.texture = model.textures[int(layer.texture_path)]
+            if int(layer.texture_path) < len(model.textures):
+                layer.texture = model.textures[int(layer.texture_path)]
+            else:
+                layer.texture = model.textures[0]
 
     model.objects_all.extend(model.bones)
     model.objects_all.extend(model.helpers)
