@@ -61,9 +61,9 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
         layout = self.layout
         split = layout.split(factor=0.9)
         sub_split = split.split(factor=0.5)
-        sub_split.label(text='Team Color:')
-        sub_split.prop(self, 'setTeamColor', text='')
-        split.prop(self, 'teamColor', text='')
+        sub_split.label(text="Team Color:")
+        sub_split.prop(self, 'setTeamColor', text="")
+        split.prop(self, 'teamColor', text="")
         layout.prop(self, 'boneSize')
         layout.prop(self, 'useCustomFPS')
         if self.useCustomFPS:

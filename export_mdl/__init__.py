@@ -71,6 +71,7 @@ from .properties.War3ArmatureSequenceListItem import War3ArmatureSequenceListIte
 from .properties.War3SequenceProperties import War3SequenceProperties
 from .properties.War3Preferences import War3Preferences
 from .properties.War3ArmatureProperties import War3ArmatureProperties
+from .properties.War3SequencesProperties import War3SequencesProperties
 from .operators.WAR3_MT_emitter_presets import WAR3_MT_emitter_presets
 from .operators.WAR3_OT_add_anim_sequence import WAR3_OT_add_anim_sequence
 from .operators.WAR3_OT_create_collision_shape import WAR3_OT_create_collision_shape
@@ -84,8 +85,6 @@ from .operators.WAR3_OT_search_texture import WAR3_OT_search_texture
 from .operators.WAR3_OT_add_seq_to_armature import WAR3_OT_add_seq_to_armature
 from .operators.WAR3_OT_remove_seq_from_armature import WAR3_OT_remove_seq_from_armature
 from .operators.WAR3_OT_import_mdlx import WAR3_OT_import_mdlx
-from .operators.WAR3_OT_move_seq_up import WAR3_OT_move_seq_up
-from .operators.WAR3_OT_move_seq_down import WAR3_OT_move_seq_down
 from .operators.WAR3_OT_generate_from_actions import WAR3_OT_generate_from_actions
 from .operators.WAR3_OT_move_seq_in_list import WAR3_OT_move_seq_in_list
 
@@ -104,12 +103,13 @@ prop_classes = (
     War3Preferences,
     War3MaterialLayerProperties,
     War3EventProperties,
-    War3SequenceProperties,
     War3BillboardProperties,
     War3ParticleSystemProperties,
     War3LightSettings,
     War3ArmatureSequenceListItem,
-    War3ArmatureProperties
+    War3ArmatureProperties,
+    War3SequenceProperties,
+    War3SequencesProperties
 )
 
 op_classes = (
@@ -126,8 +126,6 @@ op_classes = (
     WAR3_OT_add_seq_to_armature,
     WAR3_OT_remove_seq_from_armature,
     WAR3_MT_emitter_presets,
-    WAR3_OT_move_seq_up,
-    WAR3_OT_move_seq_down,
     WAR3_OT_generate_from_actions,
     WAR3_OT_move_seq_in_list
 )
@@ -149,11 +147,11 @@ ui_classes = (
 def menu_func(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
     # self.layout.operator(WAR3_OT_export_mdl.WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
-    self.layout.operator(WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
+    self.layout.operator(WAR3_OT_export_mdl.bl_idname, text="Warcraft 3 MDL (.mdl)")
 
 
 def menu_import_mdx(self, context):
-    self.layout.operator(WAR3_OT_import_mdlx.bl_idname, text='EE-Warcraft 3 (.mdl/.mdx)')
+    self.layout.operator(WAR3_OT_import_mdlx.bl_idname, text="Warcraft 3 (.mdl/.mdx) [WC3Exp]")
 
 
 def register():

@@ -43,7 +43,7 @@ class WAR3_PT_material_panel(bpy.types.Panel):
                 col.prop(active_layer, "name")
                 col.separator()
                 col.prop(active_layer, "texture_type")
-                if active_layer.texture_type == '0': # Image texture
+                if active_layer.texture_type == '0':  # Image texture
                     row = col.row()
                     row.label(text="Texture Path")
                     row.operator("object.search_texture", text="", icon='VIEWZOOM').target = 'Material'

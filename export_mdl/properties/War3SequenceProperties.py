@@ -1,132 +1,81 @@
 import bpy
-from bpy.app.handlers import persistent
-from bpy.props import StringProperty, IntProperty, BoolProperty, CollectionProperty
-from bpy.types import PropertyGroup
-
-# from .properties import get_sequence_name, set_sequence_name, get_sequence_start, get_sequence_end, \
-#     sequence_changed_handler
 
 
 def set_sequence_name(self, value):
     for marker in bpy.context.scene.timeline_markers:
-        if marker.name == self.name:
+        if marker.name == self.seq_name:
             marker.name = value
+    self.seq_name = value
     self.name = value
 
 
+def set_current_sequence(self):
+    bpy.context.scene.frame_start = self.start
+    bpy.context.scene.frame_end = self.end
+
+
 def get_sequence_name(self):
-    return self.name
+    return self.seq_name
 
 
 def get_sequence_start(self):
     scene = bpy.context.scene
-    if not len(scene.mdl_sequences):
+    if not len(scene.war3_mdl_sequences.mdl_sequences):
         return 0
     # active_sequence = scene.mdl_sequences[scene.mdl_sequence_index]
-    return min(tuple(m.frame for m in scene.timeline_markers if m.name == self.name))
+    return min(tuple(m.frame for m in scene.timeline_markers if m.name == self.seq_name))
 
 
 def get_sequence_end(self):
     scene = bpy.context.scene
-    if not len(scene.mdl_sequences):
+    if not len(scene.war3_mdl_sequences.mdl_sequences):
         return 0
     # active_sequence = scene.mdl_sequences[scene.mdl_sequence_index]
-    return max(tuple(m.frame for m in scene.timeline_markers if m.name == self.name))
+    return max(tuple(m.frame for m in scene.timeline_markers if m.name == self.seq_name))
 
 
-class War3SequenceProperties(PropertyGroup):
+class War3SequenceProperties(bpy.types.PropertyGroup):
 
     # Backing field
 
-    name_display: StringProperty(
+    name_display: bpy.props.StringProperty(
         name="Name",
-        default="",
+        default="Stand",
         get=get_sequence_name,
         set=set_sequence_name
         )
 
-    name: StringProperty(
+    seq_name: bpy.props.StringProperty(
         name="",
         default="Sequence"
         )
 
-    start: IntProperty(
+    start: bpy.props.IntProperty(
         name="",
         get=get_sequence_start
         )
 
-    end: IntProperty(
+    end: bpy.props.IntProperty(
         name="",
         get=get_sequence_end
         )
 
-    rarity: IntProperty(
+    rarity: bpy.props.IntProperty(
         name="Rarity",
         description="How rarely this sequence should play.",
         default=0,
         min=0
         )
 
-    non_looping: BoolProperty(
+    non_looping: bpy.props.BoolProperty(
         name="Non Looping",
         default=False
         )
 
-    move_speed: IntProperty(
+    move_speed: bpy.props.IntProperty(
         name="Movement Speed",
         description="The unit movement speed at which this animation will play at 100% speed.",
         default=270,
         min=0
         )
 
-    @classmethod
-    def register(cls):
-        bpy.types.Scene.mdl_sequences = CollectionProperty(type=War3SequenceProperties, options={'HIDDEN'})
-        bpy.types.Scene.mdl_sequence_index = IntProperty(name="Sequence index", description="", default=0, options={'HIDDEN'})
-        bpy.types.WindowManager.mdl_sequence_refreshing = BoolProperty(name="sequence refreshing", description="", default=False, options={'HIDDEN'})
-
-        if sequence_changed_handler not in bpy.app.handlers.depsgraph_update_post:
-            bpy.app.handlers.depsgraph_update_post.append(sequence_changed_handler)
-
-    @classmethod
-    def unregister(cls):
-        if sequence_changed_handler in bpy.app.handlers.depsgraph_update_post:
-            bpy.app.handlers.depsgraph_update_post.remove(sequence_changed_handler)
-
-        del bpy.types.Scene.mdl_sequences
-        del bpy.types.Scene.mdl_sequence_index
-        del bpy.types.WindowManager.mdl_sequence_refreshing
-
-
-
-@persistent
-def sequence_changed_handler(self):
-    context = bpy.context
-    # Prevent recursion
-    if context.window_manager.mdl_sequence_refreshing:
-        return
-
-    context.window_manager.mdl_sequence_refreshing = True
-    markers = set()
-
-    sequences = context.scene.mdl_sequences
-
-    for marker in context.scene.timeline_markers:
-        if len([m for m in context.scene.timeline_markers if m.name == marker.name]) == 2:
-            markers.add(marker.name)
-
-    for marker in markers:
-        if marker not in sequences:
-            s = sequences.add()
-            s.name = marker
-            if any(tag in s.name.lower() for tag in ['attack', 'death', 'decay']):
-                s.non_looping = True
-
-    for sequence in sequences.values():
-        if sequence.name not in markers:
-            index = sequences.find(sequence.name)
-            if context.scene.mdl_sequence_index >= index:
-                context.scene.mdl_sequence_index = index - 1
-            sequences.remove(index)
-
-    context.window_manager.mdl_sequence_refreshing = False

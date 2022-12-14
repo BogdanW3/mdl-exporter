@@ -2,8 +2,9 @@ import bpy
 
 
 class WAR3_PT_Armature_Sequences(bpy.types.Panel):
+    """Add a Warcraft 3 animation sequence using actions"""
     bl_idname = 'WAR3_PT_Armature_Sequences'
-    bl_label = 'EE11- WarCraft 3'
+    bl_label = 'WarCraft 3 Actions'
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'data'
@@ -14,13 +15,11 @@ class WAR3_PT_Armature_Sequences(bpy.types.Panel):
 
     def draw(self, context: bpy.types.Context):
         war3_data = context.armature.war_3
-        # print(context, context.__class__)
         layout = self.layout
-        layout.label(text='Animations:')
+        layout.label(text="Animations:")
         row = layout.row()
         row.template_list(
             listtype_name='WAR3_UL_sequence_list',
-            # listtype_name='UI_UL_list',
             list_id='name',
             dataptr=war3_data,
             propname='sequencesList',
@@ -30,22 +29,20 @@ class WAR3_PT_Armature_Sequences(bpy.types.Panel):
         )
         # row.se
         col = row.column(align=True)
-        col.operator('war_3.add_sequence_to_armature', icon='ADD', text='')
-        col.operator('war_3.remove_sequence_from_armature', icon='REMOVE', text='')
+        col.operator('war_3.add_sequence_to_armature', icon='ADD', text="")
+        col.operator('war_3.remove_sequence_from_armature', icon='REMOVE', text="")
         col.separator()
 
-        col.menu("war_3.sequence_context_menu", icon='DOWNARROW_HLT', text="")
+        col.menu("WAR3_MT_sequence_context_menu", icon='DOWNARROW_HLT', text="")
         col.separator()
-        col.operator('war_3.move_seq_in_list', icon='TRIA_UP', text='').direction = "UP"
-        col.operator('war_3.move_seq_in_list', icon='TRIA_DOWN', text='').direction = "DOWN"
-        # col.operator('war_3.move_seq_up', icon='TRIA_UP', text='')
-        # col.operator('war_3.move_seq_own', icon='TRIA_DOWN', text='')
+        col.operator('war_3.move_seq_in_list', icon='TRIA_UP', text="").direction = 'UP'
+        col.operator('war_3.move_seq_in_list', icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if len(war3_data.sequencesList):
+        if war3_data.sequencesListIndex < len(war3_data.sequencesList):
             if war3_data.sequencesList[war3_data.sequencesListIndex].name != '#UNANIMATED':
                 # layout.prop(war3_data, "color")
-                layout.prop(war3_data.sequencesList[war3_data.sequencesListIndex], "length")
-            layout.prop(war3_data.sequencesList[war3_data.sequencesListIndex], "name")
+                layout.prop(war3_data.sequencesList[war3_data.sequencesListIndex], 'length')
+            layout.prop(war3_data.sequencesList[war3_data.sequencesListIndex], 'name')
             if war3_data.sequencesList[war3_data.sequencesListIndex].name != '#UNANIMATED':
                 layout.prop(war3_data.sequencesList[war3_data.sequencesListIndex], "non_looping")
             # settings_row = layout.row()

@@ -17,7 +17,7 @@ def get_loc_rot_scale(sequences: List[War3AnimationAction],
         -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
     anim_loc = get_wc3_animation_curve(data_path % 'location', actions, 3, sequences, global_seqs)
     optimize_anim(anim_loc, optimize_tolerance, sequences)
-    print((data_path % 'location'), anim_loc, animation_data)
+    # print((data_path % 'location'), anim_loc, animation_data)
 
     anim_rot = get_wc3_animation_curve(data_path % 'rotation_quaternion', actions, 4, sequences, global_seqs)
     if anim_rot is None:

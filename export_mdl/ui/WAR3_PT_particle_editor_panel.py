@@ -20,9 +20,9 @@ class WAR3_PT_particle_editor_panel(Panel):
         psys = context.active_object.particle_systems.active.settings.mdl_particle_sys
 
         row = layout.row(align=True)
-        row.menu('WAR3_MT_emitter_presets', text='Presets')
-        row.operator('particle.emitter_preset_add', text='', icon='ADD')
-        row.operator('particle.emitter_preset_add', text='', icon='REMOVE').remove_active = True
+        row.menu('WAR3_MT_emitter_presets', text="Presets")
+        row.operator('particle.emitter_preset_add', text="", icon='ADD')
+        row.operator('particle.emitter_preset_add', text="", icon='REMOVE').remove_active = True
 
         layout.prop(psys, "emitter_type")
 

@@ -19,6 +19,7 @@ texture_paths = load_texture_list()
 
 
 class WAR3_OT_search_texture(Operator):
+    """Search list of Warcraft 3 internal textures"""
     bl_idname = "object.search_texture"
     bl_label = "Search"
     bl_options = {'REGISTER', 'INTERNAL'}

@@ -20,10 +20,11 @@ def get_actions(f2ms: float, bpy_actions: List[bpy.types.Action], use_actions: b
                 actions.append(action)
     else:
         for mdl_sequence in mdl_sequences:
-            sequence = War3AnimationAction(mdl_sequence.name, mdl_sequence.start * f2ms, mdl_sequence.end * f2ms,
+            sequence = War3AnimationAction(mdl_sequence.seq_name, mdl_sequence.start * f2ms, mdl_sequence.end * f2ms,
                                            mdl_sequence.non_looping, mdl_sequence.move_speed, mdl_sequence.rarity)
             sequences.append(sequence)
-        actions.append(bpy_actions[0])
+        if bpy_actions:
+            actions.append(bpy_actions[0])
 
     if len(sequences) == 0:
         sequences.append(War3AnimationAction("Stand", 0, 1000/f2ms))

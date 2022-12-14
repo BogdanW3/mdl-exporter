@@ -39,7 +39,7 @@ class WAR3_OT_move_seq_in_list(bpy.types.Operator):
 
             if 0 <= new_index < len(war3_data.sequencesList):
                 sequences_list = war3_data.sequencesList
-                print("sequences_list:", sequences_list, isinstance(sequences_list, bpy.types.Collection))
+                # print("sequences_list:", sequences_list, isinstance(sequences_list, bpy.types.Collection))
                 sequences_list.move(war3_data.sequencesListIndex, new_index)
                 war3_data.sequencesListIndex = new_index
 

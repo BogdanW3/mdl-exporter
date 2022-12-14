@@ -58,7 +58,6 @@ class War3Geoset:
 
         if not use_skinweights:
             for vertex in self.vertices:
-                # fw("\t\t%d,\n" % vertex.matrix)
                 if self.matrices.count(vertex.bone_list):
                     fw("\t\t%d,\n" % self.matrices.index(vertex.bone_list))
                 else:
@@ -77,43 +76,32 @@ class War3Geoset:
             # Tangents
             fw("\tTangents %d {\n" % len(self.vertices))
             for vertex in self.vertices:
-                # fw("\t\t{%s, %s, %s, -1},\n" % tuple(map(f2s, vertex[1])))
-                # tangents = tuple(map(float2str, vertex.normal)) + tuple({str(sum(vertex.normal) / abs(sum(vertex.normal)))})
                 tangents = tuple(vertex.tangent)
                 fw("\t\t{%s, %s, %s, %s},\n" % tuple(tangents))
             fw("\t}\n")
             # SkinWeights
             fw("\tSkinWeights %d {\n" % len(self.vertices))
             for vertex in self.vertices:
-                print("bones:", vertex.bone_list, ", weights:", vertex.weight_list)
                 bones = tuple((sorted_bone_name_dict[name] for name in vertex.bone_list)) + tuple([0, 0, 0, 0])
                 fw("\t\t%s, %s, %s, %s, " % bones[0:4])
-                weights = tuple(vertex.weight_list) + tuple([0, 0, 0, 0])
-                fw("%s, %s, %s, %s,\n" % weights[0:4])
-                # fw("%s, %s, %s, %s,\n" % tuple(vertex.weight_list))
+                weights = list(vertex.weight_list)
+                weights.extend([0, 0, 0, 0])
+                fw("%s, %s, %s, %s,\n" % tuple(weights[0:4]))
             fw("\t}\n")
 
         # Faces
-        # fw("\tFaces %d %d {\n" % (len(self.triangles), len(self.triangles) * 3))
         fw("\tFaces %d %d {\n" % (1, len(self.triangles) * 3))
 
         fw("\t\tTriangles {\n")
         fw("\t\t\t{")
-        # for triangle in self.triangles:
-        #     fw(" %d, %d, %d," % triangle[:])
 
         all_triangles = []
         for triangle in self.triangles:
             for index in triangle:
                 all_triangles.append(str(index))
         fw(", ".join(all_triangles))
-        # fw("\t\t\t},\n")
         fw("},\n")
         fw("\t\t}\n")
-        # fw("\t\tTriangles {\n")
-        # for triangle in self.triangles:
-        #     fw("\t\t\t{%d, %d, %d},\n" % triangle[:])
-        # fw("\t\t}\n")
         fw("\t}\n")
 
         if use_skinweights:

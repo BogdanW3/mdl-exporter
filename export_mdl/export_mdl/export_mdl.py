@@ -66,7 +66,7 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, settings
         fw("// Exported on %s by %s\n" % (date, getpass.getuser()))
 
         if settings.use_skinweights:
-            fw("Version {\n\tFormatVersion %d,\n}\n" % 900)
+            fw("Version {\n\tFormatVersion %d,\n}\n" % 1000)
         else:
             fw("Version {\n\tFormatVersion %d,\n}\n" % mdl_version)
         # HEADER
@@ -130,18 +130,12 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, settings
             fw("BindPose {\n")
             fw("\tMatrices %s {\n" % (len(model.objects_all) + len(model.cameras)))
             for obj in model.objects_all:
-                print(obj)
                 obj_mat = mat_to_tuple(obj.bindpose)
-                # bp = tuple(obj.bindpose) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
                 bp = tuple(obj_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }" % tuple(obj.bindpose))
-                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }\n" % bp[0:12])
                 fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
             for cam in model.cameras:
                 cam_mat = mat_to_tuple(Matrix(cam.matrix_basis))
                 bp = tuple(cam_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }" % tuple(cam.matrix_local[:12]))
-                # fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s }\n" % bp[0:12])
                 fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
             fw("\t}\n")
             fw("}\n")

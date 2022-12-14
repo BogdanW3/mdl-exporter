@@ -2,6 +2,7 @@ import itertools
 from typing import List, Union, Dict, Set, Optional, Tuple
 
 import bpy
+from bpy_extras import anim_utils
 from mathutils import Matrix
 
 from .BpyEmitter import BpyEmitter
@@ -9,7 +10,7 @@ from .BpyEmptyNode import BpyEmptyNode
 from .BpyGeoset import BpyGeoset
 from .BpyLight import BpyLight
 from ..War3ExportSettings import War3ExportSettings
-from ..model_utils.get_bpy_mesh import get_bpy_mesh
+from ..model_utils.get_bpy_mesh import get_bpy_mesh, get_bpy_curve_mesh
 from ...properties import War3SequenceProperties, War3ParticleSystemProperties
 
 
@@ -22,6 +23,7 @@ class BpySceneObjects:
         self.materials: Set[bpy.types.Material] = set()
 
         self.meshes: List[bpy.types.Object] = []
+        self.curves: List[bpy.types.Object] = []
         self.cameras: List[bpy.types.Object] = []
 
         self.particle1s: List[BpyEmitter] = []
@@ -76,6 +78,12 @@ class BpySceneObjects:
             self.collect_material(bpy_mesh, bpy_obj)
             self.make_bpy_geosets(bpy_mesh, bpy_obj)
 
+        for bpy_obj in self.curves:
+            bpy_mesh = get_bpy_curve_mesh(bpy_obj, context, settings.global_matrix @ bpy_obj.matrix_world)
+            self.bpy_meshes[bpy_obj.name] = (bpy_obj, bpy_mesh)
+            self.collect_material(bpy_mesh, bpy_obj)
+            self.make_bpy_geosets(bpy_mesh, bpy_obj)
+
         # for action in bpy.data.actions:
         #     self.actions2[action.name] = action
         if settings.use_actions:
@@ -84,11 +92,11 @@ class BpySceneObjects:
             actions_all = bpy.data.actions.get("all sequences")
             if actions_all:
                 self.actions.append(actions_all)
-            elif len(self.armatures):
+            elif len(self.armatures) and self.armatures[0].animation_data:
                 self.actions.append(self.armatures[0].animation_data.action)
             elif len(bpy.data.actions):
                 self.actions.append(bpy.data.actions[0])
-            self.sequences.extend(scene.mdl_sequences)
+            self.sequences.extend(scene.war3_mdl_sequences.mdl_sequences)
 
     def parse_bpy_objects(self, bpy_obj: bpy.types.Object, global_matrix: Matrix):
         obj_name = bpy_obj.name
@@ -105,8 +113,20 @@ class BpySceneObjects:
                 elif particle_settings.emiter_type == 'RibbonEmitter':
                     self.ribbons.append(BpyEmitter(bpy_obj, global_matrix, particle_settings))
 
-        elif bpy_obj.type == 'MESH' or bpy_obj.type == 'CURVE':
+        elif bpy_obj.type == 'MESH':
             self.meshes.append(bpy_obj)
+
+        # ToDo what to do with curves? t
+        elif bpy_obj.type == 'CURVE' and \
+                (0 < bpy_obj.data.extrude
+                 or 0 < bpy_obj.data.bevel_depth
+                 or bpy_obj.data.bevel_object is not None):
+            print("curve_obj:", bpy_obj)
+            print("curve_dat:", bpy_obj.data)
+            print("curve - ", bpy_obj.data.extrude)
+            print("curve - ", bpy_obj.data.bevel_depth)
+            print("curve - ", bpy_obj.data.bevel_object)
+            self.curves.append(bpy_obj)
 
         elif bpy_obj.type == 'EMPTY':
             print("empty, mat:", bpy_obj.matrix_world)
@@ -125,6 +145,9 @@ class BpySceneObjects:
                 self.helpers.append(BpyEmptyNode(bpy_obj, global_matrix))
 
         elif bpy_obj.type == 'ARMATURE':
+            # bpy_obj_baked = self.get_bpy_armature(bpy_obj)
+            # self.armatures.append(bpy_obj_baked)
+            # self.bpy_nodes[bpy_obj_baked.name] = bpy_obj_baked.pose.bones
             self.armatures.append(bpy_obj)
             self.bpy_nodes[bpy_obj.name] = bpy_obj.pose.bones
 
@@ -142,7 +165,7 @@ class BpySceneObjects:
 
     def make_bpy_geosets(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):
         for i, m in enumerate(bpy_mesh.materials):
-            self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, i))
+            self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, i, self.bone_names))
 
     def collect_material(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):
         # anim_tuple: Tuple[Optional[Tuple[float]], Tuple[str, bpy.types.AnimData]] \
@@ -151,3 +174,73 @@ class BpySceneObjects:
             if bpy_material is not None:
                 self.materials.add(bpy_material)
 
+    def get_bpy_armature(self, bpy_obj: bpy.types.Object):
+        bpy_obj_temp = bpy_obj.copy()
+
+        actions_to_bake: List[bpy.types.Action] = []
+        actions_to_bake.extend(bpy.data.actions)
+        # bpy.context.scene.collection.objects.link(bpy_obj_temp)
+        # bpy_obj_temp.select_set(True)
+        # bpy.context.view_layer.objects.active = bpy_obj_temp
+        #
+        # bpy.ops.object.mode_set(mode='POSE')
+
+        for action in actions_to_bake:
+            if 'Bezier' not in action.name:
+                pairs = [(bpy_obj_temp, action)]
+                bpy_obj_temp.animation_data.action = action
+                baked_action = anim_utils.bake_action_objects(
+                    pairs,
+                    frames=range(int(action.frame_range[0]), int(action.frame_range[1]+1), 2),
+                    only_selected=False,
+                    do_pose=True,
+                    do_object=False,
+                    do_visual_keying=True,
+                    do_constraint_clear=True,
+                    do_parents_clear=False,
+                    do_clean=True,
+                )
+                # baked_action = anim_utils.bake_action_iter(
+                #     bpy_obj_temp,
+                #     action=action,
+                #     only_selected=False,
+                #     do_pose=True,
+                #     do_object=False,
+                #     do_visual_keying=True,
+                #     do_constraint_clear=True,
+                #     do_parents_clear=False,
+                #     do_clean=True,
+                # )
+                # print("baked %s: " % action.name, baked_action)
+                # print("fcurves: ", len(baked_action.fcurves))
+                # print("thigh_L eul: ", baked_action.fcurves.find('pose.bones[\"' + "thigh_L" + '\"].%s' % 'rotation_euler'))
+                # print("thigh_L qua: ", baked_action.fcurves.find('pose.bones[\"' + "thigh_L" + '\"].%s' % 'rotation_quaternion'))
+
+                # bpy_obj_temp.animation_data.
+        # for action in actions_to_bake:
+        #     bpy_obj_temp.animation_data.action = action
+        #     baked_action = anim_utils.bake_action_iter(
+        #         bpy_obj_temp,
+        #         action=action,
+        #         only_selected=False,
+        #         do_pose=True,
+        #         do_object=False,
+        #         do_visual_keying=True,
+        #         do_constraint_clear=True,
+        #         do_parents_clear=False,
+        #         do_clean=True,
+        #     )
+        #     print("baked %s: " % action.name, baked_action)
+        return bpy_obj_temp
+        # actions = anim_utils.bake_action_objects(
+        #     object_action_pairs,
+        #     frames=range(self.frame_start, self.frame_end + 1, self.step),
+        #     only_selected=False,
+        #     do_pose=False,
+        #     do_object=False,
+        #     do_visual_keying=True,
+        #     do_constraint_clear=True,
+        #     do_parents_clear=False,
+        #     do_clean=True,
+        # )
+    #     bpy.data.armatures.

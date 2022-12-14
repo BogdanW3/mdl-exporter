@@ -17,7 +17,7 @@ def get_wc3_animation_curve(data_path: str,
 
     curves2: Dict[Tuple[str, str, int], bpy.types.FCurve] = {}
     for action in actions:
-        print(action.name)
+        # print(action.name)
         for index in range(num_indices):
             curve = action.fcurves.find(data_path, index=index)
             if curve is not None:
@@ -134,7 +134,9 @@ def get_interpolation(fcurves: Dict[Tuple[str, str, int], bpy.types.FCurve],
 
 
 def set_handle(data_path: str, handle: List[float]):
-    if 'rotation' in data_path and 'quaternion' not in data_path:
+    if len(handle) and 'rotation' in data_path and 'quaternion' not in data_path:
+        print(math.radians(v) for v in handle)
+        print(Euler(math.radians(v) for v in handle))
         return list(Euler(math.radians(v) for v in handle).to_quaternion())
     else:
         return handle

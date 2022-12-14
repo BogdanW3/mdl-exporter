@@ -17,7 +17,6 @@ from ..War3Model import War3Model
 from .add_empties_animations import get_event, get_helper, get_attachment, get_collision
 from .add_lights import get_lights
 from .add_particle_systems import get_particle_emitter, get_particle_emitter2, get_ribbon_emitter
-from .get_sequences import get_sequences
 from .get_actions import get_actions
 from ..War3Node import War3Node
 from .make_mesh import create_geoset, get_geoset_anim
@@ -40,16 +39,12 @@ def from_scene(context: bpy.types.Context,
     sequences, actions = get_actions(frame2ms, bpy_scene_objects.actions,
                                      settings.use_actions, bpy_scene_objects.sequences)
     war3_model.sequences.extend(sequences)
-    # if settings.use_actions:
-    #     war3_model.sequences, actions = get_actions(frame2ms, bpy_scene_objects.actions, settings.use_actions, bpy_scene_objects.sequences)
-    # else:
-    #     war3_model.sequences = get_sequences(frame2ms, bpy_scene_objects.sequences)
 
     parse_bpy_objects2(bpy_scene_objects, settings, war3_model, actions)
 
     for bpy_geoset in bpy_scene_objects.geosets:
         print("creating geoset!")
-        war_geoset = create_geoset(bpy_geoset, bpy_scene_objects.bone_names)
+        war_geoset = create_geoset(bpy_geoset)
         war3_model.geosets.append(war_geoset)
 
         # Needs fixing. supposed to make sure that the 4 first weights adds up to 255.
@@ -135,7 +130,7 @@ def demote_to_helpers(war3_model: War3Model):
     for bone in war3_model.bones:
         if not any([geoset for geoset in war3_model.geosets if
                     bone.name in itertools.chain.from_iterable(geoset.matrices)]):
-            print("demoting", bone.name, "to helper")
+            # print("demoting", bone.name, "to helper")
             helper = War3Helper(bone.name, bone.anim_loc, bone.anim_rot, bone.anim_scale, bone.parent, bone.pivot, bone.bindpose)
             helper.billboard_lock = bone.billboard_lock
             helper.billboarded = bone.billboarded
@@ -263,7 +258,7 @@ def fix_skin_bones(bone_list: List[str], weight_list: List[int], bone_zero: str)
         print("ugg")
 
     if weight_adjust < 0 and 1 < len(weight_list) and 0 < (weight_list[1] - weight_adjust):
-        print("ugg")
+        print("ugg2")
 
 
 def fix_skin_bones1(bone_list: List[str], weight_list: List[int], bone_zero: str):

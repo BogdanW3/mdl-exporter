@@ -3,7 +3,8 @@ from bpy.types import Operator
 
 
 class WAR3_OT_search_event_type(Operator):
-    bl_idname = "object.search_eventtype"
+    """Search list of Warcraft 3 internal events"""
+    bl_idname = "object.search_event_type"
     bl_label = "Search"
     bl_options = {'REGISTER', 'INTERNAL'}
     bl_property = "types"

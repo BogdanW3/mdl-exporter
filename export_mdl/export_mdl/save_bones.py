@@ -18,7 +18,7 @@ def save_bones(fw: TextIO.write, model: War3Model):
         #     name = "Bone_" + name
 
         fw("Bone \"%s\" {\n" % name)
-        if len(indices) > 1:
+        if 1 <= len(indices):
             fw("\tObjectId %d,\n" % indices[bone.name])
         if bone.parent is not None:
             fw("\tParent %d,\n" % indices[bone.parent])

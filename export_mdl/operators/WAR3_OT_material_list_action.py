@@ -3,28 +3,33 @@ from bpy.types import Operator
 
 
 class WAR3_OT_material_list_action(Operator):
-    """Move items up and down, add and remove"""
-    bl_idname = "custom.list_action"
+    # """Move items up and down, add and remove"""
     bl_idname = "war_3.list_action"
-    bl_label = "List Actions"
-    bl_description = "Move items up and down, add and remove"
+    bl_label = ""
+    # bl_label = "Material List Actions"
+    # bl_description = "Move items up and down, add and remove"
     bl_options = {'REGISTER', 'INTERNAL'}
 
     name_counter = 0
 
+    action_dict = {
+        'UP': ('UP', "Up", "Move layer up"),
+        'DOWN': ('DOWN', "Down", "Move layer down"),
+        'REMOVE': ('REMOVE', "Remove", "Remove layer"),
+        'ADD': ('ADD', "Add", "Add layer")
+    }
     action: EnumProperty(
-        items=(
-            ('UP', "Up", ""),
-            ('DOWN', "Down", ""),
-            ('REMOVE', "Remove", ""),
-            ('ADD', "Add", "")))
+        items=action_dict.values())
 
     @classmethod
-    def poll(self, context):
+    def description(cls, context, properties: 'WAR3_OT_material_list_action'):
+        return cls.action_dict[properties.action][2]
+
+    @classmethod
+    def poll(cls, context):
         return context.active_object is not None and context.active_object.active_material is not None
 
     def invoke(self, context, event):
-
         try:
             mat = context.active_object.active_material
             i = mat.mdl_layer_index

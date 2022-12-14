@@ -12,6 +12,7 @@ def event_items(self, context):
 
 
 class WAR3_OT_search_event_id(Operator):
+    """Search list of Warcraft 3 internal events"""
     bl_idname = "object.search_eventid"
     bl_label = "Search"
     bl_options = {'REGISTER', 'INTERNAL'}

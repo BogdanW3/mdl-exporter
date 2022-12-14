@@ -44,7 +44,7 @@ class WAR3_PT_event_panel(Panel):
 
         row = layout.row()
         row.label(text="Event Type")
-        op = row.operator("object.search_eventtype", text="", icon='VIEWZOOM')
+        op = row.operator("object.search_event_type", text="", icon='VIEWZOOM')
         row.prop(events, "event_type", text="")
 
         layout.separator()

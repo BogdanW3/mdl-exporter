@@ -23,7 +23,7 @@ def parse_armatures(bpy_scene_objects: BpySceneObjects,
         animation_data: bpy.types.AnimData = armature.animation_data
         matrix_world = Matrix(armature.matrix_world)
         for pose_bone in bpy_scene_objects.bpy_nodes[armature.name]:
-            print("armature.pose_bone", pose_bone)
+            # print("armature.pose_bone", pose_bone)
             bone = get_wc3_bone(animation_data, global_matrix, global_seqs, matrix_world, pose_bone, actions, sequences,
                                 optimize_tolerance)
             bones.append(bone)

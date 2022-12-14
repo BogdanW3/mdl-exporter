@@ -1,4 +1,3 @@
-from bpy.types import UIList
 from ..operators.WAR3_OT_create_eventobject import WAR3_OT_create_eventobject
 from ..operators.WAR3_OT_create_collision_shape import WAR3_OT_create_collision_shape
 from ..operators.WAR3_OT_add_anim_sequence import WAR3_OT_add_anim_sequence
