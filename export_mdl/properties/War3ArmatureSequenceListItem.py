@@ -4,7 +4,7 @@ import bpy
 def set_animation_name(seq_prop, context: bpy.types.Context):
     # armature_prop = context.armature.war_3
     # seq_prop = armature_prop.sequencesList[armature_prop.sequencesListIndex]
-    print("setting name?", seq_prop.name, context)
+    # print("setting name?", seq_prop.name, context)
     animation_name = seq_prop.action_name
     if seq_prop.name != animation_name:
         actions = bpy.data.actions
@@ -28,7 +28,7 @@ def set_animation_name(seq_prop, context: bpy.types.Context):
 def set_animation(seq_prop, context: bpy.types.Context):
     # armature_prop = context.armature.war_3
     # seq_prop = armature_prop.sequencesList[armature_prop.sequencesListIndex]
-    print("setting length?", seq_prop.action_name, seq_prop.length)
+    # print("setting length?", seq_prop.action_name, seq_prop.length)
     animation_name = seq_prop.action_name
     if len(animation_name) and bpy.data.actions.get(animation_name):
         prepare_action(context, animation_name, seq_prop.length)
@@ -49,10 +49,10 @@ def prepare_action(context: bpy.types.Context, animation_name: str, anim_length)
     bpy_action = bpy.data.actions[animation_name]
     # bpy_action = bpy.data.actions.get(animation_name)
     armature_object.animation_data.action = bpy_action
-    print("seqItem, action: ", armature_object.animation_data.action)
+    # print("seqItem, action: ", armature_object.animation_data.action)
     # bpy.context.scene.frame_start = bpy_action.frame_range[0]
     # bpy.context.scene.frame_end = bpy_action.frame_range[1]
-    print(animation_name, 0, "-", anim_length)
+    # print(animation_name, 0, "-", anim_length)
     bpy.context.scene.frame_start = 0
     bpy.context.scene.frame_end = anim_length
 

@@ -63,7 +63,7 @@ def create_collision_empties(nodes: List[War3CollisionShape],
     node_names: Set[str] = set()
     collisions: List[bpy.types.Object] = []
     for indexNode, node in enumerate(nodes):
-        print("C - adding ", node)
+        print("C - adding ", node, " type: ", node.type)
         node_name = node.name
         if not node_name.startswith('Collision'):
             node_name = 'Collision ' + node_name
@@ -78,14 +78,17 @@ def create_collision_empties(nodes: List[War3CollisionShape],
         bpy_object.location = node.pivot
         # bpy_object.empty_display_type =
         if node.type == 'Cylinder':
-            bpy_object.empty_display_size = node.radius
+            bpy_object.empty_display_size = int(node.radius)
             bpy_object.empty_display_type = 'CUBE'
         elif node.type == 'Sphere':
-            bpy_object.empty_display_size = node.radius
+            bpy_object.empty_display_size = int(node.radius)
             bpy_object.empty_display_type = 'SPHERE'
-        else:
+        elif node.type == 'Box':
             bpy_object.empty_display_size = Vector(node.verts[0]).length
-            bpy_object.empty_display_type = 'BOX'
+            bpy_object.empty_display_type = 'CUBE'
+        else:
+            bpy_object.empty_display_size = int(Vector(node.verts[0]).length)
+            bpy_object.empty_display_type = 'CUBE'
         if node.parent:
             bpy_object.parent = bpy_armature_object
             bpy_object.parent_type = 'BONE'

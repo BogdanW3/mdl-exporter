@@ -26,9 +26,11 @@ def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Obje
     print(bpy_armature.edit_bones[0])
 
     edit_bones = bpy_armature.edit_bones
+    bone_types: Dict[str, str] = {}
     for indexNode, war3_node in enumerate(war3_nodes):
         e_bone = edit_bones[indexNode]
-        print(war3_node.name, war3_node.parent)
+        bone_types[edit_bones[indexNode].name] = get_node_type(war3_node)
+        # print("name:", war3_node.name, ", parent: ", war3_node.parent)
         if war3_node.parent is not None:
             e_parent = edit_bones[war3_node_inds[war3_node.parent]]
             e_bone.parent = e_parent
@@ -36,9 +38,6 @@ def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Obje
     set_parents_and_connect_bones(edit_bones, war3_nodes, war3_node_inds)
 
     bpy.ops.object.mode_set(mode='EDIT')
-    bone_types: Dict[str, str] = {}
-    for node in war3_nodes:
-        bone_types[node.name] = get_node_type(node)
 
     for a_bone in bpy_armature.bones:
         a_bone.war_3.nodeType = bone_types[a_bone.name].upper()
@@ -114,8 +113,8 @@ def create_edit_bones(bone_size: float,
             if bone_name in bone_names:
                 bone_name = bone_name + ".002"
             node.name = bone_name
-        bone_names.add(bone_name)
         bone = edit_bones.new(bone_name)
+        bone_names.add(bone.name)
         bone.head = node.pivot
         bone.tail = node.pivot
         bone.tail[2] += bone_size

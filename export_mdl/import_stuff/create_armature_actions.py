@@ -86,7 +86,7 @@ def create_bpy_actions(sequences: List[War3AnimationAction],
     for sequence in sequences:
         war3_Sequence: War3ArmatureSequenceListItem = war3_armature_properties.sequencesList.add()
         war3_Sequence.name = sequence.name
-        war3_Sequence.length = round((sequence.end - sequence.start)/fps_ratio, 0)
+        war3_Sequence.length = int(round((sequence.end - sequence.start)/fps_ratio, 0))
         if not bpy.data.actions.get(sequence.name):
             bpy_action = bpy.data.actions.new(name=war3_Sequence.name)
             war3_Sequence.action_name = bpy_action.name

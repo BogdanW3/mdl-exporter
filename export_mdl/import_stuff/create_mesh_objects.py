@@ -34,8 +34,12 @@ def create_mesh_objects(model: War3Model,
         # print("applying uvs")
         apply_uvs(bpy_mesh, war3_geoset)
 
-        for bpy_vert, vertex in zip(bpy_mesh.vertices, war3_geoset.vertices):
-            bpy_vert.normal = vertex.normal
+        if "vertex_normals" in bpy_mesh.__dir__():
+            for bpy_vert_norm, vertex in zip(bpy_mesh.vertex_normals, war3_geoset.vertices):
+                bpy_vert_norm = vertex.normal
+        else:
+            for bpy_vert, vertex in zip(bpy_mesh.vertices, war3_geoset.vertices):
+                bpy_vert.normal = vertex.normal
 
         bpy_material = bpy_materials[war3_geoset.mat_name]
         bpy_mesh.materials.append(bpy_material.bpy_material)

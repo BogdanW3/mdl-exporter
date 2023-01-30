@@ -84,6 +84,10 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
         model.object_indices[node.name] = int(node_id)
 
     for geoset in model.geosets:
+        if geoset.name is None:
+            geoset.name = model.name
+        elif geoset.name.isnumeric():
+            geoset.name = geoset.name + " " + model.name
         # geoset.mat_name = model.materials[int(geoset.mat_name)].name
         for mg in geoset.matrices:
             b_names = []
@@ -105,7 +109,7 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
         if geoset_anim.geoset and geoset_anim.geoset.name:
             geoset_anim.geoset_name = geoset_anim.geoset.name
         else:
-            geoset_anim.geoset_name = "%s" % geoset_anim.geoset_id
+            geoset_anim.geoset_name = "%s" % geoset_anim.geoset_id + " " + model.name
 
     # print("model.materials:", model.materials)
     if len(model.textures) == 0:

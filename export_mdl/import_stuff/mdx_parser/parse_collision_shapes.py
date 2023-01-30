@@ -19,12 +19,16 @@ def parse_collision_shapes(data: bytes, id_to_node: Dict[str, War3Node]) -> List
 
         if collision_type == 0:
             vertices_count = 2
+            collision_shape.type = 'Box'
         elif collision_type == 1:
             vertices_count = 2
+            collision_shape.type = 'Plane'
         elif collision_type == 2:
             vertices_count = 1
+            collision_shape.type = 'Sphere'
         elif collision_type == 3:
             vertices_count = 2
+            collision_shape.type = 'Cylinder'
         else:
             raise Exception('UNSUPPORTED COLLISION SHAPE TYPE:', collision_type)
 
