@@ -6,6 +6,8 @@ from export_mdl.import_stuff.mdl_parser.load_mdl import load_mdl
 from export_mdl.import_stuff.mdx_parser.load_mdx import load_mdx
 
 
+# run through CMD using:
+# "C:\path\to\Blender 2.93\blender" --background --python "C:\path\to\export_mdl\test_run.py" "D:\path\to\file.mdl"
 def test_run(filepath):
     print("file: ", filepath)
     import_properties = MDXImportProperties()

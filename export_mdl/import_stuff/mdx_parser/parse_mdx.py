@@ -38,6 +38,7 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
         chunk_size = r.getf('<I')[0]
         chunk_data: bytes = data[r.offset: r.offset + chunk_size]
         r.skip(chunk_size)
+        print("Model chunkId: ", chunk_id,  "cunkSize: ", chunk_size)
 
         if chunk_id == constants.CHUNK_VERSION:
             model.version = parse_version(chunk_data)
@@ -67,6 +68,8 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
             model.collision_shapes.extend(parse_collision_shapes(chunk_data, id_to_node))
         elif chunk_id == constants.CHUNK_SEQUENCE:
             model.sequences.extend(parse_sequences(chunk_data))
+        elif chunk_id == constants.CHUNK_SEQUENCE:
+            print("Global sequence!")
         elif chunk_id == constants.CHUNK_GEOSET_ANIMATION:
             model.geoset_anims.extend(parse_geoset_animations(chunk_data))
 
@@ -96,6 +99,13 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
             if b_names:
                 vert.bone_list.clear()
                 vert.bone_list.extend(b_names)
+
+    for geoset_anim in model.geoset_anims:
+        geoset_anim.geoset = model.geosets[geoset_anim.geoset_id]
+        if geoset_anim.geoset and geoset_anim.geoset.name:
+            geoset_anim.geoset_name = geoset_anim.geoset.name
+        else:
+            geoset_anim.geoset_name = "%s" % geoset_anim.geoset_id
 
     # print("model.materials:", model.materials)
     if len(model.textures) == 0:

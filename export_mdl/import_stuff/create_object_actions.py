@@ -105,10 +105,12 @@ def create_object_actions(model: War3Model,
         if not action:
             action = bpy.data.actions.new(name='#UNANIMATED')
         for i in range(4):
-            color_curve = action.fcurves.new('["' + geosetAnimation.geoset_name + '"].' +data_path_color, index=i, action_group=geosetAnimation.geoset_name)
-            # color_curve.keyframe_points.insert(0.0, 1.0)
-            color_curve.keyframe_points.insert(0.0, color1[i])
-            color_curves.append(color_curve)
+            data_path = '["' + geosetAnimation.geoset_name + '"].' + data_path_color
+            if action.fcurves.get(data_path + '[%s]' % i) is None:
+                # color_curve.keyframe_points.insert(0.0, 1.0)
+                color_curve = action.fcurves.new(data_path, index=i, action_group=geosetAnimation.geoset_name)
+                color_curve.keyframe_points.insert(0.0, color1[i])
+                color_curves.append(color_curve)
 
     for sequence in sequences:
         interval_start = sequence.start
@@ -121,6 +123,7 @@ def create_object_actions(model: War3Model,
             color_curves = []
             color_anim = geosetAnimation.color_anim
             g_name = geosetAnimation.geoset_name
+            data_path = '["' + geosetAnimation.geoset_name + '"].' + data_path_color
             if color_anim:
                 interpolation_type = constants.INTERPOLATION_NAME_BLEND_NAME[color_anim.interpolation]
 
@@ -130,7 +133,7 @@ def create_object_actions(model: War3Model,
 
                         for i in range(3):
                             if len(color_curves) < i:
-                                color_curves.append(action.fcurves.new(data_path_color, index=i, action_group=g_name))
+                                color_curves.append(action.fcurves.new(data_path, index=i, action_group=g_name))
                             kf_point = color_curves[i].keyframe_points.insert(real_time, color[i])
                             kf_point.interpolation = interpolation_type
             else:
@@ -139,7 +142,7 @@ def create_object_actions(model: War3Model,
                 real_time = 0
                 for i in range(3):
                     if len(color_curves) <= i:
-                        color_curves.append(action.fcurves.new(data_path_color, index=i, action_group=g_name))
+                        color_curves.append(action.fcurves.new(data_path, index=i, action_group=g_name))
                     kf_point = color_curves[i].keyframe_points.insert(real_time, color[i])
                     kf_point.interpolation = interpolation_type
 
@@ -152,7 +155,7 @@ def create_object_actions(model: War3Model,
                         real_time = round((time - interval_start) / frame_time, 0)
 
                         if len(color_curves) <= 3:
-                            color_curves.append(action.fcurves.new(data_path_color, index=3, action_group=g_name))
+                            color_curves.append(action.fcurves.new(data_path, index=3, action_group=g_name))
                         kf_point = color_curves[3].keyframe_points.insert(real_time, alpha[0])
                         kf_point.interpolation = interpolation_type
             else:
@@ -160,7 +163,7 @@ def create_object_actions(model: War3Model,
                 alpha = geosetAnimation.alpha
                 real_time = 0
                 if len(color_curves) <= 3:
-                    color_curves.append(action.fcurves.new(data_path_color, index=3, action_group=g_name))
+                    color_curves.append(action.fcurves.new(data_path, index=3, action_group=g_name))
                 kf_point = color_curves[3].keyframe_points.insert(real_time, alpha[0])
                 kf_point.interpolation = interpolation_type
 

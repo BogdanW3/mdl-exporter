@@ -3,7 +3,7 @@ from typing import Dict
 from .binary_reader import Reader
 from ...classes.War3Node import War3Node
 from ... import constants
-from .parse_geoset_transformation import parse_geoset_transformation
+from .parse_timeline import parse_timeline
 
 
 def parse_node(r: Reader, node: War3Node, id_to_node: Dict[str, War3Node]):
@@ -24,10 +24,10 @@ def parse_node(r: Reader, node: War3Node, id_to_node: Dict[str, War3Node]):
         chunk_id = r.getid(constants.SUB_CHUNKS_NODE)
 
         if chunk_id == constants.CHUNK_GEOSET_TRANSLATION:
-            node.anim_loc = parse_geoset_transformation(r, '<3f')
+            node.anim_loc = parse_timeline(r, '<3f')
         elif chunk_id == constants.CHUNK_GEOSET_ROTATION:
-            node.anim_rot = parse_geoset_transformation(r, '<4f')
+            node.anim_rot = parse_timeline(r, '<4f')
         elif chunk_id == constants.CHUNK_GEOSET_SCALING:
-            node.anim_scale = parse_geoset_transformation(r, '<3f')
+            node.anim_scale = parse_timeline(r, '<3f')
 
     return node

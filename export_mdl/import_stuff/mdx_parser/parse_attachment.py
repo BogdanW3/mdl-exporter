@@ -1,10 +1,10 @@
 from typing import Dict
 
 from ... import constants
-from ...classes import War3Node
+from ...classes.War3Node import War3Node
 from ...classes.War3Attachment import War3Attachment
 from . import binary_reader
-from .parse_alpha import parse_alpha
+from .parse_timeline import parse_timeline
 from .parse_node import parse_node
 
 
@@ -18,5 +18,5 @@ def parse_attachment(attach_data: bytes, id_to_node: Dict[str, War3Node]):
 
     if r.offset < data_size:
         chunk_id = r.getid(constants.CHUNK_ATTACHMENT_VISIBILITY)
-        visibility = parse_alpha(r)
+        visibility = parse_timeline(r, '<f')
     return attachment

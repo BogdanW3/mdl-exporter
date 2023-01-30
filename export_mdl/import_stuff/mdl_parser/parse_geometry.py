@@ -25,10 +25,14 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
         label = data_chunk.split(" ", 1)[0]
 
         if label == "Vertices":
+            # print("parsing verts")
             vert_strings = chunkifier(extract_bracket_content(data_chunk))
-
+            # print("found %s lines with verts" % len(vert_strings))
             for vert in vert_strings:
-                locations.append(extract_float_values(vert))
+                values = extract_float_values(vert)
+                # print("\t adding vert ", values)
+                locations.append(values)
+                # locations.append(extract_float_values(vert))
 
         if label == "Normals":
             norm_strings = chunkifier(extract_bracket_content(data_chunk))
@@ -73,7 +77,15 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
                 uvs.append([u, 1 - v])
 
         if label == "SkinWeights":
-            weights = chunkifier(extract_bracket_content(data_chunk))
+            # print("parsing SkinWeights")
+            # print(data_chunk)
+            if data_chunk.count("{") < 1:
+                weights = chunkifier(data_chunk)
+            else:
+                content = extract_bracket_content(data_chunk)
+                weights = content.split("\n")
+                # print(weights)
+            # print("found %s lines with SkinWeights" % len(weights))
 
             for weight in weights:
                 sw_vals = extract_int_values(weight)
@@ -90,7 +102,9 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
             sw_bones.append(v_b)
             sw_weights.append(v_w)
 
+    # print("locations:", len(locations), "normals:", len(normals), "uvs:", len(uvs), "sw_bones:", len(sw_bones), "sw_weights:", len(sw_weights), )
     for loc, norm, uv, v_b, v_w in zip(locations, normals, uvs, sw_bones, sw_weights):
+        # print("\t adding vert to geoset ", loc, "weight:", v_w, "bone:", v_b)
         geoset.vertices.append(War3Vertex(loc, norm, uv, None, v_b, v_w))
 
     geoset.matrices = sw_bones

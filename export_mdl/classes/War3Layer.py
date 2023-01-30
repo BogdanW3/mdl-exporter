@@ -7,6 +7,7 @@ from export_mdl.classes.War3TextureAnim import War3TextureAnim
 
 class War3Layer:
     def __init__(self):
+        self.texture_id: int = 0
         self.texture_path: str = "Textures\\white.blp"
         self.texture: Optional[War3Texture] = None
         self.filter_mode: str = "None"

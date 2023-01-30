@@ -23,5 +23,9 @@ def parse_collision_shapes(data: str, id_to_node: Dict[str, War3Node]) -> War3Co
         collision_shape.type = "Sphere"
     elif data.find("Box") > -1:
         collision_shape.type = "Box"
+    elif data.find("Plane") > -1:
+        collision_shape.type = "Plane"
+    elif data.find("Cylinder") > -1:
+        collision_shape.type = "Cylinder"
     parse_node(data, collision_shape, id_to_node)
     return collision_shape

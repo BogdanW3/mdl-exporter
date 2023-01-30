@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Tuple
 import bpy
 from mathutils import Matrix, Vector, Quaternion
 
-from export_mdl import constants, War3ArmatureProperties
+from export_mdl import constants, War3ArmatureProperties, War3ArmatureSequenceListItem
 from export_mdl.classes.War3AnimationAction import War3AnimationAction
 from export_mdl.classes.War3AnimationCurve import War3AnimationCurve
 from export_mdl.classes.War3Model import War3Model
@@ -84,17 +84,12 @@ def create_bpy_actions(sequences: List[War3AnimationAction],
                        war3_armature_properties: War3ArmatureProperties,
                        fps_ratio: float):
     for sequence in sequences:
-        # print("adding sequence " + sequence.name)
-        bpy_action = bpy.data.actions.new(name=sequence.name)
-        # bpy_action.frame_range = (0, (sequence.end - sequence.start))
-        # bpy_action.use_frame_range = True
-        # bpy_action.frame_end = sequence.end - sequence.start
-        # bpy_action.use_cyclic = not sequence.non_looping
-        # print("frame_range: ", bpy_action.frame_range)
-        # bpy_action.fcurves.new()
-        war3_Sequence = war3_armature_properties.sequencesList.add()
+        war3_Sequence: War3ArmatureSequenceListItem = war3_armature_properties.sequencesList.add()
         war3_Sequence.name = sequence.name
         war3_Sequence.length = round((sequence.end - sequence.start)/fps_ratio, 0)
+        if not bpy.data.actions.get(sequence.name):
+            bpy_action = bpy.data.actions.new(name=war3_Sequence.name)
+            war3_Sequence.action_name = bpy_action.name
 
 
 def add_actions_to_node(action: bpy.types.Action,

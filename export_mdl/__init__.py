@@ -30,6 +30,7 @@ else:
         from .operators import reload_operator_classes
         from .classes import reload_war3_classes
         from .export_mdl import reload_export_classes
+        from .import_stuff import reload_import_stuff
         from . import utils
         try:
             importlib.reload(reload_ui_classes)
@@ -37,6 +38,7 @@ else:
             importlib.reload(reload_operator_classes)
             importlib.reload(reload_war3_classes)
             importlib.reload(reload_export_classes)
+            importlib.reload(reload_import_stuff)
             importlib.reload(utils)
         except ImportError:
             print("  could not reload module")
@@ -46,6 +48,7 @@ else:
         from .operators import reload_operator_classes
         from .classes import reload_war3_classes
         from .export_mdl import reload_export_classes
+        from .import_stuff import reload_import_stuff
 
 
 import bpy

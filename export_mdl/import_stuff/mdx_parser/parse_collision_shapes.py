@@ -19,8 +19,12 @@ def parse_collision_shapes(data: bytes, id_to_node: Dict[str, War3Node]) -> List
 
         if collision_type == 0:
             vertices_count = 2
+        elif collision_type == 1:
+            vertices_count = 2
         elif collision_type == 2:
             vertices_count = 1
+        elif collision_type == 3:
+            vertices_count = 2
         else:
             raise Exception('UNSUPPORTED COLLISION SHAPE TYPE:', collision_type)
 
@@ -28,7 +32,7 @@ def parse_collision_shapes(data: bytes, id_to_node: Dict[str, War3Node]) -> List
             position = r.getf('<3f')
             collision_shape.verts.append(list(position))
 
-        if collision_type == 2:
+        if collision_type == 2 or collision_type == 3:
             bounds_radius = r.getf('<f')[0]
             collision_shape.radius = bounds_radius
 
