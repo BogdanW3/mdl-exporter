@@ -70,6 +70,7 @@ def sequence_changed_handler(self):
         if len(frames) == 2 and marker not in sequences:
             s = sequences.add()
             s.seq_name = marker
+            s.name = marker
             if any(tag in s.seq_name.lower() for tag in ['attack', 'death', 'decay']):
                 s.non_looping = True
 

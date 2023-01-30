@@ -56,6 +56,7 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
     scene.frame_set(current_frame)
 
     write_model_file(filepath, mdl_version, model, settings)
+    print('Done saving "%s"' % filepath)
 
 
 def write_model_file(filepath: str, mdl_version: int, model: War3Model, settings: War3ExportSettings):
