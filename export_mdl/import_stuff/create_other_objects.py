@@ -19,7 +19,7 @@ def create_other_objects(model: War3Model,
                          bpy_armature_object: bpy.types.Object,
                          bone_size: float,
                          fps_ratio: float):
-    print("creating other objects")
+    print("\ncreating other objects")
 
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -63,7 +63,7 @@ def create_collision_empties(nodes: List[War3CollisionShape],
     node_names: Set[str] = set()
     collisions: List[bpy.types.Object] = []
     for indexNode, node in enumerate(nodes):
-        print("C - adding ", node, " type: ", node.type)
+        print("\tCol - adding ", node, " type: ", node.type)
         node_name = node.name
         if not node_name.startswith('Collision'):
             node_name = 'Collision ' + node_name
@@ -107,7 +107,7 @@ def create_attachment_empties(bone_size: float,
     node_names: Set[str] = set()
     attachments: List[bpy.types.Object] = []
     for indexNode, node in enumerate(nodes):
-        print("A-adding ", node)
+        print("\tAtt-adding ", node)
         node_name = node.name
         if not node_name.endswith(' Ref'):
             node_name = node_name + ' Ref'
@@ -151,7 +151,7 @@ def create_event_empties(bone_size: float,
     node_names: Set[str] = set()
     events: List[bpy.types.Object] = []
     for indexNode, node in enumerate(nodes):
-        print("E-adding ", node)
+        print("\tEvent-adding ", node)
         node_name = node.name
         if node_name in node_names:
             node_name = node_name + ".001"

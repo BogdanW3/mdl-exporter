@@ -8,27 +8,27 @@ from ...classes.War3Attachment import War3Attachment
 from ...classes.War3Node import War3Node
 
 
-def parse_attachments(data: bytes, id_to_node: Dict[str, War3Node]):
+def parse_attachments(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Attachment]:
     data_size = len(data)
-    r = binary_reader.Reader(data)
+    reader = binary_reader.Reader(data)
 
     nodes: List[War3Attachment] = []
-    while r.offset < data_size:
-        inclusive_size = r.getf('<I')[0]
-        attach_data_size = inclusive_size - 4
-        attach_data = data[r.offset: r.offset + attach_data_size]
-        r.skip(attach_data_size)
+    while reader.offset < data_size:
+        inclusive_size = reader.getf('<I')[0]
+        node_data_size = inclusive_size - 4
+        node_data = data[reader.offset: reader.offset + node_data_size]
+        reader.skip(node_data_size)
 
-        r = binary_reader.Reader(attach_data)
-        data_size = len(attach_data)
-        attachment = War3Attachment("")
-        parse_node(r, attachment, id_to_node)
+        r = binary_reader.Reader(node_data)
+        data_size_chunk = len(node_data)
+        node = War3Attachment("")
+        parse_node(r, node, id_to_node)
         path = r.gets(260)
-        attachment_id = r.getf('<I')[0]
+        node_id = r.getf('<I')[0]
 
-        if r.offset < data_size:
+        if r.offset < data_size_chunk:
             chunk_id = r.getid(constants.CHUNK_ATTACHMENT_VISIBILITY)
             visibility = parse_timeline(r, '<f')
 
-        nodes.append(attachment)
+        nodes.append(node)
     return nodes

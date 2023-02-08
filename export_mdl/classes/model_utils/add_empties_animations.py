@@ -30,7 +30,7 @@ def get_event(sequences: List[War3AnimationAction],
     anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
                                                optimize_tolerance, sequences)
 
-    event_obj = War3EventObject(obj_name, anim_loc, anim_rot, anim_scale, bpy_empty_node.parent_name, pivot,
+    event_obj = War3EventObject(obj_name, pivot, bpy_empty_node.parent_name, anim_loc, anim_rot, anim_scale,
                                 bpy_empty_node.bpy_obj.matrix_basis)
     for datapath in ('["event_track"]', '["eventtrack"]', '["EventTrack"]'):
         event_obj.track = get_wc3_animation_curve(datapath, actions, 1, sequences, global_seqs)
@@ -52,7 +52,7 @@ def get_attachment(sequences: List[War3AnimationAction],
     anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
                                                optimize_tolerance, sequences)
 
-    att = War3Attachment(obj_name, anim_loc, anim_rot, anim_scale, bpy_empty_node.parent_name, pivot,
+    att = War3Attachment(obj_name, pivot, bpy_empty_node.parent_name, anim_loc, anim_rot, anim_scale,
                          bpy_empty_node.bpy_obj.matrix_basis)
     visibility = get_visibility(sequences, global_seqs, actions, bpy_empty_node.bpy_obj)
     att.visibility = visibility
@@ -75,7 +75,7 @@ def get_helper(sequences: List[War3AnimationAction],
     anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
                                                optimize_tolerance, sequences)
 
-    helper = War3Helper(obj_name, anim_loc, anim_rot, anim_scale, bpy_empty_node.parent_name, pivot,
+    helper = War3Helper(obj_name, pivot, bpy_empty_node.parent_name, anim_loc, anim_rot, anim_scale,
                         bpy_empty_node.bpy_obj.matrix_basis)
 
     helper.billboarded = bpy_empty_node.billboarded
@@ -102,7 +102,7 @@ def get_anims(animation_data: bpy.types.AnimData,
 
 def get_collision(bpy_empty_node: BpyEmptyNode, global_matrix: Matrix):
     pivot = global_matrix @ Vector(bpy_empty_node.location)
-    collider = War3CollisionShape(bpy_empty_node.name, None, None, None, bpy_empty_node.parent_name, pivot,
+    collider = War3CollisionShape(bpy_empty_node.name, pivot, bpy_empty_node.parent_name, None, None, None,
                                   bpy_empty_node.bpy_obj.matrix_basis)
     if 'Box' in bpy_empty_node.name \
             or bpy_empty_node.display_type == 'CUBE' \

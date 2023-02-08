@@ -15,8 +15,8 @@ def parse_events(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Event
     nodes: List[War3EventObject] = []
     while r.offset < data_size:
 
-        event = War3EventObject("")
-        parse_node(r, event, id_to_node)
+        node = War3EventObject("")
+        parse_node(r, node, id_to_node)
 
         if r.offset < data_size:
             chunk_id = r.gets(4)
@@ -26,5 +26,5 @@ def parse_events(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Event
             else:
                 r.offset -= 4
 
-        nodes.append(event)
+        nodes.append(node)
     return nodes

@@ -15,13 +15,13 @@ from ..properties import War3ParticleSystemProperties
 
 class War3ParticleSystem(War3Emitter):
     def __init__(self, name,
-                 anim_loc: Optional[War3AnimationCurve],
-                 anim_rot: Optional[War3AnimationCurve],
-                 anim_scale: Optional[War3AnimationCurve],
-                 parent: Optional[str],
                  pivot: List[float] = [0, 0, 0],
+                 parent: Optional[str] = None,
+                 anim_loc: Optional[War3AnimationCurve] = None,
+                 anim_rot: Optional[War3AnimationCurve] = None,
+                 anim_scale: Optional[War3AnimationCurve] = None,
                  bindpose: Optional[Matrix] = None):
-        super().__init__(name, anim_loc, anim_rot, anim_scale, parent, pivot, bindpose)
+        super().__init__(name, pivot, parent, anim_loc, anim_rot, anim_scale, bindpose)
         self.emission_rate_anim: Optional[War3AnimationCurve] = None
         self.speed_anim: Optional[War3AnimationCurve] = None
         self.life_span_anim: Optional[War3AnimationCurve] = None

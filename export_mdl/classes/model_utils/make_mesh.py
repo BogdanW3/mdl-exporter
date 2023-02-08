@@ -41,7 +41,8 @@ def make_mesh(war3_model: War3Model,
         pivot = settings.global_matrix @ Vector(bpy_geoset.bpy_obj.location)
 
         obj_name = bpy_geoset.name
-        bone: War3Bone = War3Bone(obj_name, anim_loc, anim_rot, anim_scale, parent_name, pivot, bpy_geoset.bpy_obj.matrix_basis)
+        bone: War3Bone = War3Bone(obj_name, pivot, parent_name, anim_loc, anim_rot, anim_scale,
+                                  bpy_geoset.bpy_obj.matrix_basis)
         bone.billboarded = billboarded
         bone.billboard_lock = billboard_lock
 

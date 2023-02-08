@@ -1,9 +1,10 @@
-from typing import List, Set
+from typing import List, Set, Optional, Tuple
 
 import bpy
 from mathutils import Matrix, Vector
 
 from export_mdl.classes.War3AnimationAction import War3AnimationAction
+from export_mdl.classes.War3AnimationCurve import War3AnimationCurve
 from export_mdl.classes.War3Bone import War3Bone
 from export_mdl.classes.animation_curve_utils.transform_rot import transform_rot
 from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec1
@@ -37,7 +38,7 @@ def get_wc3_bone(animation_data: bpy.types.AnimData,
                  pose_bone: bpy.types.PoseBone,
                  actions: List[bpy.types.Action],
                  sequences: List[War3AnimationAction],
-                 optimize_tolerance: float):
+                 optimize_tolerance: float) -> War3Bone:
     data_path = 'pose.bones[\"' + pose_bone.name + '\"].%s'
     anim_loc, anim_rot, anim_scale = get_animation_data(animation_data, pose_bone, data_path, global_matrix,
                                                         global_seqs,
@@ -46,7 +47,7 @@ def get_wc3_bone(animation_data: bpy.types.AnimData,
     bone_p_name = None if b_parent is None else b_parent.name
     pivot_ = matrix_world @ Vector(pose_bone.bone.head_local)  # Armature space to world space
     pivot = global_matrix @ Vector(pivot_)  # Axis conversion
-    bone = War3Bone(pose_bone.name, anim_loc, anim_rot, anim_scale, bone_p_name, pivot, pose_bone.matrix_basis)
+    bone = War3Bone(pose_bone.name, pivot, bone_p_name, anim_loc, anim_rot, anim_scale, pose_bone.matrix_basis)
     return bone
 
 
@@ -58,7 +59,8 @@ def get_animation_data(animation_data: bpy.types.AnimData,
                        matrix_world: Matrix,
                        actions: List[bpy.types.Action],
                        sequences: List[War3AnimationAction],
-                       optimize_tolerance: float):
+                       optimize_tolerance: float) \
+        -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
     anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, data_path, actions, animation_data,
                                                        optimize_tolerance)
     #

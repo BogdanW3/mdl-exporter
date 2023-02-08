@@ -4,10 +4,7 @@ import bpy
 from mathutils import Vector, Matrix
 
 from ..War3AnimationAction import War3AnimationAction
-from ..War3ExportSettings import War3ExportSettings
 from ..War3Light import War3Light
-from ..War3Model import War3Model
-from ..War3Node import War3Node
 from ..War3AnimationCurve import War3AnimationCurve
 from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 from .is_animated_ugg import get_visibility
@@ -19,11 +16,11 @@ def get_lights(sequences: List[War3AnimationAction],
                global_seqs: Set[int],
                actions: List[bpy.types.Action],
                bpy_light: BpyLight,
-               global_matrix: Matrix):
+               global_matrix: Matrix) -> War3Light:
     visibility = get_visibility(sequences, global_seqs, actions, bpy_light.bpy_obj)
 
     pivot = global_matrix @ Vector(bpy_light.location)
-    light = War3Light(bpy_light.name, pivot, bpy_light.bpy_obj.matrix_basis)
+    light = War3Light(bpy_light.name, pivot, None, None, None, bpy_light.bpy_obj.matrix_basis)
     light.visibility = visibility
 
     light.billboarded = bpy_light.billboarded
@@ -68,6 +65,6 @@ def anim_stuff(animation_data: Optional[bpy.types.AnimData],
                data_path: str,
                num_indices: int,
                sequences: List[War3AnimationAction],
-               global_seqs: Set[int]):
+               global_seqs: Set[int]) -> Optional[War3AnimationCurve]:
     curve = get_wc3_animation_curve(data_path, actions, num_indices, sequences, global_seqs)
     return curve

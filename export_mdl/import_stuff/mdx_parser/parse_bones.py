@@ -12,9 +12,9 @@ def parse_bones(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Bone]:
 
     nodes: List[War3Bone] = []
     while r.offset < data_size:
-        bone = War3Bone("")
-        parse_node(r, bone, id_to_node)
-        bone.geoset_id = r.getf('<I')[0]
+        node = War3Bone("")
+        parse_node(r, node, id_to_node)
+        node.geoset_id = r.getf('<I')[0]
         geoset_animation_id = r.getf('<I')[0]
-        nodes.append(bone)
+        nodes.append(node)
     return nodes

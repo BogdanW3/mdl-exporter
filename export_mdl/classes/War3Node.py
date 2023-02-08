@@ -7,11 +7,11 @@ from .War3AnimationCurve import War3AnimationCurve
 
 class War3Node:  # Stores information about an MDL object (not a blender object!)
     def __init__(self, name: str,
+                 pivot: List[float] = [0, 0, 0],
+                 parent: Optional[str] = None,
                  anim_loc: Optional[War3AnimationCurve] = None,
                  anim_rot: Optional[War3AnimationCurve] = None,
                  anim_scale: Optional[War3AnimationCurve] = None,
-                 parent: Optional[str] = None,
-                 pivot: List[float] = [0, 0, 0],
                  bindpose: Optional[Matrix] = None):
         # self.parent: Optional[bpy.types.Object] = parent  # bpy parent
         self.parent: Optional[str] = parent  # bpy parent

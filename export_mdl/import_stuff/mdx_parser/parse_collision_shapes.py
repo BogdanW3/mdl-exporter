@@ -13,32 +13,35 @@ def parse_collision_shapes(data: bytes, id_to_node: Dict[str, War3Node]) -> List
     nodes: List[War3CollisionShape] = []
     while r.offset < data_size:
 
-        collision_shape = War3CollisionShape("")
-        parse_node(r, collision_shape, id_to_node)
+        node = War3CollisionShape("")
+        parse_node(r, node, id_to_node)
         collision_type = r.getf('<I')[0]
 
         if collision_type == 0:
             vertices_count = 2
-            collision_shape.type = 'Box'
+            node.type = 'Box'
         elif collision_type == 1:
             vertices_count = 2
-            collision_shape.type = 'Plane'
+            node.type = 'Plane'
         elif collision_type == 2:
             vertices_count = 1
-            collision_shape.type = 'Sphere'
+            node.type = 'Sphere'
         elif collision_type == 3:
             vertices_count = 2
-            collision_shape.type = 'Cylinder'
+            node.type = 'Cylinder'
         else:
-            raise Exception('UNSUPPORTED COLLISION SHAPE TYPE:', collision_type)
+            vertices_count = 1
+            node.type = 'Sphere'
+            print('UNSUPPORTED COLLISION SHAPE TYPE:', collision_type)
+            # raise Exception('UNSUPPORTED COLLISION SHAPE TYPE:', collision_type)
 
         for _ in range(vertices_count):
             position = r.getf('<3f')
-            collision_shape.verts.append(list(position))
+            node.verts.append(list(position))
 
         if collision_type == 2 or collision_type == 3:
             bounds_radius = r.getf('<f')[0]
-            collision_shape.radius = bounds_radius
+            node.radius = bounds_radius
 
-        nodes.append(collision_shape)
+        nodes.append(node)
     return nodes

@@ -131,7 +131,9 @@ def demote_to_helpers(war3_model: War3Model):
         if not any([geoset for geoset in war3_model.geosets if
                     bone.name in itertools.chain.from_iterable(geoset.matrices)]):
             # print("demoting", bone.name, "to helper")
-            helper = War3Helper(bone.name, bone.anim_loc, bone.anim_rot, bone.anim_scale, bone.parent, bone.pivot, bone.bindpose)
+            helper = War3Helper(bone.name, bone.pivot, bone.parent,
+                                bone.anim_loc, bone.anim_rot, bone.anim_scale,
+                                bone.bindpose)
             helper.billboard_lock = bone.billboard_lock
             helper.billboarded = bone.billboarded
             helper.bindpose = bone.bindpose

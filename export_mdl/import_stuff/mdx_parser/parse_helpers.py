@@ -12,8 +12,8 @@ def parse_helpers(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Help
 
     nodes: List[War3Helper] = []
     while r.offset < data_size:
-        helper = War3Helper("")
-        parse_node(r, helper, id_to_node)
-        nodes.append(helper)
+        node = War3Helper("")
+        parse_node(r, node, id_to_node)
+        nodes.append(node)
     return nodes
 
