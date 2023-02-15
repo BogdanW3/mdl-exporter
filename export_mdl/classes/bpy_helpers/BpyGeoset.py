@@ -62,9 +62,13 @@ class BpyGeoset:
                                 if vg.weight != 0 and all_vgs[vg.group].name in bone_names:
                                     bones.append(all_vgs[vg.group].name)
                                     weights.append(vg.weight)
-
-                            self.bone_list.append(bones)
-                            self.weight_list.append(self.get_int_weights(weights))
+                            if bones:
+                                self.bone_list.append(bones)
+                                self.weight_list.append(self.get_int_weights(weights))
+                            else:
+                                self.bone_list.append([""])
+                                # should this be 255..?
+                                self.weight_list.append([1])
 
                             # self.bone_list.append(list(all_vgs[vg.group].name for vg in vertex_groups if vg.weight != 0 and all_vgs[vg.group].name in bone_names))
                             # self.weight_list.append(self.get_int_weights(list(vg.weight for vg in vertex_groups if vg.weight != 0 and all_vgs[vg.group].name in bone_names)))
