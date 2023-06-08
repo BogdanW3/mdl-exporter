@@ -47,19 +47,24 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
     scene = context.scene
 
     current_frame = scene.frame_current
+    obj_to_anim = {}  # save objects' active action
+    for obj in scene.objects:
+        if obj.animation_data is not None:
+            obj_to_anim[obj] = obj.animation_data.action
     scene.frame_set(0)
 
     frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
     model: War3Model = from_scene(context, settings)
 
-
+    for obj, anim in obj_to_anim.items():  # set objects' active actions
+        obj.animation_data.action = anim
     scene.frame_set(current_frame)
 
-    write_model_file(filepath, mdl_version, model, settings)
+    write_model_file(filepath, mdl_version, model, frame2ms, settings)
     print('Done saving "%s"' % filepath)
 
 
-def write_model_file(filepath: str, mdl_version: int, model: War3Model, settings: War3ExportSettings):
+def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms: float, settings: War3ExportSettings):
     with open(filepath, 'w') as output:
         fw = output.write
 
@@ -74,7 +79,7 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, settings
         save_model_header(fw, model)
 
         # SEQUENCES
-        save_sequences(fw, model.sequences, model.global_extents_min, model.global_extents_max)
+        save_sequences(fw, model.sequences, model.global_extents_min, model.global_extents_max, frame2ms)
 
         # GLOBAL SEQUENCES
         save_global_sequences(fw, model.global_seqs)

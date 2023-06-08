@@ -2,7 +2,7 @@ import math
 from typing import Optional, List, Dict, Tuple, Union, Set
 
 import bpy
-from mathutils import Euler
+from mathutils import Euler, Quaternion, Matrix
 
 from ..War3AnimationAction import War3AnimationAction
 from ..War3AnimationCurve import War3AnimationCurve
@@ -25,10 +25,9 @@ def get_wc3_animation_curve(data_path: str,
                 # (NAME, TRANSFORMATION TYPE, CHANNEL), eg. ('Stand', 'location', 0[x])
 
     if len(curves2):
-        f2ms = 1000.0 / float(bpy.context.scene.render.fps)
         seq_names_to_start: Dict[str, float] = {}
         for sequence in sequences:
-            seq_names_to_start[sequence.name] = sequence.start/f2ms
+            seq_names_to_start[sequence.name] = sequence.start
         anim_curve = get_anim_curve(curves2, data_path)
         for action in actions:
             curves: List[bpy.types.FCurve] = []
@@ -38,11 +37,55 @@ def get_wc3_animation_curve(data_path: str,
                     curves.append(curve)
 
             kf_offset = seq_names_to_start.get(action.name, 0.0)
-            print(action.name, kf_offset)
+            # print(action.name, kf_offset)
             fill_anim_curve(anim_curve, curves, num_indices, data_path, kf_offset, scale)
         register_global_sequence(global_seqs, anim_curve)
         return anim_curve
     return None
+
+
+def get_baked_curves(armature: bpy.types.Object,
+                     actions: List[bpy.types.Action],
+                     pose_bone: bpy.types.PoseBone,
+                     sequences: List[War3AnimationAction]) \
+        -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
+    seq_names_to_start: Dict[str, float] = {}
+    for sequence in sequences:
+        seq_names_to_start[sequence.name] = sequence.start
+    anim_loc = get_wc3_anim_curve('Translation', -1, 'Linear')
+    anim_rot = get_wc3_anim_curve('Rotation', -1, 'Linear')
+    anim_scale = get_wc3_anim_curve('Scale', -1, 'Linear')
+    for action in actions:
+        kf_offset = seq_names_to_start.get(action.name, 0.0)
+        keyframes_loc: Dict[float, List[float]] = {}
+        keyframes_rot: Dict[float, List[float]] = {}
+        keyframes_scale: Dict[float, List[float]] = {}
+        armature.animation_data.action = action
+        first_frame = action.frame_range[0]
+        last_frame = action.frame_range[1]
+        quat_prev: Optional[Quaternion] = None
+        for i in range(int(first_frame), int(last_frame), 2):
+            offset_kf = i + kf_offset
+            bpy.context.scene.frame_set(i)
+            bone_mat: Matrix = armature.convert_space(pose_bone=pose_bone, matrix=pose_bone.matrix,
+                                                      from_space='POSE', to_space='LOCAL')
+            keyframes_loc[offset_kf] = bone_mat.to_translation()
+            if quat_prev is not None:
+                quat = bone_mat.to_quaternion().copy()
+                quat.make_compatible(quat_prev)
+                keyframes_rot[offset_kf] = quat
+                quat_prev = quat.copy()
+            else:
+                quat = bone_mat.to_quaternion().copy()
+                keyframes_rot[offset_kf] = quat
+                quat_prev = quat.copy()
+            keyframes_scale[offset_kf] = bone_mat.to_scale()
+        anim_loc.keyframes.update(keyframes_loc)
+        anim_rot.keyframes.update(keyframes_rot)
+        anim_scale.keyframes.update(keyframes_scale)
+
+    bpy.context.scene.frame_set(0)
+    return anim_loc, anim_rot, anim_scale
 
 
 def register_global_sequence(global_seqs: Set[int], curve: Optional[War3AnimationCurve]):
@@ -59,6 +102,10 @@ def get_anim_curve(fcurves: Dict[Tuple[str, str, int], bpy.types.FCurve],
     interpolation = get_interpolation(fcurves, anim_type)
     global_sequence = get_global_seq(f2ms, fcurves)
 
+    return get_wc3_anim_curve(anim_type, global_sequence, interpolation)
+
+
+def get_wc3_anim_curve(anim_type: str, global_sequence, interpolation) -> War3AnimationCurve:
     anim_curve = War3AnimationCurve()
     anim_curve.type = anim_type
     anim_curve.interpolation = interpolation
@@ -111,6 +158,7 @@ def fill_anim_curve(anim_curve: War3AnimationCurve,
     anim_curve.keyframes.update(keyframes)
     anim_curve.handles_left.update(handles_left)
     anim_curve.handles_right.update(handles_right)
+
 
 def get_global_seq(f2ms: float, fcurves: Dict[Tuple[str, str, int], bpy.types.FCurve]):
     global_seq: int = -1

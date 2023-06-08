@@ -24,11 +24,11 @@ class War3SequencesProperties(bpy.types.PropertyGroup):
 
     @classmethod
     def register(cls):
-        print("ugg1")
+        print("Register \"War3SequencesProperties\"")
         bpy.types.Scene.war3_mdl_sequences = bpy.props.PointerProperty(
             type=War3SequencesProperties,
             options={'HIDDEN'})
-        print("ugg2")
+        print("Register \"mdl_sequence_refreshing\"")
         bpy.types.WindowManager.mdl_sequence_refreshing = bpy.props.BoolProperty(
             name="sequence refreshing",
             description="",
@@ -49,7 +49,7 @@ class War3SequencesProperties(bpy.types.PropertyGroup):
 
 @persistent
 def sequence_changed_handler(self):
-    print("sequence_changed_handler\n\n")
+    # print("sequence_changed_handler\n\n")
     context = bpy.context
     # Prevent recursion
     if context.window_manager.mdl_sequence_refreshing:

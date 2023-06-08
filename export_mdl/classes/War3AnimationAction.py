@@ -1,4 +1,4 @@
-from typing import TextIO
+from typing import TextIO, List
 
 from ..utils import float2str, calc_bounds_radius
 
@@ -13,7 +13,7 @@ class War3AnimationAction:
         self.movement_speed: int = movement_speed
         self.rarity: int = rarity
 
-    def save_sequences(self, fw: TextIO.write, global_extents_min: int, global_extents_max: int):
+    def save_sequences(self, fw: TextIO.write, global_extents_min: List[float], global_extents_max: List[float]):
         fw("\tAnim \"%s\" {\n" % self.name)
         fw("\t\tInterval {%d, %d},\n" % (self.start, self.end))
         if self.non_looping:

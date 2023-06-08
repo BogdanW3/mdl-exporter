@@ -82,13 +82,12 @@ class BpyGeoset:
 
     def get_int_weights(self, weights: List[float]) -> List[int]:
         # Warcraft 800+ do support vertex (skin) weights; 4 per vertex which sum up to 255
-
-        tot_weight = sum(weights)
-        w_conv = 255 / tot_weight
+        tot_weight = sum(weights[:min(4, len(weights))])
+        w_conv = 255.0 / tot_weight
         weight_list = [round(i * w_conv) for i in weights]
         # Ugly fix to make sure total weight is 255
 
-        weight_adjust = 255 - sum(weight_list)
+        weight_adjust = int(255.0 - sum(weight_list[:min(4, len(weights))]))
         weight_list[0] = int(weight_list[0] + weight_adjust)
         return weight_list
 

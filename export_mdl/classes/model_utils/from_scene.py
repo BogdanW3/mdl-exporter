@@ -47,6 +47,11 @@ def from_scene(context: bpy.types.Context,
         war_geoset = create_geoset(bpy_geoset)
         war3_model.geosets.append(war_geoset)
 
+        for i in range(0, len(war_geoset.matrices)):
+            for j in range(0, len(war_geoset.matrices)):
+                if war_geoset.matrices[i][j] == "":
+                    war_geoset.matrices[i][j] = war3_model.bones[0].name
+
         # Needs fixing. supposed to make sure that the 4 first weights adds up to 255.
         # if settings.use_skinweights:
         #     bone_zero: str = war3_model.bones[0].name
@@ -111,6 +116,9 @@ def from_scene(context: bpy.types.Context,
         if geoset.geoset_anim is not None:
             for bone in itertools.chain.from_iterable(geoset.matrices):
                 war3_model.geoset_anim_map[bone] = geoset.geoset_anim
+
+        for bone in war3_model.bones:
+            geoset.skin_matrices.append([bone.name])
 
     # # Account for particle systems when calculating bounds
     # for particle_sys in list(war3_model.particle_systems) + list(war3_model.particle_systems2) + list(war3_model.particle_ribbon):

@@ -9,7 +9,7 @@ from export_mdl.classes.War3Bone import War3Bone
 from export_mdl.classes.animation_curve_utils.transform_rot import transform_rot
 from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec1
 from export_mdl.classes.bpy_helpers.BpySceneObjects import BpySceneObjects
-from export_mdl.classes.model_utils.is_animated_ugg import get_loc_rot_scale
+from export_mdl.classes.model_utils.is_animated_ugg import get_loc_rot_scale, get_baked_loc_rot_scale
 
 
 def parse_armatures(bpy_scene_objects: BpySceneObjects,
@@ -24,14 +24,15 @@ def parse_armatures(bpy_scene_objects: BpySceneObjects,
         animation_data: bpy.types.AnimData = armature.animation_data
         matrix_world = Matrix(armature.matrix_world)
         for pose_bone in bpy_scene_objects.bpy_nodes[armature.name]:
-            # print("armature.pose_bone", pose_bone)
-            bone = get_wc3_bone(animation_data, global_matrix, global_seqs, matrix_world, pose_bone, actions, sequences,
-                                optimize_tolerance)
+            bone = get_wc3_bone(armature, animation_data, global_matrix, global_seqs, matrix_world, pose_bone, actions,
+                                sequences, optimize_tolerance)
             bones.append(bone)
+    if len(bones) == 0 and len(bpy_scene_objects.geosets) == 0:
+        bones.append(War3Bone("No_Bones_Found"))
     return bones
 
 
-def get_wc3_bone(animation_data: bpy.types.AnimData,
+def get_wc3_bone(armature: bpy.types.Object, animation_data: bpy.types.AnimData,
                  global_matrix: Matrix,
                  global_seqs: Set[int],
                  matrix_world: Matrix,
@@ -40,7 +41,7 @@ def get_wc3_bone(animation_data: bpy.types.AnimData,
                  sequences: List[War3AnimationAction],
                  optimize_tolerance: float) -> War3Bone:
     data_path = 'pose.bones[\"' + pose_bone.name + '\"].%s'
-    anim_loc, anim_rot, anim_scale = get_animation_data(animation_data, pose_bone, data_path, global_matrix,
+    anim_loc, anim_rot, anim_scale = get_animation_data(armature, animation_data, pose_bone, data_path, global_matrix,
                                                         global_seqs,
                                                         matrix_world, actions, sequences, optimize_tolerance)
     b_parent = pose_bone.parent
@@ -51,7 +52,7 @@ def get_wc3_bone(animation_data: bpy.types.AnimData,
     return bone
 
 
-def get_animation_data(animation_data: bpy.types.AnimData,
+def get_animation_data(armature: bpy.types.Object, animation_data: bpy.types.AnimData,
                        pose_bone: bpy.types.PoseBone,
                        data_path: str,
                        global_matrix: Matrix,
@@ -61,29 +62,12 @@ def get_animation_data(animation_data: bpy.types.AnimData,
                        sequences: List[War3AnimationAction],
                        optimize_tolerance: float) \
         -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
-    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, data_path, actions, animation_data,
-                                                       optimize_tolerance)
-    #
-    # anim_loc = get_wc3_animation_curve(animation_data, data_path % 'location', 3, sequences)
-    # register_global_sequence(global_seqs, anim_loc)
-    #
-    # anim_rot = get_wc3_animation_curve(animation_data, data_path % 'rotation_quaternion', 4, sequences)
-    # if anim_rot is None:
-    #     anim_rot = get_wc3_animation_curve(animation_data, data_path % 'rotation_euler', 3, sequences)
-    # register_global_sequence(global_seqs, anim_rot)
-    #
-    # # anim_rot_quat = get_wc3_animation_curve(animation_data, data_path % 'rotation_quaternion', 4, sequences)
-    # # anim_rot_euler = get_wc3_animation_curve(animation_data, data_path % 'rotation_euler', 3, sequences)
-    # # anim_rot = anim_rot_quat if anim_rot_quat is not None else anim_rot_euler
-    # # register_global_sequence(global_seqs, anim_rot)
-    #
-    # anim_scale = get_wc3_animation_curve(animation_data, data_path % 'scale', 3, sequences)
-    # register_global_sequence(global_seqs, anim_scale)
-    #
-    # if optimize_animation:
-    #     optimize_anim(anim_loc, optimize_tolerance, sequences)
-    #     optimize_anim(anim_rot, optimize_tolerance, sequences)
-    #     optimize_anim(anim_scale, optimize_tolerance, sequences)
+    if not pose_bone.is_in_ik_chain and len(pose_bone.constraints) == 0:
+        anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, data_path, actions, animation_data,
+                                                           optimize_tolerance)
+    else:
+        anim_loc, anim_rot, anim_scale = get_baked_loc_rot_scale(armature, actions, pose_bone, sequences,
+                                                                 optimize_tolerance)
 
     if anim_loc is not None:
         m = matrix_world @ pose_bone.bone.matrix_local

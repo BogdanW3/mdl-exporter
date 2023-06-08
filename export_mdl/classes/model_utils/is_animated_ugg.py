@@ -4,7 +4,7 @@ import bpy.types
 
 from ..War3AnimationAction import War3AnimationAction
 from ..War3AnimationCurve import War3AnimationCurve
-from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
+from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve, get_baked_curves
 from ..animation_curve_utils.split_segment import split_segment
 
 
@@ -35,6 +35,47 @@ def get_loc_rot_scale(sequences: List[War3AnimationAction],
     return anim_loc, anim_rot, anim_scale
 
 
+def get_baked_loc_rot_scale(armature: bpy.types.Object,
+                            actions: List[bpy.types.Action],
+                            pose_bone: bpy.types.PoseBone,
+                            sequences: List[War3AnimationAction],
+                            optimize_tolerance: float) \
+        -> Tuple[Optional[War3AnimationCurve], Optional[War3AnimationCurve], Optional[War3AnimationCurve]]:
+    print("baking animation for \"" + pose_bone.name + "\"")
+    temp_anim_loc, temp_anim_rot, temp_anim_scale = get_baked_curves(armature, actions, pose_bone, sequences)
+    anim_loc: Optional[War3AnimationCurve] = None
+    anim_rot: Optional[War3AnimationCurve] = None
+    anim_scale: Optional[War3AnimationCurve] = None
+    opt_tol = max(optimize_tolerance, 0)
+    optimize(temp_anim_loc, opt_tol, sequences)
+    f_error = 0.000001
+    # print("\tremoving non-change timelines")
+    for v in temp_anim_loc.keyframes.values():
+        if f_error < abs(v[0]) or f_error < abs(v[1]) or f_error < abs(v[2]):
+            # print("Loc: ", v, "values: ", v[0], v[1], v[2],
+            #       (f_error < abs(v[0])), (f_error < abs(v[1])), (f_error < abs(v[2])))
+            anim_loc = temp_anim_loc
+            break
+
+    optimize(temp_anim_rot, opt_tol, sequences)
+    for v in temp_anim_rot.keyframes.values():
+        if f_error < abs(v[0] - 1) or f_error < abs(v[1]) or f_error < abs(v[2]) or f_error < abs(v[3]):
+            # print("Rot: ", v, "values: ", v[0], v[1], v[2], v[3],
+            #       (f_error < abs(v[0] - 1)), (f_error < abs(v[1])), (f_error < abs(v[2])), (f_error < abs(v[3])))
+            anim_rot = temp_anim_rot
+            break
+    optimize(temp_anim_scale, opt_tol, sequences)
+
+    for v in temp_anim_scale.keyframes.values():
+        if f_error < abs(v[0] - 1) or f_error < abs(v[1] - 1) or f_error < abs(v[2] - 1):
+            # print("Scale: ", v, "values: ", v[0], v[1], v[2],
+            #       (f_error < abs(v[0] - 1)), (f_error < abs(v[1] - 1)), (f_error < abs(v[2] - 1)))
+            anim_scale = temp_anim_scale
+            break
+
+    return anim_loc, anim_rot, anim_scale
+
+
 def get_visibility(sequences: List[War3AnimationAction],
                    global_seqs: Set[int],
                    actions: List[bpy.types.Action], bpy_obj: bpy.types.Object) \
@@ -50,7 +91,7 @@ def get_visibility(sequences: List[War3AnimationAction],
     return None
 
 
-def optimize_anim(anim, tolerance: float, sequences: List[War3AnimationAction]):
+def optimize_anim(anim: Optional[War3AnimationCurve], tolerance: float, sequences: List[War3AnimationAction]):
     if anim is not None and 0 <= tolerance:
         optimize(anim, tolerance, sequences)
 
@@ -64,20 +105,13 @@ def optimize(anim_curve: War3AnimationCurve, tolerance: float, sequences: List[W
 
     keyframes: Dict[float, List[float]] = anim_curve.keyframes
     curve_type = anim_curve.type
-    print('Before: %d' % len(keyframes))
+    # print('Before: %d' % len(keyframes))
 
-    new_keys = []
+    new_keys: Dict[float, List[float]] = {}
     for sequence in sequences:
-        start = int(round(sequence.start / f2ms))
-        end = int(round(sequence.end / f2ms))
-        start_value = keyframes[start]
-        start_ = (start, keyframes[start])
-        end_ = (end, keyframes[end])
-        end_value = keyframes[end]
-        new_keys += [start_, end_]
-        new_keys += split_segment(keyframes, curve_type, start, start_value, end, end_value, tolerance)
+        new_keys.update(split_segment(keyframes, curve_type, sequence.start, sequence.end, tolerance))
 
     keyframes.clear()
     keyframes.update(new_keys)
-    print('After: %d' % len(keyframes))
+    # print('After: %d' % len(keyframes))
 

@@ -49,8 +49,8 @@ class War3Model:
         self.geoset_anim_map: Dict[str, War3GeosetAnim] = {}
         self.materials: List[War3Material] = []
         self.sequences: List[War3AnimationAction] = []
-        self.global_extents_min: int = 0
-        self.global_extents_max: int = 0
+        self.global_extents_min: List[float] = [0, 0, 0]
+        self.global_extents_max: List[float] = [0, 0, 0]
         self.const_color_mats = set()
         self.global_seqs: Set[int] = set()
         self.cameras: List[bpy.types.Object] = []

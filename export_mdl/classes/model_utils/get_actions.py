@@ -14,20 +14,20 @@ def get_actions(f2ms: float, bpy_actions: List[bpy.types.Action], use_actions: b
     if use_actions:
         for action in bpy_actions:
             if action.name != "all sequences" and action.name != "#UNANIMATED" and use_actions:
-                sequence = War3AnimationAction(action.name, action.frame_range[0] * f2ms,
-                                               action.frame_range[1] * f2ms, False, 270)
+                sequence = War3AnimationAction(action.name, action.frame_range[0],
+                                               action.frame_range[1], False, 270)
                 sequences.append(sequence)
                 actions.append(action)
     else:
         for mdl_sequence in mdl_sequences:
-            sequence = War3AnimationAction(mdl_sequence.seq_name, mdl_sequence.start * f2ms, mdl_sequence.end * f2ms,
+            sequence = War3AnimationAction(mdl_sequence.seq_name, mdl_sequence.start, mdl_sequence.end,
                                            mdl_sequence.non_looping, mdl_sequence.move_speed, mdl_sequence.rarity)
             sequences.append(sequence)
         if bpy_actions:
             actions.append(bpy_actions[0])
 
     if len(sequences) == 0:
-        sequences.append(War3AnimationAction("Stand", 0, 1000/f2ms))
+        sequences.append(War3AnimationAction("Stand", 0, bpy.context.scene.render.fps))
         if len(bpy_actions) == 0:
             pass
 
