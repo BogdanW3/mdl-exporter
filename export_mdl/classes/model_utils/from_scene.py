@@ -48,7 +48,7 @@ def from_scene(context: bpy.types.Context,
         war3_model.geosets.append(war_geoset)
 
         for i in range(0, len(war_geoset.matrices)):
-            for j in range(0, len(war_geoset.matrices)):
+            for j in range(0, len(war_geoset.matrices[i])):
                 if war_geoset.matrices[i][j] == "":
                     war_geoset.matrices[i][j] = war3_model.bones[0].name
 
