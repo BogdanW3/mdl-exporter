@@ -59,7 +59,6 @@ def layers_from_mat_nodes(bpy_material: bpy.types.Material):
 
         socket_to_filePath: Dict[str, List[str]] = {}
         for inp in inputs:
-            print("ugg")
             texNodes: List[str] = []
             max_search = len(nodes)
             inp_links = inp.links
