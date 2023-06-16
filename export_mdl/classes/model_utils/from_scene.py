@@ -69,7 +69,8 @@ def from_scene(context: bpy.types.Context,
                                if g.mat_name == bpy_material.name
                                and g.geoset_anim is not None
                                and any((g.geoset_anim.color, g.geoset_anim.color_anim))])
-        new_material = get_new_material2(bpy_material, use_const_color, actions, war3_model.sequences, war3_model.global_seqs)
+        new_material = get_new_material2(bpy_material, settings.use_skinweights, use_const_color, actions,
+                                         war3_model.sequences, war3_model.global_seqs)
         war3_model.materials.append(new_material)
 
     # Add default material if no other materials present

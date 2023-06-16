@@ -172,12 +172,19 @@ def get_interpolation(fcurves: Dict[Tuple[str, str, int], bpy.types.FCurve],
                       anim_type: str):
     if anim_type == 'Boolean' or anim_type == 'Event':
         return 'DontInterp'
+    was_only_constant = False
     for fcurve in [fc for fc in fcurves.values() if len(fc.keyframe_points)]:
         if fcurve.keyframe_points[0].interpolation == 'BEZIER' and anim_type != 'Rotation':
             # Nonlinear interpolation for rotations is disabled for now
             return 'Bezier'
+        elif fcurve.keyframe_points[0].interpolation == 'LINEAR':
+            return 'Linear'
         elif fcurve.keyframe_points[0].interpolation == 'CONSTANT':
-            return 'DontInterp'
+            # ugly fix to not use 'DontInterp' when interpolation is set to 'CONSTANT' in one or more static animations
+            # only seen this so far in m3 models imported with https://github.com/SC2Mapster/m3addon/
+            was_only_constant = True
+    if was_only_constant:
+        return 'DontInterp'
     return 'Linear'
 
 

@@ -11,7 +11,7 @@ def save_textures(fw: TextIO.write, textures: List[War3Texture]):
 
             if texture.texture_path.startswith("ReplaceableId"):
                 fw("\t\tImage \"\",\n")
-                fw("\t\t%s,\n" % texture)
+                fw("\t\tReplaceableId %s,\n" % texture.replaceable_id)
             else:
                 fw("\t\tImage \"%s\",\n" % texture.texture_path)
 

@@ -1,3 +1,4 @@
+import re
 from typing import List, Tuple, Dict, Union, Optional, Set
 
 import bpy
@@ -14,6 +15,7 @@ from export_mdl.properties import War3MaterialLayerProperties
 
 def get_new_material2(bpy_material: bpy.types.Material,
                       use_const_color: bool,
+                      use_skin_weights: bool,
                       actions: List[bpy.types.Action],
                       sequences: List[War3AnimationAction],
                       global_seqs: Set[int]):
@@ -27,11 +29,102 @@ def get_new_material2(bpy_material: bpy.types.Material,
         material.layers.append(parse_layer(i, layer_settings, bpy_material, sequences, actions, global_seqs))
 
     if not len(material.layers):
-        layer = War3Layer()
-        layer.texture = War3Texture()
-        material.layers.append(layer)
+        from_nodes = layers_from_mat_nodes(bpy_material)
+        if from_nodes is not None:
+            if use_skin_weights:
+                material.is_hd = True
+            material.layers.extend(from_nodes)
+        else:
+            layer = War3Layer()
+            layer.texture = War3Texture()
+            material.layers.append(layer)
 
     return material
+
+
+def layers_from_mat_nodes(bpy_material: bpy.types.Material):
+    if bpy_material.use_nodes and bpy_material.node_tree and bpy_material.node_tree.nodes:
+        link_dict_bw: Dict[bpy.types.Node, List[bpy.types.NodeLink]] = {}
+        links: List[bpy.types.NodeLink] = bpy_material.node_tree.links
+        for link in links:
+            to_node: bpy.types.Node = link.to_node
+            if to_node:
+                if to_node not in link_dict_bw:
+                    link_dict_bw[to_node] = []
+                link_dict_bw[to_node].append(link)
+
+        nodes = bpy_material.node_tree.nodes
+        shader_node: bpy.types.Node = nodes.get("Principled BSDF")
+        inputs: List[bpy.types.NodeSocket] = shader_node.inputs
+
+        socket_to_filePath: Dict[str, List[str]] = {}
+        for inp in inputs:
+            print("ugg")
+            texNodes: List[str] = []
+            max_search = len(nodes)
+            inp_links = inp.links
+            link = inp.links[0] if 0 < len(inp_links) else None
+            collect_tex_nodes(link, link_dict_bw, texNodes, max_search)
+
+            socket_to_filePath[inp.name] = texNodes
+
+        layers: List[War3Layer] = []
+        diff_texs = socket_to_filePath.get("Base Color")
+        if 1 < len(diff_texs):
+            to_remove = []
+            for tex in diff_texs:
+                if re.match(".*_norm(al)?\\.\\w{3,4}$", tex) \
+                        or re.match(".*_orm\\.\\w{3,4}$", tex):
+                    to_remove.append(tex)
+            if len(to_remove) != len(diff_texs):
+                for tex in to_remove:
+                    diff_texs.remove(tex)
+
+        diff_path = get_path("Base Color", socket_to_filePath)
+        layers.append(get_layer(diff_path, 0, "Textures\\white.blp"))
+        layers.append(get_layer(get_path("Normal", socket_to_filePath), 0, "Textures\\normal.dds"))
+        orm_path = get_path("Roughness", socket_to_filePath)
+        if orm_path is None:
+            orm_path = get_path("Metallic", socket_to_filePath)
+        if orm_path is None:
+            orm_path = get_path("Specular", socket_to_filePath)
+        layers.append(get_layer(orm_path, 0, "Textures\\orm.dds"))
+        layers.append(get_layer(get_path("Emission", socket_to_filePath), 0, "Textures\\Black32.dds"))
+        layers.append(get_layer("ReplaceableId %s" % 1, 1))
+        layers.append(get_layer(get_path("Specular Tint", socket_to_filePath), 0, "ReplaceableTextures\\EnvironmentMap.dds"))
+        return layers
+    return None
+
+
+def get_path(socket: str, socket_to_filePath: Dict[str, List[str]]):
+    if socket is not None \
+            and socket_to_filePath.get(socket) is not None \
+            and 0 < len(socket_to_filePath.get(socket)):
+        return socket_to_filePath.get(socket)[0]
+    return None
+
+
+def get_layer(texture_path: str, replaceable_id: int, alt_path: str = None):
+    layer = War3Layer()
+    if texture_path is None:
+        texture_path = alt_path
+    print("\t LayerTexturePath: ", texture_path)
+    layer.texture = War3Texture(texture_path, replaceable_id)
+    layer.texture_path = texture_path
+    return layer
+
+
+def collect_tex_nodes(curr_link: bpy.types.NodeLink,
+                      link_dict: Dict[bpy.types.Node, List[bpy.types.NodeLink]],
+                      file_paths: List[str],
+                      max_checks: int):
+    if 0 < max_checks and curr_link is not None:
+        from_node = curr_link.from_node
+        if isinstance(from_node, bpy.types.ShaderNodeTexImage) and from_node.image is not None:
+            file_paths.append(from_node.image.filepath)
+        elif from_node is not None:
+            for link in link_dict.get(from_node):
+                collect_tex_nodes(link, link_dict, file_paths, max_checks-1)
 
 
 def parse_layer(i: int,

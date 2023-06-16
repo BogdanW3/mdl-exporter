@@ -17,6 +17,9 @@ def save_materials(fw: TextIO.write,
         for material in materials:
             fw("\tMaterial {\n")
 
+            if material.is_hd:
+                fw("\t\tShader \"Shader_HD_DefaultUnit,\"\n")
+
             if material.use_const_color is True:
                 fw("\t\tConstantColor,\n")
 
