@@ -82,16 +82,19 @@ def layers_from_mat_nodes(bpy_material: bpy.types.Material):
 
         diff_path = get_path("Base Color", socket_to_filePath)
         layers.append(get_layer(diff_path, 0, "Textures\\white.blp"))
-        layers.append(get_layer(get_path("Normal", socket_to_filePath), 0, "Textures\\normal.dds"))
+        norm_path = get_path("Normal", socket_to_filePath)
         orm_path = get_path("Roughness", socket_to_filePath)
         if orm_path is None:
             orm_path = get_path("Metallic", socket_to_filePath)
         if orm_path is None:
             orm_path = get_path("Specular", socket_to_filePath)
-        layers.append(get_layer(orm_path, 0, "Textures\\orm.dds"))
-        layers.append(get_layer(get_path("Emission", socket_to_filePath), 0, "Textures\\Black32.dds"))
-        layers.append(get_layer("ReplaceableId %s" % 1, 1))
-        layers.append(get_layer(get_path("Specular Tint", socket_to_filePath), 0, "ReplaceableTextures\\EnvironmentMap.dds"))
+        emis_path = get_path("Emission", socket_to_filePath)
+        if norm_path or orm_path or emis_path:
+            layers.append(get_layer(norm_path, 0, "Textures\\normal.dds"))
+            layers.append(get_layer(orm_path, 0, "Textures\\orm.dds"))
+            layers.append(get_layer(emis_path, 0, "Textures\\Black32.dds"))
+            layers.append(get_layer("ReplaceableId %s" % 1, 1))
+            layers.append(get_layer(get_path("Specular Tint", socket_to_filePath), 0, "ReplaceableTextures\\EnvironmentMap.dds"))
         return layers
     return None
 
