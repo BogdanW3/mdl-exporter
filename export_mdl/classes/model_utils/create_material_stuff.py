@@ -43,7 +43,10 @@ def get_new_material2(bpy_material: bpy.types.Material,
 
 
 def layers_from_mat_nodes(bpy_material: bpy.types.Material):
-    if bpy_material.use_nodes and bpy_material.node_tree and bpy_material.node_tree.nodes:
+    if bpy_material.use_nodes \
+            and bpy_material.node_tree \
+            and bpy_material.node_tree.nodes \
+            and bpy_material.node_tree.nodes.get("Principled BSDF"):
         link_dict_bw: Dict[bpy.types.Node, List[bpy.types.NodeLink]] = {}
         links: List[bpy.types.NodeLink] = bpy_material.node_tree.links
         for link in links:
