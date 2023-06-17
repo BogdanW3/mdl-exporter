@@ -124,7 +124,7 @@ def collect_tex_nodes(curr_link: bpy.types.NodeLink,
         from_node = curr_link.from_node
         if isinstance(from_node, bpy.types.ShaderNodeTexImage) and from_node.image is not None:
             file_paths.append(from_node.image.filepath)
-        elif from_node is not None:
+        elif from_node is not None and link_dict.get(from_node) is not None:
             for link in link_dict.get(from_node):
                 collect_tex_nodes(link, link_dict, file_paths, max_checks-1)
 
