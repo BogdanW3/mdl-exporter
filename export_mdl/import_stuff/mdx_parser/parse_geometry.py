@@ -4,19 +4,18 @@ from ...classes.War3Geoset import War3Geoset
 from ...classes.War3Vertex import War3Vertex
 from .binary_reader import Reader
 from ... import constants
-from .get_vertex_groups import get_vertex_groups
 
 
 def parse_geometry(data: bytes, version: int) -> War3Geoset:
     r = Reader(data)
     geoset = War3Geoset()
     geoset.name = ''
+    print("  parsing geoset")
 
     # parse vertices
     chunk_id = r.getid(constants.CHUNK_VERTEX_POSITION)
-    print(chunk_id)
     vertex_count = r.getf('<I')[0]
-    print(vertex_count)
+    print("   ", chunk_id, "parsing %d vertices" % vertex_count)
     locations: List[List[float]] = []
     for _ in range(vertex_count):
         vertex_position = list(r.getf('<3f'))
@@ -24,9 +23,8 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
 
     # parse normals
     chunk_id = r.getid(constants.CHUNK_VERTEX_NORMAL)
-    print(chunk_id)
     normal_count = r.getf('<I')[0]
-    print(normal_count)
+    print("   ", chunk_id, "parsing %d normals" % normal_count)
     normals: List[List[float]] = []
     for _ in range(normal_count):
         normal = list(r.getf('<3f'))
@@ -53,7 +51,7 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
         triangle: List[int] = list(r.getf('<3H'))
         geoset.triangles.append(triangle)
 
-    matrix_indices: List[int] = []
+    matrix_node_ids: List[int] = []
     matrix_groups_sizes: List[int] = []
     vert_matrix_groups: List[int] = []
     matrix_groups: List[List[int]] = []
@@ -64,8 +62,8 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
     chunk_id = r.getid(constants.CHUNK_VERTEX_GROUP)
     matrix_groups_count = r.getf('<I')[0]
     for _ in range(matrix_groups_count):
-        matrix_group = r.getf('<B')[0]
-        vert_matrix_groups.append(matrix_group)
+        matrix_group_index = r.getf('<B')[0]
+        vert_matrix_groups.append(matrix_group_index)
 
     # parse matrix Groups
     chunk_id = r.getid(constants.CHUNK_MATRIX_GROUP)
@@ -78,13 +76,13 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
     chunk_id = r.getid(constants.CHUNK_MATRIX_INDEX)
     matrix_indices_count = r.getf('<I')[0]
     for _ in range(matrix_indices_count):
-        matrix_index = r.getf('<I')[0]
-        matrix_indices.append(matrix_index)
+        matrix_node_id = r.getf('<I')[0]
+        matrix_node_ids.append(matrix_node_id)
 
     curr_index = 0
     for size in matrix_groups_sizes:
         matrix_values: List[int] = []
-        for m_i in matrix_indices[curr_index: curr_index+size]:
+        for m_i in matrix_node_ids[curr_index: curr_index+size]:
             matrix_values.append(m_i)
         curr_index += len(matrix_values)
         matrix_groups.append(matrix_values)
@@ -112,7 +110,7 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
         maximum_extent = r.getf('<3f')
 
     # if constants.MDX_CURRENT_VERSION > 800:
-    if version > 800:
+    if 800 < version:
         chunk_id = r.getid((constants.CHUNK_TANGENTS, constants.CHUNK_SKIN, constants.CHUNK_TEXTURE_VERTEX_GROUP))
         if chunk_id == constants.CHUNK_TANGENTS:
             tangent_size = r.getf('<I')[0]

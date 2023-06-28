@@ -86,10 +86,9 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
     layer.textureAnimationId = r.getf('<I')[0]
     layer.coordId = r.getf('<I')[0]
     layer.alpha_value = r.getf('<f')[0]
-    # if constants.MDX_CURRENT_VERSION > 800:
+
     if 800 < version:
         layer.emissive_gain = r.getf('<f')[0]
-        # if constants.MDX_CURRENT_VERSION > 900:
 
     if 900 < version:
         layer.fresnel_color = list(r.getf('<3f'))
@@ -117,7 +116,7 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
                 # print("Texture:", i, "textureSlot", textureSlot, ", textureID: ", animOrTextureId)
             i += 1
 
-    print("r.offset:", r.offset, "of", data_size)
+    # print("r.offset:", r.offset, "of", data_size)
 
     while r.offset < data_size:
         chunk_id = r.getid(constants.SUB_CHUNKS_LAYER)

@@ -6,7 +6,6 @@ def parse_version(data: bytes):
     r = binary_reader.Reader(data)
     version = r.getf('<I')[0]
 
-    print("mdl version: ", version)
     if version in constants.MDX_VERSIONS:
         constants.MDX_CURRENT_VERSION = version
         return version

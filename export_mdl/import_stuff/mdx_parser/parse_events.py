@@ -21,7 +21,7 @@ def parse_events(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Event
         if r.offset < data_size:
             chunk_id = r.gets(4)
 
-            if chunk_id == constants.CHUNK_TRACKS:
+            if chunk_id == constants.CHUNK_EVENT_TRACKS:
                 parse_tracks(r)
             else:
                 r.offset -= 4

@@ -11,7 +11,7 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
     geoset = War3Geoset()
     geoset.name = ''
 
-    matrix_indices: List[int] = []
+    matrix_node_ids: List[int] = []
     matrix_groups_sizes: List[int] = []
     vert_matrix_groups: List[int] = []
     matrix_groups: List[List[int]] = []
@@ -66,8 +66,8 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
 
                 matrix_groups_sizes.append(len(matrix_values))
 
-                for value in matrix_values:
-                    matrix_indices.append(value)
+                for matrix_node_id in matrix_values:
+                    matrix_node_ids.append(matrix_node_id)
 
         if label == "TVertices":
             t_vertices = chunkifier(extract_bracket_content(data_chunk))
@@ -80,15 +80,15 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
             # print("parsing SkinWeights")
             # print(data_chunk)
             if data_chunk.count("{") < 1:
-                weights = chunkifier(data_chunk)
+                skinning = chunkifier(data_chunk)
             else:
                 content = extract_bracket_content(data_chunk)
-                weights = content.split("\n")
-                # print(weights)
-            # print("found %s lines with SkinWeights" % len(weights))
+                skinning = content.split("\n")
+                # print(skinning)
+            # print("found %s lines with SkinWeights" % len(skinning))
 
-            for weight in weights:
-                sw_vals = extract_int_values(weight)
+            for bones_weights in skinning:
+                sw_vals = extract_int_values(bones_weights)
                 sw_bones.append([str(s) for s in sw_vals[0:4]])
                 sw_weights.append(sw_vals[4:8])
 

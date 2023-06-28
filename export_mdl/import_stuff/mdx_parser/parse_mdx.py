@@ -38,20 +38,21 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
         chunk_size = r.getf('<I')[0]
         chunk_data: bytes = data[r.offset: r.offset + chunk_size]
         r.skip(chunk_size)
-        print("Model chunkId: ", chunk_id,  "cunkSize: ", chunk_size)
+        # print("Model chunkId: ", chunk_id,  "cunkSize: ", chunk_size)
 
         if chunk_id == constants.CHUNK_VERSION:
             model.version = parse_version(chunk_data)
+            print(" version: ", model.version)
         elif chunk_id == constants.CHUNK_GEOSET:
-            print("geosets !!!!!!!!!!!")
+            print(" parsing geosets")
             model.geosets.extend(parse_geosets(chunk_data, model.version, model.name))
         elif chunk_id == constants.CHUNK_TEXTURE:
             model.textures.extend(parse_textures(chunk_data))
         elif chunk_id == constants.CHUNK_MATERIAL:
             model.materials.extend(parse_materials(chunk_data, model.version))
         elif chunk_id == constants.CHUNK_MODEL:
-            print("model name!")
             model.name = parse_model(chunk_data)
+            print(" Model name: " + model.name)
         elif chunk_id == constants.CHUNK_BONE:
             model.bones.extend(parse_bones(chunk_data, id_to_node))
         elif chunk_id == constants.CHUNK_PIVOT_POINT:
@@ -59,6 +60,7 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
         elif chunk_id == constants.CHUNK_HELPER:
             model.helpers.extend(parse_helpers(chunk_data, id_to_node))
         elif chunk_id == constants.CHUNK_LIGHT:
+            print(" Lights!")
             model.lights.extend(parse_lights(chunk_data, id_to_node))
         elif chunk_id == constants.CHUNK_ATTACHMENT:
             model.attachments.extend(parse_attachments(chunk_data, id_to_node))
@@ -68,10 +70,12 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
             model.collision_shapes.extend(parse_collision_shapes(chunk_data, id_to_node))
         elif chunk_id == constants.CHUNK_SEQUENCE:
             model.sequences.extend(parse_sequences(chunk_data))
-        elif chunk_id == constants.CHUNK_SEQUENCE:
-            print("Global sequence!")
+        elif chunk_id == constants.CHUNK_GLOBAL_SEQUENCE:
+            print(" Global sequence! (unimplemented)")
         elif chunk_id == constants.CHUNK_GEOSET_ANIMATION:
             model.geoset_anims.extend(parse_geoset_animations(chunk_data))
+        else:
+            print(" unknown or unimplemented chunkId: ", chunk_id, "cunkSize: ", chunk_size)
 
     for i, node in enumerate(id_to_node.values()):
         node.pivot = pivot_points[i]
@@ -88,7 +92,6 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
             geoset.name = model.name
         elif geoset.name.isnumeric():
             geoset.name = geoset.name + " " + model.name
-        # geoset.mat_name = model.materials[int(geoset.mat_name)].name
         for mg in geoset.matrices:
             b_names = []
             for bone in mg:

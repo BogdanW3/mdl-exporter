@@ -25,7 +25,9 @@ def parse_sequences(data: bytes) -> List[War3AnimationAction]:
         bounds_radius = r.getf('<f')[0]
         minimum_extent = r.getf('<3f')
         maximum_extent = r.getf('<3f')
-        print(name, interval_start, interval_end, (interval_end-interval_start))
+        print(" Parsed Sequence: ", name,
+              "\tstart:", interval_start, "\tend:", interval_end,
+              "\tlen:", (interval_end-interval_start))
         sequence = War3AnimationAction(name, interval_start, interval_end, False, move_speed, rarity)
         sequences.append(sequence)
     return sequences
