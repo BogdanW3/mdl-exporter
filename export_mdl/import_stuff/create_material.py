@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from typing import List, Dict
 
@@ -30,8 +31,7 @@ def create_material(model: War3Model, team_color: str) -> Dict[str, War3BpyMater
     return bpy_materials
 
 
-def create_bpy_material(bpy_images_of_layer: List[bpy.types.Image],
-                        material: War3Material):
+def create_bpy_material(bpy_images_of_layer: List[bpy.types.Image], material: War3Material):
     material_name = bpy_images_of_layer[-1].filepath.split(os.path.sep)[-1].split('.')[0]
     war3_bpy_material = War3BpyMaterial(material_name)
 
@@ -130,10 +130,7 @@ def get_wc3_base_node(material_name: str):
     diffuse.blend_type = 'COLOR'
 
 
-def get_new_node(loc_x: float,
-                 loc_y: float,
-                 material_node_tree: bpy.types.NodeTree,
-                 node_type: str):
+def get_new_node(loc_x: float, loc_y: float, material_node_tree: bpy.types.NodeTree, node_type: str):
     new_node = material_node_tree.nodes.new(node_type)
     new_node.location.x -= loc_x
     new_node.location.y += loc_y
@@ -156,93 +153,95 @@ def load_and_get_textures(model: War3Model, team_color: str):
 
 def get_texture_ext(texture_ext: str):
     if texture_ext == '':
-        print("No texture extension to replace blp with set in addon preferences")
+        print("   No texture extension to replace blp with set in addon preferences")
         texture_ext = 'png'
     if texture_ext[0] != '.':
         texture_ext = '.' + texture_ext
     return texture_ext
 
 
-def get_image(folders: List[str], image_file: str):
-    print("loading:", image_file)
+def get_image(folders: List[Path], image_file: str,):
+    print("  loading:", image_file)
     file_path_parts = image_file.split(os.path.sep)
 
     file_name = file_path_parts[-1].split('.')[0]
     bpy_image = bpy.data.images.new(file_name, 0, 0)
     bpy_image.source = 'FILE'
 
-    bpy_image.filepath = find_file(file_path_parts, folders, image_file)
+    bpy_image.filepath = find_file(file_path_parts, folders)
     return bpy_image
 
 
-def get_image_file(team_color: str,
-                   texture: War3Texture,
-                   texture_ext: str) -> str:
-    if texture.replaceable_id == 1:  # Team Color
-        image_file = constants.TEAM_COLOR_IMAGES[team_color]
-    elif texture.replaceable_id == 2:  # Team Glow
-        image_file = constants.TEAM_GLOW_IMAGES[team_color]
-    else:
+def get_image_file(team_color: str, texture: War3Texture, texture_ext: str) -> str:
+    if texture.replaceable_id <= 0:
         image_file = texture.texture_path
-    if image_file.endswith(".blp"):
-        image_file = image_file.split(".blp")[0] + texture_ext
-    image_file = image_file.replace("/", os.path.sep)
-    image_file = image_file.replace("\\", os.path.sep)
-    return image_file
+    else:
+        image_file = get_repl_img(texture.replaceable_id, team_color)
+
+    sub = re.sub("\\.blp$", texture_ext, image_file)
+    return re.sub("[/\\\\]", re.escape(os.path.sep), sub)
 
 
-def find_file(file_path_parts: List[str],
-              folders: List[str],
-              image_file: str) -> str:
-    for i in range(len(file_path_parts)):
-        split = image_file.split(os.path.sep, i)
-        image_file = split[len(split) - 1]
+def get_repl_img(repl_id: int, team_color: str):
+    match repl_id:
+        case 1:
+            return constants.TEAM_COLOR_IMAGES[team_color]
+        case 2:
+            return constants.TEAM_GLOW_IMAGES[team_color]
+        case _:
+            return 'ReplaceableTextures\\AshenvaleTree\\AshenCanopyTree.blp'
+
+
+def find_file(image_path_comps: List[str], folders: List[Path]) -> str:
+    image_file = image_path_comps[-1]
+    sub_folders = image_path_comps[0:-1]
+    sub_folders.append('')
+    for i in range(len(image_path_comps)):
+        sub_folder1 = '/'.join(image_path_comps[i:-1])
+        sub_folder2 = '/'.join(image_path_comps[0:-i])
 
         for folder in folders:
-            file_path = check_file_path(folder, image_file)
-            if 0 < len(file_path):
-                return file_path
+            file_path = folder / sub_folder1 / image_file
+            if is_valid_path(file_path):
+                return str(file_path)
+            file_path = folder / sub_folder2 / image_file
+            if is_valid_path(file_path):
+                return str(file_path)
     return ''
 
 
-def get_folders(alt_folder: str,
-                resource_folder: str,
-                model_file: str) -> List[str]:
-    if resource_folder == '':
-        print("No resource folder set in addon preferences")
-
-    elif not resource_folder.endswith(os.path.sep):
-        # elif not resource_folder.endswith("\\"):
-        resource_folder += os.path.sep
-    if alt_folder == '':
-        print("No alt resource folder set in addon preferences")
-    elif not alt_folder.endswith(os.path.sep):
-        alt_folder += os.path.sep
-
-    model_folder = str(Path(model_file).parent)
-    if not model_folder.endswith(os.path.sep):
-        model_folder += os.path.sep
-    # print("model folder:", model_folder)
-    textures1 = "Textures" + os.path.sep
-    textures2 = "textures" + os.path.sep
-    folders1 = [model_folder,
-                model_folder + textures1, model_folder + textures2,
-                resource_folder, alt_folder,
-                resource_folder + textures1, resource_folder + textures2,
-                alt_folder + textures1, alt_folder + textures2]
+def get_folders(alt_folder: str, resource_folder: str, model_file: str) -> List[Path]:
     folders = []
-    for folder in folders1:
-        f = check_file_path(folder, "")
-        if f != '' and f not in folders:
-            folders.append(f)
+    if resource_folder == '':
+        print("    No resource folder set in addon preferences")
+    if alt_folder == '':
+        print("    No alt resource folder set in addon preferences")
+    folders.extend(get_valid_folders(Path(model_file).parent))
+    if resource_folder != '':
+        folders.extend(get_valid_folders(Path(resource_folder)))
+    if alt_folder != '':
+        folders.extend(get_valid_folders(Path(alt_folder)))
+
     return folders
 
 
-def check_file_path(folder: str, image_file: str) -> str:
-    file_path = folder + image_file
+def get_valid_folders(folder_path: Path):
+    paths = []
+    if folder_path.is_dir():
+        paths.append(folder_path)
+        sub1: Path = (folder_path / "Textures")
+        sub2: Path = (folder_path / "textures")
+        if sub1.is_dir():
+            paths.append(sub1)
+        if sub2.is_dir():
+            paths.append(sub2)
+    return paths
+
+
+def is_valid_path(file_path: Path) -> bool:
     try:
         if Path(file_path).exists():
-            return file_path
+            return True
     except OSError:
         print("bad path:", file_path)
-    return ''
+    return False
