@@ -1,4 +1,4 @@
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Optional
 
 import bpy
 from mathutils import Matrix, Vector, Quaternion
@@ -13,13 +13,17 @@ from export_mdl.classes.War3EventObject import War3EventObject
 from export_mdl.classes.War3Helper import War3Helper
 from export_mdl.classes.War3Model import War3Model
 from export_mdl.classes.War3Node import War3Node
+from export_mdl.import_stuff.create_attachment_empties import create_attachment_empties
+from export_mdl.import_stuff.create_collision_empties import create_collision_empties
+from export_mdl.import_stuff.create_event_empties import create_event_empties
+from export_mdl.import_stuff.create_light_objects import create_light_objects
 
 
 def create_other_objects(model: War3Model,
                          bpy_armature_object: bpy.types.Object,
                          bone_size: float,
                          fps_ratio: float):
-    print("\ncreating other objects")
+    print(" creating other objects")
 
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -31,151 +35,11 @@ def create_other_objects(model: War3Model,
 
     events = create_event_empties(bone_size, model.event_objects, bpy_armature_object)
     animate_objects(fps_ratio, model.sequences, model.event_objects, events)
+
+    lights = create_light_objects(model.lights, bpy_armature_object)
+    animate_objects(fps_ratio, model.sequences, model.lights, lights)
+
     bpy.ops.object.mode_set(mode='OBJECT')
-
-
-def create_empties(bone_size: float,
-                   edit_bones: bpy.types.ArmatureEditBones,
-                   nodes: List[War3Node],
-                   bpy_armature_object: bpy.types.Object,
-                   bpy_armature: bpy.types.Armature):
-    node_names: Set[str] = set()
-    for indexNode, node in enumerate(nodes):
-        print("adding ", node)
-        node_name = node.name
-        if node_name in node_names:
-            node_name = node_name + ".001"
-            if node_name in node_names:
-                node_name = node_name + ".002"
-            node.name = node_name
-        node_names.add(node_name)
-        bpy_object = bpy.data.objects.new(node_name, None)
-        bpy.context.scene.collection.objects.link(bpy_object)
-        bpy_object.location = node.pivot
-        if node.parent:
-            bpy_object.parent = bpy_armature_object
-            bpy_object.parent_type = 'BONE'
-            bpy_object.parent_bone = node.parent
-
-
-def create_collision_empties(nodes: List[War3CollisionShape],
-                             bpy_armature_object: bpy.types.Object):
-    node_names: Set[str] = set()
-    collisions: List[bpy.types.Object] = []
-    for indexNode, node in enumerate(nodes):
-        print("\tCol - adding ", node, " type: ", node.type)
-        node_name = node.name
-        if not node_name.startswith('Collision'):
-            node_name = 'Collision ' + node_name
-        if node_name in node_names:
-            node_name = node_name + ".001"
-            if node_name in node_names:
-                node_name = node_name + ".002"
-            node.name = node_name
-        node_names.add(node_name)
-        bpy_object = bpy.data.objects.new(node_name, None)
-        bpy.context.scene.collection.objects.link(bpy_object)
-        bpy_object.location = node.pivot
-        # bpy_object.empty_display_type =
-        if node.type == 'Cylinder':
-            bpy_object.empty_display_size = int(node.radius)
-            bpy_object.empty_display_type = 'CUBE'
-        elif node.type == 'Sphere':
-            bpy_object.empty_display_size = int(node.radius)
-            bpy_object.empty_display_type = 'SPHERE'
-        elif node.type == 'Box':
-            bpy_object.empty_display_size = Vector(node.verts[0]).length
-            bpy_object.empty_display_type = 'CUBE'
-        else:
-            bpy_object.empty_display_size = int(Vector(node.verts[0]).length)
-            bpy_object.empty_display_type = 'CUBE'
-        if node.parent:
-            bpy_object.parent = bpy_armature_object
-            bpy_object.parent_type = 'BONE'
-            bpy_object.parent_bone = node.parent
-            armature: bpy.types.Armature = bpy_armature_object.data
-            parent_bone: bpy.types.Bone = armature.bones.get(node.parent)
-            if parent_bone:
-                bpy_object.location = bpy_object.location - parent_bone.tail
-        collisions.append(bpy_object)
-    return collisions
-
-
-def create_attachment_empties(bone_size: float,
-                              nodes: List[War3Attachment],
-                              bpy_armature_object: bpy.types.Object):
-    node_names: Set[str] = set()
-    attachments: List[bpy.types.Object] = []
-    for indexNode, node in enumerate(nodes):
-        print("\tAtt-adding ", node)
-        node_name = node.name
-        if not node_name.endswith(' Ref'):
-            node_name = node_name + ' Ref'
-        if node_name in node_names:
-            node_name = node_name + ".001"
-            if node_name in node_names:
-                node_name = node_name + ".002"
-            node.name = node_name
-        node_names.add(node_name)
-        bpy_object = bpy.data.objects.new(node_name, None)
-        bpy.context.scene.collection.objects.link(bpy_object)
-        bpy_object.location = node.pivot
-        bpy_object.empty_display_type = 'CONE'
-        bpy_object.empty_display_size = bone_size
-        if node.parent:
-            print(node_name, "location:", bpy_object.location, ", has parent:", node.parent)
-            bpy_object.parent = bpy_armature_object
-            bpy_object.parent_type = 'BONE'
-            bpy_object.parent_bone = node.parent
-            armature: bpy.types.Armature = bpy_armature_object.data
-            parent_bone: bpy.types.Bone = armature.bones.get(node.parent)
-            print(node_name, "location2:", bpy_object.location, ", bpy_parent:", parent_bone)
-            if parent_bone:
-                # bpy_object.location = bpy_object.location - parent_bone.tail
-
-                print(node_name, "parent_bone.tail:", parent_bone.tail, "parent_bone.head:", parent_bone.head, "new loc:", bpy_object.location)
-
-            parent_bone2: bpy.types.EditBone = armature.edit_bones.get(node.parent)
-            print("editBone: ", parent_bone2)
-            if parent_bone2:
-                bpy_object.location = bpy_object.location - parent_bone2.tail
-                #
-                print(node_name, "parent_bone2.tail:", parent_bone2.tail, "parent_bone2.head:", parent_bone2.head, "new loc:", bpy_object.location)
-        attachments.append(bpy_object)
-    return attachments
-
-
-def create_event_empties(bone_size: float,
-                         nodes: List[War3EventObject],
-                         bpy_armature_object: bpy.types.Object):
-    node_names: Set[str] = set()
-    events: List[bpy.types.Object] = []
-    for indexNode, node in enumerate(nodes):
-        print("\tEvent-adding ", node)
-        node_name = node.name
-        if node_name in node_names:
-            node_name = node_name + ".001"
-            if node_name in node_names:
-                node_name = node_name + ".002"
-            node.name = node_name
-        node_names.add(node_name)
-        bpy_object = bpy.data.objects.new(node_name, None)
-        bpy.context.scene.collection.objects.link(bpy_object)
-        bpy_object.location = node.pivot
-        bpy_object.empty_display_type = 'CIRCLE'
-        bpy_object.empty_display_size = bone_size
-        if node.parent:
-            print(node_name, "location:", bpy_object.location, ", has parent:", node.parent)
-            bpy_object.parent = bpy_armature_object
-            bpy_object.parent_type = 'BONE'
-            bpy_object.parent_bone = node.parent
-            armature: bpy.types.Armature = bpy_armature_object.data
-            parent_bone: bpy.types.Bone = armature.bones.get(node.parent)
-            print(node_name, "has parent:", node.parent, parent_bone)
-            if parent_bone:
-                bpy_object.location = bpy_object.location - parent_bone.tail
-        events.append(bpy_object)
-    return events
 
 
 def animate_objects(fps_ratio, sequences: List[War3AnimationAction], nodes: List[War3Node], bpy_objects: List[bpy.types.Object]):

@@ -18,7 +18,7 @@ def save_lights(fw: TextIO.write, model: War3Model):
 
         write_billboard(fw, light.billboarded, light.billboard_lock)
 
-        fw("\t%s,\n" % light.type)
+        fw("\t%s,\n" % light.light_type)
 
         global_seqs = model.global_seqs
         if light.atten_start_anim is not None:

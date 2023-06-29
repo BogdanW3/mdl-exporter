@@ -1,7 +1,7 @@
 from typing import List, Dict, Set
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Vector
 
 from export_mdl.classes.War3Attachment import War3Attachment
 from export_mdl.classes.War3Bone import War3Bone
@@ -13,7 +13,7 @@ from export_mdl.classes.War3Node import War3Node
 
 
 def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Object:
-    print("creating armature")
+    print(" creating armature")
     war3_nodes = model.objects_all
     war3_node_inds = model.object_indices
     bpy_armature_object = get_bpy_armature_object(model.name + ' Nodes')
@@ -23,7 +23,7 @@ def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Obje
 
     create_edit_bones(bone_size, bpy_armature.edit_bones, war3_nodes)
 
-    print(bpy_armature.edit_bones[0])
+    # print(bpy_armature.edit_bones[0])
 
     edit_bones = bpy_armature.edit_bones
     bone_types: Dict[str, str] = {}
@@ -56,7 +56,9 @@ def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Obje
     return bpy_armature_object
 
 
-def set_parents_and_connect_bones(edit_bones, war3_nodes, war3_node_inds):
+def set_parents_and_connect_bones(edit_bones: List[bpy.types.EditBone],
+                                  war3_nodes: List[War3Node],
+                                  war3_node_inds: Dict[str, int]):
     for indexNode, war3_node in enumerate(war3_nodes):
         e_bone = edit_bones[indexNode]
         if war3_node.parent is not None:
@@ -106,7 +108,7 @@ def create_edit_bones(bone_size: float,
                       nodes: List[War3Node]):
     bone_names: Set[str] = set()
     for indexNode, node in enumerate(nodes):
-        print("adding ", node)
+        print("  adding node \"%s\"" % node.name)
         bone_name = node.name
         if bone_name in bone_names:
             bone_name = bone_name + ".001"
@@ -120,7 +122,7 @@ def create_edit_bones(bone_size: float,
         bone.tail[2] += bone_size
 
 
-def get_bone_group_color(nodeType) -> str:
+def get_bone_group_color(nodeType: str) -> str:
     if nodeType == 'bone':
         return 'THEME04'
     elif nodeType == 'attachment':

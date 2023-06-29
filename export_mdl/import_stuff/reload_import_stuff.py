@@ -7,6 +7,10 @@ from . import create_material
 from . import create_mesh_objects
 from . import create_object_actions
 from . import create_other_objects
+from . import create_attachment_empties
+from . import create_collision_empties
+from . import create_event_empties
+from . import create_light_objects
 from . import load_stuff
 from . import load_warcraft_3_model
 from . import MDXImportProperties
@@ -22,6 +26,11 @@ try:
     importlib.reload(create_mesh_objects)
     importlib.reload(create_object_actions)
     importlib.reload(create_other_objects)
+
+    importlib.reload(create_attachment_empties)
+    importlib.reload(create_collision_empties)
+    importlib.reload(create_event_empties)
+    importlib.reload(create_light_objects)
     importlib.reload(load_stuff)
     importlib.reload(load_warcraft_3_model)
     importlib.reload(MDXImportProperties)

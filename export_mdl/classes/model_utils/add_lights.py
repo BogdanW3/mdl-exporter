@@ -37,7 +37,7 @@ def get_lights(sequences: List[War3AnimationAction],
     animation_data = bpy_light.bpy_light.animation_data
     if hasattr(bpy_light.bpy_light, "mdl_light"):
         light_data: War3LightSettings = bpy_light.bpy_light.mdl_light
-        light.type = light_data.light_type
+        light.light_type = light_data.light_type
 
         light.intensity = light_data.intensity
         light.intensity_anim = anim_stuff(animation_data, actions, 'mdl_light.intensity', 1, sequences, global_seqs)

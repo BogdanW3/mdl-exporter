@@ -90,10 +90,10 @@ def create_object_actions1(model: War3Model,
                 color_a.keyframe_points.insert(0, 1.0)
 
 
-def create_object_actions(model: War3Model,
+def create_geoset_actions(model: War3Model,
                           bpy_objects: List[bpy.types.Object],
                           frame_time: float):
-    print("creating object animations")
+    print(" creating geoset animations")
     geoset_animations = model.geoset_anims
     sequences = model.sequences
     data_path_color = 'color'

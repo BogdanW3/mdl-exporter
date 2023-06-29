@@ -11,13 +11,14 @@ def create_mesh_objects(model: War3Model,
                         bpy_armature_object: bpy.types.Object,
                         bpy_materials: Dict[str, War3BpyMaterial]):
     # print("Geosets")
+    print(" creating meshes")
     bpy_mesh_objects = []
 
     for war3_geoset in model.geosets:
         mesh_name = model.name if war3_geoset.name is None else war3_geoset.name
         if mesh_name.isnumeric():
             mesh_name = mesh_name + " " + model.name
-        print(" Geoset \"" + mesh_name + "\"")
+        print("  Geoset \"" + mesh_name + "\"")
         # print("  creating mesh for \"" + mesh_name + "\"")
         print("   creating mesh")
         # print("creating geoset: ", mesh_name)
