@@ -29,7 +29,7 @@ def get_loc_rot_scale(sequences: List[War3AnimationAction],
     # anim_rot = anim_rot_quat if anim_rot_quat is not None else anim_rot_euler
     # register_global_sequence(global_seqs, anim_rot)
 
-    anim_scale = get_wc3_animation_curve('scale', actions, 3, sequences, global_seqs)
+    anim_scale = get_wc3_animation_curve(data_path % 'scale', actions, 3, sequences, global_seqs)
     optimize_anim(anim_scale, optimize_tolerance, sequences)
 
     return anim_loc, anim_rot, anim_scale
