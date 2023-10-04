@@ -14,12 +14,13 @@ from ..War3Helper import War3Helper
 from ..War3Material import War3Material
 from ..War3Layer import War3Layer
 from ..War3Model import War3Model
-from .add_empties_animations import get_event, get_helper, get_attachment, get_collision
+from .add_empties_animations import get_event, get_helper, get_bone, get_attachment, get_collision
 from .add_lights import get_lights
 from .add_particle_systems import get_particle_emitter, get_particle_emitter2, get_ribbon_emitter
 from .get_actions import get_actions
 from ..War3Node import War3Node
-from .make_mesh import create_geoset, get_geoset_anim
+from .make_mesh import create_geoset, get_geoset_anim, create_geoset_bone
+from ..War3Texture import War3Texture
 from ..bpy_helpers.BpySceneObjects import BpySceneObjects
 from ...utils import calc_extents
 
@@ -43,7 +44,11 @@ def from_scene(context: bpy.types.Context,
     parse_bpy_objects2(bpy_scene_objects, settings, war3_model, actions)
 
     for bpy_geoset in bpy_scene_objects.geosets:
-        print("creating geoset!")
+        print("creating geoset from: " + bpy_geoset.name)
+        if bpy_geoset.self_as_parent:
+            war3_model.bones.append(create_geoset_bone(bpy_geoset, actions,
+                                                       war3_model.sequences, war3_model.global_seqs,
+                                                       settings))
         war_geoset = create_geoset(bpy_geoset)
         war3_model.geosets.append(war_geoset)
 
@@ -57,7 +62,7 @@ def from_scene(context: bpy.types.Context,
         #     bone_zero: str = war3_model.bones[0].name
         #     for vertex in war_geoset.vertices:
         #         fix_skin_bones(vertex.bone_list, vertex.weight_list, bone_zero)
-        if bpy_geoset.bpy_material.node_tree:
+        if bpy_geoset.bpy_material and bpy_geoset.bpy_material.node_tree:
             geo_anim = get_geoset_anim(bpy_geoset, actions, war3_model.sequences, war3_model.global_seqs)
             war_geoset.geoset_anim = geo_anim
             if geo_anim:
@@ -76,7 +81,9 @@ def from_scene(context: bpy.types.Context,
     # Add default material if no other materials present
     if any((x for x in war3_model.geosets if x.mat_name == "default")):
         default_mat = War3Material("default")
-        default_mat.layers.append(War3Layer())
+        war_layer = War3Layer()
+        war_layer.texture = War3Texture()
+        default_mat.layers.append(war_layer)
         war3_model.materials.append(default_mat)
 
     war3_model.materials = sorted(war3_model.materials, key=lambda x: x.priority_plane)
@@ -237,9 +244,14 @@ def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,
         war3_model.event_objects.append(event)
 
     for bpy_empty_node in bpy_scene_objects.helpers:
-        helper = get_helper(sequences, global_seqs, actions, bpy_empty_node,
+        if bpy_empty_node.should_be_bone:
+            bone = get_bone(sequences, global_seqs, actions, bpy_empty_node,
                             optimize_tolerance, global_matrix)
-        war3_model.helpers.append(helper)
+            war3_model.bones.append(bone)
+        else:
+            helper = get_helper(sequences, global_seqs, actions, bpy_empty_node,
+                                optimize_tolerance, global_matrix)
+            war3_model.helpers.append(helper)
 
     for bpy_empty_node in bpy_scene_objects.attachments:
         attachment = get_attachment(sequences, global_seqs, actions, bpy_empty_node,

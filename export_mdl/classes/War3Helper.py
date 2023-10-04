@@ -15,3 +15,9 @@ class War3Helper(War3Node):
                  anim_scale: Optional[War3AnimationCurve] = None,
                  bindpose: Optional[Matrix] = None):
         super().__init__(name, pivot, parent, anim_loc, anim_rot, anim_scale, bindpose)
+
+    @classmethod
+    def create_from(cls, node: 'War3Node'):
+        return War3Helper(node.name, node.pivot, node.parent,
+                          node.anim_loc, node.anim_rot, node.anim_scale,
+                          node.bindpose)

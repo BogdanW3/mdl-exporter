@@ -27,3 +27,9 @@ class BpyEmptyNode:
             self.billboard_lock: Tuple[bool, bool, bool] = (False, False, False)
         self.parent_name: Optional[str] = get_parent_name(bpy_obj)
         self.animation_data: bpy.types.AnimData = bpy_obj.animation_data
+        self.should_be_bone = False
+        if bpy_obj.children:
+            for ch in bpy_obj.children:
+                if ch.type == 'MESH' or ch.type == 'CURVE':
+                    self.should_be_bone = True
+                    break

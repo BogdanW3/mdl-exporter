@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple, Optional
 
 import bpy
+from export_mdl.classes.model_utils.get_parent_name import get_parent_name
 
 
 class BpyGeoset:
@@ -11,8 +12,11 @@ class BpyGeoset:
         self.bpy_mesh: bpy.types.Mesh = bpy_mesh
         self.bpy_obj: bpy.types.Object = bpy_obj
         self.material_slot: int = material_slot
-        self.bpy_material: bpy.types.Material = bpy_mesh.materials[material_slot]
-        self.material_name: str = bpy_mesh.materials[material_slot].name
+        self.bpy_material: Optional[bpy.types.Material] = None
+        self.material_name: str = "default"
+        if bpy_mesh.materials:
+            self.bpy_material: Optional[bpy.types.Material] = bpy_mesh.materials[material_slot]
+            self.material_name: str = bpy_mesh.materials[material_slot].name
         self.vertex_list: List[bpy.types.MeshVertex] = []  # vertices
         self.pos_list: List[List[float]] = []  # location
         self.normal_list: List[List[float]] = []  # normals
@@ -24,6 +28,11 @@ class BpyGeoset:
         self.weight_list: List[List[int]] = []
 
         all_vgs = bpy_obj.vertex_groups
+        # self.self_as_parent: bool = bpy_obj.parent is None and bpy_obj.animation_data is not None and all_vgs
+        self.no_vgs: bool = not all_vgs
+        self.self_as_parent: bool = bpy_obj.parent is None and not all_vgs
+        self.parent_name: Optional[str] = get_parent_name(bpy_obj)
+        print("geoset has self as parent:", self.self_as_parent)
 
         for tri in bpy_mesh.loop_triangles:
             if tri.material_index is material_slot:
@@ -66,14 +75,25 @@ class BpyGeoset:
                                 self.bone_list.append(bones)
                                 self.weight_list.append(self.get_int_weights(weights))
                             else:
-                                self.bone_list.append([""])
+                                if self.self_as_parent:
+                                    self.bone_list.append([self.name])
+                                elif self.no_vgs:
+                                    self.bone_list.append([self.parent_name])
+                                else:
+                                    self.bone_list.append([""])
                                 # should this be 255..?
                                 self.weight_list.append([1])
 
                             # self.bone_list.append(list(all_vgs[vg.group].name for vg in vertex_groups if vg.weight != 0 and all_vgs[vg.group].name in bone_names))
                             # self.weight_list.append(self.get_int_weights(list(vg.weight for vg in vertex_groups if vg.weight != 0 and all_vgs[vg.group].name in bone_names)))
                         else:
-                            self.bone_list.append([""])
+                            if self.self_as_parent:
+                                self.bone_list.append([self.name])
+                            elif self.no_vgs:
+                                self.bone_list.append([self.parent_name])
+                            else:
+                                self.bone_list.append([""])
+                            # should this be 255..?
                             self.weight_list.append([1])
 
                     tri_vert_map[vert_index] = self.vertex_map[vertex_key]

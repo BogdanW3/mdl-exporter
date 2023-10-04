@@ -111,10 +111,14 @@ class BpySceneObjects:
                 elif particle_settings.emiter_type == 'ParticleEmitter2':
                     self.particle2s.append(BpyEmitter(bpy_obj, global_matrix, particle_settings))
                 elif particle_settings.emiter_type == 'RibbonEmitter':
-                    self.ribbons.append(BpyEmitter(bpy_obj, global_matrix, particle_settings))
+                    emitter = BpyEmitter(bpy_obj, global_matrix, particle_settings)
+                    self.ribbons.append(emitter)
+                    self.materials.add(emitter.particle_settings.ribbon_material)
 
         elif bpy_obj.type == 'MESH':
             self.meshes.append(bpy_obj)
+            if isinstance(bpy_obj, bpy.types.Mesh) and len(bpy_obj.vertices):
+                self.materials.union(bpy_obj.materials)
 
         # ToDo what to do with curves? t
         elif bpy_obj.type == 'CURVE' and \
@@ -127,6 +131,8 @@ class BpySceneObjects:
             print("curve - ", bpy_obj.data.bevel_depth)
             print("curve - ", bpy_obj.data.bevel_object)
             self.curves.append(bpy_obj)
+            if isinstance(bpy_obj, bpy.types.Curve) and len(bpy_obj.splines):
+                self.materials.union(bpy_obj.materials)
 
         elif bpy_obj.type == 'EMPTY':
             print("empty, mat:", bpy_obj.matrix_world)
@@ -142,6 +148,8 @@ class BpySceneObjects:
             elif obj_name.endswith((" Ref", " Ref.001",  " Ref.002")):
                 self.attachments.append(BpyEmptyNode(bpy_obj, global_matrix))
             elif obj_name.startswith("Bone_"):
+                self.helpers.append(BpyEmptyNode(bpy_obj, global_matrix))
+            else:
                 self.helpers.append(BpyEmptyNode(bpy_obj, global_matrix))
 
         elif bpy_obj.type == 'ARMATURE':
@@ -166,6 +174,9 @@ class BpySceneObjects:
     def make_bpy_geosets(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):
         for i, m in enumerate(bpy_mesh.materials):
             self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, i, self.bone_names))
+        if not bpy_mesh.materials:
+            self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, 0, self.bone_names))
+
 
     def collect_material(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):
         # anim_tuple: Tuple[Optional[Tuple[float]], Tuple[str, bpy.types.AnimData]] \

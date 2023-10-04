@@ -24,6 +24,12 @@ class War3Node:  # Stores information about an MDL object (not a blender object!
         self.billboard_lock = (False, False, False)
         self.bindpose: Optional[Matrix] = bindpose  # TODO
 
+    @classmethod
+    def create_from(cls, node: 'War3Node'):
+        return War3Node(node.name, node.pivot, node.parent,
+                        node.anim_loc, node.anim_rot, node.anim_scale,
+                        node.bindpose)
+
     # def set_billboard(self, billboard):
     #     bb = obj.mdl_billboard
     #     self.billboarded = bb.billboarded

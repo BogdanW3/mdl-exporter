@@ -5,15 +5,73 @@ from mathutils import Vector, Matrix
 
 from ..War3AnimationAction import War3AnimationAction
 from ..War3Attachment import War3Attachment
+from ..War3Bone import War3Bone
 from ..War3CollisionShape import War3CollisionShape
 from ..War3EventObject import War3EventObject
 from ..War3Helper import War3Helper
+from ..War3Node import War3Node
 from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
 from .is_animated_ugg import get_loc_rot_scale, get_visibility
 from ..bpy_helpers.BpyEmptyNode import BpyEmptyNode
 from export_mdl.classes.animation_curve_utils.transform_rot import transform_rot
 from export_mdl.classes.animation_curve_utils.transform_vec import transform_vec1
 from ...utils import calc_extents
+
+
+def get_object_node(sequences: List[War3AnimationAction],
+                    global_seqs: Set[int],
+                    actions: List[bpy.types.Action],
+                    bpy_empty_node: BpyEmptyNode,
+                    optimize_tolerance: float,
+                    global_matrix: Matrix,
+                    nodeMaker):
+    bpy_obj = bpy_empty_node.bpy_obj
+    if bpy_obj.children:
+        for ch in bpy_obj.children:
+            print(ch, ch.type)
+    obj_name = bpy_obj.name
+    animation_data: bpy.types.AnimData = bpy_obj.animation_data
+    pivot = global_matrix @ Vector(bpy_obj.location)
+
+    matrix_world = bpy_obj.matrix_world
+    anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
+                                               optimize_tolerance, sequences)
+
+    # node = War3Node(obj_name, pivot, bpy_empty_node.parent_name, anim_loc, anim_rot, anim_scale,
+    #                 bpy_obj.matrix_basis)
+
+    node = nodeMaker(obj_name, pivot, bpy_empty_node.parent_name, anim_loc, anim_rot, anim_scale,
+                     bpy_obj.matrix_basis)
+
+    node.billboarded = bpy_empty_node.billboarded
+    node.billboard_lock = bpy_empty_node.billboard_lock
+    return node
+
+
+def get_object_nod1(sequences: List[War3AnimationAction],
+                    global_seqs: Set[int],
+                    actions: List[bpy.types.Action],
+                    bpy_empty_node: BpyEmptyNode,
+                    optimize_tolerance: float,
+                    global_matrix: Matrix):
+    bpy_obj = bpy_empty_node.bpy_obj
+    if bpy_obj.children:
+        for ch in bpy_obj.children:
+            print(ch, ch.type)
+    obj_name = bpy_obj.name
+    animation_data: bpy.types.AnimData = bpy_obj.animation_data
+    pivot = global_matrix @ Vector(bpy_obj.location)
+
+    matrix_world = bpy_obj.matrix_world
+    anim_loc, anim_rot, anim_scale = get_anims(animation_data, actions, global_matrix, global_seqs, matrix_world,
+                                               optimize_tolerance, sequences)
+
+    node = War3Node(obj_name, pivot, bpy_empty_node.parent_name, anim_loc, anim_rot, anim_scale,
+                    bpy_obj.matrix_basis)
+
+    node.billboarded = bpy_empty_node.billboarded
+    node.billboard_lock = bpy_empty_node.billboard_lock
+    return node
 
 
 def get_event(sequences: List[War3AnimationAction],
@@ -67,6 +125,31 @@ def get_helper(sequences: List[War3AnimationAction],
                bpy_empty_node: BpyEmptyNode,
                optimize_tolerance: float,
                global_matrix: Matrix):
+    node = get_object_node(sequences, global_seqs, actions, bpy_empty_node, optimize_tolerance, global_matrix,
+                           lambda n, piv, p, l, r, s, bp: War3Helper(n, piv, p, l, r, s, bp))
+    # helper = War3Helper.create_from(node)
+    return node
+
+
+def get_bone(sequences: List[War3AnimationAction],
+             global_seqs: Set[int],
+             actions: List[bpy.types.Action],
+             bpy_empty_node: BpyEmptyNode,
+             optimize_tolerance: float,
+             global_matrix: Matrix):
+    # node = get_object_node(sequences, global_seqs, actions, bpy_empty_node, optimize_tolerance, global_matrix)
+    node = get_object_node(sequences, global_seqs, actions, bpy_empty_node, optimize_tolerance, global_matrix,
+                           lambda n, piv, p, l, r, s, bp: War3Bone(n, piv, p, l, r, s, bp))
+    # bone = War3Bone.create_from(node)
+    return node
+
+
+def get_helper1(sequences: List[War3AnimationAction],
+               global_seqs: Set[int],
+               actions: List[bpy.types.Action],
+               bpy_empty_node: BpyEmptyNode,
+               optimize_tolerance: float,
+               global_matrix: Matrix):
     obj_name = bpy_empty_node.bpy_obj.name
     animation_data: bpy.types.AnimData = bpy_empty_node.bpy_obj.animation_data
     pivot = global_matrix @ Vector(bpy_empty_node.bpy_obj.location)
@@ -88,9 +171,10 @@ def get_anims(animation_data: bpy.types.AnimData,
               global_matrix: Matrix,
               global_seqs: Set[int],
               matrix_world: Matrix,
-              optimize_tolerance: bool,
+              optimize_tolerance: float,
               sequences: List[War3AnimationAction]):
-    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data, optimize_tolerance)
+    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data,
+                                                       optimize_tolerance)
     if anim_loc is not None:
         transform_vec1(anim_loc, matrix_world.inverted())
         transform_vec1(anim_loc, global_matrix)

@@ -32,6 +32,11 @@ class War3Light(War3Node):
         # self.bpy_obj: Optional[bpy.types.Object] = None
         self.visibility: Optional[War3AnimationCurve] = None
 
+    @classmethod
+    def create_from(cls, node: 'War3Node'):
+        return War3Light(node.name, node.pivot, node.parent,
+                         node.anim_loc, node.anim_rot, node.anim_scale,
+                         node.bindpose)
     # def __init__(self, name: str,
     #              pivot: List[float] = [0, 0, 0],
     #              bindpose: Optional[Matrix] = None):

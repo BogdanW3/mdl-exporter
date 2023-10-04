@@ -6,6 +6,7 @@ from mathutils import Vector, Matrix
 from ..export_mdl.write_animation_chunk import write_animation_chunk
 from ..utils import float2str, calc_bounds_radius, rnd
 from .War3AnimationAction import War3AnimationAction
+from .War3Node import War3Node
 from .War3Emitter import War3Emitter
 from .War3AnimationCurve import War3AnimationCurve
 from .animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
@@ -28,6 +29,12 @@ class War3ParticleEmitter(War3Emitter):
         # self.dimensions: Optional[Vector] = None
         self.scale_anim: Optional[War3AnimationCurve] = None
         self.object_path: str = ""
+
+    @classmethod
+    def create_from(cls, node: 'War3Node'):
+        return War3ParticleEmitter(node.name, node.pivot, node.parent,
+                                   node.anim_loc, node.anim_rot, node.anim_scale,
+                                   node.bindpose)
 
     def set_from(self, obj: bpy.types.Object, actions: List[bpy.types.Action], sequences: List[War3AnimationAction], global_seqs: Set[int]):
         settings: bpy.types.ParticleSettings = obj.particle_systems[0].settings

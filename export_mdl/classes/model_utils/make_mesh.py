@@ -30,13 +30,12 @@ def make_mesh(war3_model: War3Model,
     visibility = get_visibility(sequences, global_seqs, actions, bpy_geoset.bpy_obj)
     animation_data: bpy.types.AnimData = bpy_geoset.bpy_obj.animation_data
 
-    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data,
-                                                       settings.optimize_tolerance)
-
     bpy_mesh: Mesh = bpy_scene_objects.bpy_meshes[bpy_geoset.name][1]
 
     # Geoset Animation
-    if any((anim_loc, anim_rot, anim_scale)):
+    if bpy_geoset.self_as_parent:
+        anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', actions, animation_data,
+                                                           settings.optimize_tolerance)
         geoset_anim = get_geoset_anim(bpy_geoset, actions, sequences, global_seqs)
         pivot = settings.global_matrix @ Vector(bpy_geoset.bpy_obj.location)
 
@@ -76,11 +75,12 @@ def get_geoset_anim(bpy_geoset: BpyGeoset,
     #     curve = action.fcurves.find(data_path)
     print("geo_color_anim:", geo_color_anim)
     geo_color = [1.0, 1.0, 1.0]
-    color_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Color")
-    if color_node:
-        print("color_node:", color_node)
-        geo_color = color_node.outputs[0].default_value
-        # node_tree.nodes["Geoset Anim Color"].outputs[0].default_value
+    if bpy_geoset.bpy_material:
+        color_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Color")
+        if color_node:
+            print("color_node:", color_node)
+            geo_color = color_node.outputs[0].default_value
+            # node_tree.nodes["Geoset Anim Color"].outputs[0].default_value
     print(geo_color)
 
     object_path = 'bpy.data.objects["' + bpy_geoset.name + '"]'
@@ -91,9 +91,10 @@ def get_geoset_anim(bpy_geoset: BpyGeoset,
     if not geo_alpha_anim:
         geo_alpha_anim = get_wc3_animation_curve(bpy_geoset.get_geo_alpha_path(), actions, 1, sequences, global_seqs)
     geo_alpha = 1.0
-    alpha_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Alpha")
-    if alpha_node:
-        geo_alpha = alpha_node.inputs[1].default_value
+    if bpy_geoset.bpy_material:
+        alpha_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Alpha")
+        if alpha_node:
+            geo_alpha = alpha_node.inputs[1].default_value
     print(geo_alpha)
 
     geoset_anim: Optional[War3GeosetAnim] = None
@@ -127,3 +128,32 @@ def create_geoset(bpy_geoset: BpyGeoset) -> War3Geoset:
     for tri_bpy, tri_war3 in bpy_geoset.tri_map.items():
         geoset.triangles.append(list(tri_war3))
     return geoset
+
+
+def create_geoset_bone(bpy_geoset: BpyGeoset,
+                       actions: List[bpy.types.Action],
+                       sequences: List[War3AnimationAction],
+                       global_seqs: Set[int],
+                       settings: War3ExportSettings) -> War3Bone:
+    animation_data: bpy.types.AnimData = bpy_geoset.bpy_obj.animation_data
+
+    action: List[bpy.types.Action] = []
+    if animation_data:
+        action.append(animation_data.action)
+    anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', action,
+                                                       animation_data,
+                                                       settings.optimize_tolerance)
+    pivot = settings.global_matrix @ Vector(bpy_geoset.bpy_obj.location)
+
+    obj_name = bpy_geoset.name
+    bone: War3Bone = War3Bone(obj_name, pivot, None, anim_loc, anim_rot, anim_scale,
+                              bpy_geoset.bpy_obj.matrix_basis)
+
+    if anim_loc is not None:
+        transform_vec1(anim_loc, bpy_geoset.bpy_obj.matrix_world.inverted())
+        transform_vec1(anim_loc, settings.global_matrix)
+
+    if anim_rot is not None:
+        transform_rot(anim_rot.keyframes, bpy_geoset.bpy_obj.matrix_world.inverted())
+        transform_rot(anim_rot.keyframes, settings.global_matrix)
+    return bone

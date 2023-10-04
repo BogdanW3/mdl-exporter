@@ -18,3 +18,9 @@ class War3CollisionShape(War3Node):
         self.type: str = 'Cylinder'
         self.verts: Optional[List[List[float]]] = []
         self.radius: Optional[float] = None
+
+    @classmethod
+    def create_from(cls, node: 'War3Node'):
+        return War3CollisionShape(node.name, node.pivot, node.parent,
+                                  node.anim_loc, node.anim_rot, node.anim_scale,
+                                  node.bindpose)

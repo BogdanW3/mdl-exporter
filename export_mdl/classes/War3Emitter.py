@@ -27,6 +27,11 @@ class War3Emitter(War3Node):
         self.visibility: Optional[War3AnimationCurve] = None
         self.emitter: War3ParticleSystemProperties = None
 
+    @classmethod
+    def create_from(cls, node: 'War3Node'):
+        return War3Emitter(node.name, node.pivot, node.parent,
+                           node.anim_loc, node.anim_rot, node.anim_scale,
+                           node.bindpose)
     # def set_from(self, obj: bpy.types.Object, sequences: List[War3AnimationAction], global_seqs: Set[int]):
     #     settings: bpy.types.ParticleSettings = obj.particle_systems[0].settings
     #
