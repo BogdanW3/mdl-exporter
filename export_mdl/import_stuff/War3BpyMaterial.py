@@ -1,3 +1,5 @@
+from typing import Optional
+
 import bpy
 
 
@@ -22,10 +24,18 @@ class War3BpyMaterial:
         return bpy_material
 
     def get_shader_node(self):
-        shader_node: bpy.types.Node = self.material_node_tree.nodes.get("Principled BSDF")
+        shader_node = self.find_shader_node()
+        if shader_node is None:
+            shader_node = self.get_new_node(0, 1, "ShaderNodeBsdfPrincipled")
         shader_node.inputs[5].default_value = 0.0  # no specular
         shader_node.inputs[7].default_value = 1.0  # full roughness
         return shader_node
+
+    def find_shader_node(self) -> Optional[bpy.types.Node]:
+        for node in self.material_node_tree.nodes:
+            if isinstance(node, bpy.types.ShaderNodeBsdfPrincipled):
+                return node
+        return None
 
     def get_mix_node(self):
         mix_node = self.get_new_node(0, 1, "ShaderNodeMixRGB")
@@ -72,7 +82,6 @@ class War3BpyMaterial:
 
     def get_geo_color_path(self):
         return self.get_path() + '.node_tree.nodes["Geoset Anim Color"].outputs[0].default_value'
-
 
     def get_geo_alpha_path(self):
         return self.get_path() + '.node_tree.nodes["Geoset Anim Alpha"].inputs[1].default_value'
