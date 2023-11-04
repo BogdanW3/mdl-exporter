@@ -15,7 +15,12 @@ class Reader:
     def gets(self, size: int) -> Tuple:
         self.offset += size
         # return struct.unpack_from('<{}s'.format(size), self.__data, self.offset - size)[0].split(b'\x00')[0].decode(encoding='mbcs')
-        return struct.unpack_from('<{}s'.format(size), self.__data, self.offset - size)[0].split(b'\x00')[0].decode(encoding='utf-8')
+        string_struct = struct.unpack_from('<{}s'.format(size), self.__data, self.offset - size)[0].split(b'\x00')[0]
+        try:
+            return string_struct.decode(encoding='utf-8')
+        except UnicodeDecodeError:
+            return string_struct.decode(encoding='utf-16')
+
 
     def getid(self, required_chunks_id: Tuple[str, ...], debug=True):
         self.offset += 4
