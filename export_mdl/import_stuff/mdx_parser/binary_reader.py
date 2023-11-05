@@ -1,26 +1,41 @@
 import struct
 from typing import Tuple, List
 
+import bpy
+
+from export_mdl import War3Preferences, constants
+
 
 class Reader:
     def __init__(self, data: bytes):
         self.__data: bytes = data
         self.offset = 0
+        preferences: War3Preferences = bpy.context.preferences.addons.get('export_mdl').preferences
+        self.default_enc = constants.ENCODINGS[preferences.defaultEncoding]
 
     def getf(self, value_format: str) -> Tuple:
         size = struct.calcsize(value_format)
         self.offset += size
         return struct.unpack_from(value_format, self.__data, self.offset - size)
 
-    def gets(self, size: int) -> Tuple:
+    def gets(self, size: int) -> str:
         self.offset += size
         # return struct.unpack_from('<{}s'.format(size), self.__data, self.offset - size)[0].split(b'\x00')[0].decode(encoding='mbcs')
-        string_struct = struct.unpack_from('<{}s'.format(size), self.__data, self.offset - size)[0].split(b'\x00')[0]
+        string_struct: bytes = struct.unpack_from('<{}s'.format(size), self.__data, self.offset - size)[0].split(b'\x00')[0]
         try:
-            return string_struct.decode(encoding='utf-8')
+            return string_struct.decode(encoding=self.default_enc)
         except UnicodeDecodeError:
-            return string_struct.decode(encoding='utf-16')
+            for enc in constants.ENCODINGS.values():
+                string = self.try_get_encoded_string(string_struct, enc)
+                if string is not None:
+                    return string
+            return str(string_struct)
 
+    def try_get_encoded_string(self, string_struct: bytes, encoding: str):
+        try:
+            return string_struct.decode(encoding=encoding)
+        except UnicodeError:
+            return None
 
     def getid(self, required_chunks_id: Tuple[str, ...], debug=True):
         self.offset += 4

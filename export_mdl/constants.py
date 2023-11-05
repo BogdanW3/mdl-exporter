@@ -225,3 +225,14 @@ TEAM_GLOW_IMAGES = {
     'BROWN': get_team_glow(11),
     'BLACK': get_team_glow(12)
 }
+
+ENCODINGS = {
+    'LATIN_1': 'latin-1',
+    'UTF_8': 'utf-8',
+    'UTF_16': 'utf-16',
+    'UTF_32': 'utf-32',
+    'ASCII': 'ascii',
+    'BIG5': 'big5',
+    'EUC_KR': 'euc_kr',
+    'EUC_JP': 'euc_jp',
+}
