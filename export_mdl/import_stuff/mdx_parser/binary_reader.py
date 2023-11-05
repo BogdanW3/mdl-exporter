@@ -26,12 +26,12 @@ class Reader:
             return string_struct.decode(encoding=self.default_enc)
         except UnicodeDecodeError:
             for enc in constants.ENCODINGS.values():
-                string = self.try_get_encoded_string(string_struct, enc)
+                string = self.try_get_decoded_string(string_struct, enc)
                 if string is not None:
                     return string
             return str(string_struct)
 
-    def try_get_encoded_string(self, string_struct: bytes, encoding: str):
+    def try_get_decoded_string(self, string_struct: bytes, encoding: str):
         try:
             return string_struct.decode(encoding=encoding)
         except UnicodeError:
