@@ -11,7 +11,7 @@ def save_cameras(fw: TextIO.write, model: War3Model, settings):
         fw("Camera \"%s\" {\n" % camera.name)
         position = settings.global_matrix @ Vector(camera.location)
 
-        fw("\tPosition {%s, %s, %s},\n" % tuple(map(float2str, position)))
+        fw("\tPosition { %s, %s, %s },\n" % tuple(map(float2str, position)))
         fw("\tFieldOfView %f,\n" % camera.data.angle)
         fw("\tFarClip %f,\n" % (camera.data.clip_end * 10))
         fw("\tNearClip %f,\n" % (camera.data.clip_start * 10))
@@ -21,6 +21,6 @@ def save_cameras(fw: TextIO.write, model: War3Model, settings):
         target = position + matrix.to_quaternion() @ Vector(
             (0.0, 0.0, -target_loc))  # Target is just a point in front of the camera
 
-        fw("\tTarget {\n\t\tPosition {%s, %s, %s},\n" % tuple(map(float2str, target)))
+        fw("\tTarget {\n\t\tPosition { %s, %s, %s },\n" % tuple(map(float2str, target)))
         fw("\t}\n")
         fw("}\n")

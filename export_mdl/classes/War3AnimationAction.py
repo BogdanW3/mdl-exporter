@@ -15,7 +15,7 @@ class War3AnimationAction:
 
     def save_sequences(self, fw: TextIO.write, global_extents_min: List[float], global_extents_max: List[float]):
         fw("\tAnim \"%s\" {\n" % self.name)
-        fw("\t\tInterval {%d, %d},\n" % (self.start, self.end))
+        fw("\t\tInterval { %d, %d },\n" % (self.start, self.end))
         if self.non_looping:
             fw("\t\tNonLooping,\n")
         if self.rarity > 0:
@@ -23,7 +23,7 @@ class War3AnimationAction:
         if 'walk' in self.name.lower():
             fw("\t\tMoveSpeed %d,\n" % self.movement_speed)
 
-        fw("\t\tMinimumExtent {%s, %s, %s},\n" % tuple(map(float2str, global_extents_min)))
-        fw("\t\tMaximumExtent {%s, %s, %s},\n" % tuple(map(float2str, global_extents_max)))
+        fw("\t\tMinimumExtent { %s, %s, %s },\n" % tuple(map(float2str, global_extents_min)))
+        fw("\t\tMaximumExtent { %s, %s, %s },\n" % tuple(map(float2str, global_extents_max)))
         fw("\t\tBoundsRadius %s,\n" % float2str(calc_bounds_radius(global_extents_min, global_extents_max)))
         fw("\t}\n")

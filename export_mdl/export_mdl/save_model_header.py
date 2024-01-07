@@ -28,7 +28,7 @@ def save_model_header(fw: TextIO.write, model: War3Model):
         fw("\tNumHelpers %d,\n" % len(model.helpers))
 
     fw("\tBlendTime %d,\n" % 150)
-    fw("\tMinimumExtent {%s, %s, %s},\n" % tuple(map(float2str, model.global_extents_min)))
-    fw("\tMaximumExtent {%s, %s, %s},\n" % tuple(map(float2str, model.global_extents_max)))
+    fw("\tMinimumExtent { %s, %s, %s },\n" % tuple(map(float2str, model.global_extents_min)))
+    fw("\tMaximumExtent { %s, %s, %s },\n" % tuple(map(float2str, model.global_extents_max)))
     fw("\tBoundsRadius %s,\n" % float2str(calc_bounds_radius(model.global_extents_min, model.global_extents_max)))
     fw("}\n")

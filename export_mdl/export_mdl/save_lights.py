@@ -34,7 +34,7 @@ def save_lights(fw: TextIO.write, model: War3Model):
         if light.color_anim is not None:
             write_animated(fw, global_seqs, "Color", light.color_anim)
         else:
-            fw("\tstatic Color {%s, %s, %s},\n" % tuple(map(float2str, reversed(light.color[:3]))))
+            fw("\tstatic Color { %s, %s, %s },\n" % tuple(map(float2str, reversed(light.color[:3]))))
 
         if light.intensity_anim is not None:
             write_animated(fw, global_seqs, "Intensity", light.intensity_anim)
@@ -49,7 +49,7 @@ def save_lights(fw: TextIO.write, model: War3Model):
         if light.amb_color_anim is not None:
             write_animated(fw, global_seqs, "AmbColor", light.amb_color_anim)
         else:
-            fw("\tstatic AmbColor {%s, %s, %s},\n" % tuple(map(float2str, reversed(light.amb_color[:3]))))
+            fw("\tstatic AmbColor { %s, %s, %s },\n" % tuple(map(float2str, reversed(light.amb_color[:3]))))
 
         visibility = light.visibility
         if visibility is not None:

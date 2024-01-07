@@ -39,18 +39,18 @@ class War3Geoset:
         # Vertices
         fw("\tVertices %d {\n" % len(self.vertices))
         for vertex in self.vertices:
-            fw("\t\t{%s, %s, %s},\n" % tuple(map(float2str, vertex.pos)))
+            fw("\t\t{ %s, %s, %s },\n" % tuple(map(float2str, vertex.pos)))
         fw("\t}\n")
         # Normals
         fw("\tNormals %d {\n" % len(self.vertices))
         for vertex in self.vertices:
-            fw("\t\t{%s, %s, %s},\n" % tuple(map(float2str, vertex.normal)))
+            fw("\t\t{ %s, %s, %s },\n" % tuple(map(float2str, vertex.normal)))
         fw("\t}\n")
 
         # TVertices
         fw("\tTVertices %d {\n" % len(self.vertices))
         for vertex in self.vertices:
-            fw("\t\t{%s, %s},\n" % tuple(map(float2str, vertex.uv)))
+            fw("\t\t{ %s, %s },\n" % tuple(map(float2str, vertex.uv)))
         fw("\t}\n")
 
         # VertexGroups
@@ -77,7 +77,7 @@ class War3Geoset:
             fw("\tTangents %d {\n" % len(self.vertices))
             for vertex in self.vertices:
                 tangents = tuple(vertex.tangent)
-                fw("\t\t{%s, %s, %s, %s},\n" % tuple(tangents))
+                fw("\t\t{ %s, %s, %s, %s },\n" % tuple(tangents))
             fw("\t}\n")
             # SkinWeights
             fw("\tSkinWeights %d {\n" % len(self.vertices))
@@ -93,14 +93,14 @@ class War3Geoset:
         fw("\tFaces %d %d {\n" % (1, len(self.triangles) * 3))
 
         fw("\t\tTriangles {\n")
-        fw("\t\t\t{")
+        fw("\t\t\t{ ")
 
         all_triangles = []
         for triangle in self.triangles:
             for index in triangle:
                 all_triangles.append(str(index))
         fw(", ".join(all_triangles))
-        fw("},\n")
+        fw(" },\n")
         fw("\t\t}\n")
         fw("\t}\n")
 
@@ -108,25 +108,25 @@ class War3Geoset:
             fw("\tGroups %d %d {\n" % (len(self.skin_matrices), sum(len(mtrx) for mtrx in self.skin_matrices)))
             i = 0
             for matrix in self.skin_matrices:
-                fw("\t\tMatrices {%s},\n" % ','.join(str(i) for _ in matrix))
+                fw("\t\tMatrices { %s },\n" % ','.join(str(i) for _ in matrix))
                 i = i+1
             fw("\t}\n")
         else:
             fw("\tGroups %d %d {\n" % (len(self.matrices), sum(len(mtrx) for mtrx in self.matrices)))
             for matrix in self.matrices:
-                fw("\t\tMatrices {%s},\n" % ','.join(str(object_indices[g]) for g in matrix))
+                fw("\t\tMatrices { %s },\n" % ','.join(str(object_indices[g]) for g in matrix))
             fw("\t}\n")
 
-        fw("\tMinimumExtent {%s, %s, %s},\n" % tuple(map(float2str, self.min_extent)))
-        fw("\tMaximumExtent {%s, %s, %s},\n" % tuple(map(float2str, self.max_extent)))
+        fw("\tMinimumExtent { %s, %s, %s },\n" % tuple(map(float2str, self.min_extent)))
+        fw("\tMaximumExtent { %s, %s, %s },\n" % tuple(map(float2str, self.max_extent)))
         fw("\tBoundsRadius %s,\n" % float2str(calc_bounds_radius(self.min_extent, self.max_extent)))
 
         for sequence in sequences:
             fw("\tAnim {\n")
 
             # As of right now, we just use the self bounds.
-            fw("\t\tMinimumExtent {%s, %s, %s},\n" % tuple(map(float2str, self.min_extent)))
-            fw("\t\tMaximumExtent {%s, %s, %s},\n" % tuple(map(float2str, self.max_extent)))
+            fw("\t\tMinimumExtent { %s, %s, %s },\n" % tuple(map(float2str, self.min_extent)))
+            fw("\t\tMaximumExtent { %s, %s, %s },\n" % tuple(map(float2str, self.max_extent)))
             fw("\t\tBoundsRadius %s,\n" % float2str(calc_bounds_radius(self.min_extent, self.max_extent)))
 
             fw("\t}\n")

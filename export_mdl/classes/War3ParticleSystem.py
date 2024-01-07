@@ -177,23 +177,23 @@ class War3ParticleSystem(War3Emitter):
         fw("\tTailLength %s,\n" % float2str(rnd(self.emitter.tail_length)))
         fw("\tTime %s,\n" % float2str(rnd(self.emitter.time)))
         fw("\tSegmentColor {\n")
-        fw("\t\tColor {%s, %s, %s},\n" % tuple(map(float2str, reversed(self.emitter.start_color))))
-        fw("\t\tColor {%s, %s, %s},\n" % tuple(map(float2str, reversed(self.emitter.mid_color))))
-        fw("\t\tColor {%s, %s, %s},\n" % tuple(map(float2str, reversed(self.emitter.end_color))))
+        fw("\t\tColor { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.emitter.start_color))))
+        fw("\t\tColor { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.emitter.mid_color))))
+        fw("\t\tColor { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.emitter.end_color))))
         fw("\t},\n")
 
         alpha = (self.emitter.start_alpha, self.emitter.mid_alpha, self.emitter.end_alpha)
-        fw("\tAlpha {%s, %s, %s},\n" % tuple(map(float2str, alpha)))
+        fw("\tAlpha { %s, %s, %s },\n" % tuple(map(float2str, alpha)))
 
         particle_scales = (self.emitter.start_scale, self.emitter.mid_scale, self.emitter.end_scale)
 
-        fw("\tParticleScaling {%s, %s, %s},\n" % tuple(map(float2str, particle_scales)))
-        fw("\tLifeSpanUVAnim {%d, %d, %d},\n" % (
+        fw("\tParticleScaling { %s, %s, %s },\n" % tuple(map(float2str, particle_scales)))
+        fw("\tLifeSpanUVAnim { %d, %d, %d },\n" % (
             self.emitter.head_life_start, self.emitter.head_life_end, self.emitter.head_life_repeat))
-        fw("\tDecayUVAnim {%d, %d, %d},\n" % (
+        fw("\tDecayUVAnim { %d, %d, %d },\n" % (
             self.emitter.head_decay_start, self.emitter.head_decay_end, self.emitter.head_decay_repeat))
-        fw("\tTailUVAnim {%d, %d, %d},\n" % (self.emitter.tail_life_start, self.emitter.tail_life_end, self.emitter.tail_life_repeat))
-        fw("\tTailDecayUVAnim {%d, %d, %d},\n" % (
+        fw("\tTailUVAnim { %d, %d, %d },\n" % (self.emitter.tail_life_start, self.emitter.tail_life_end, self.emitter.tail_life_repeat))
+        fw("\tTailDecayUVAnim { %d, %d, %d },\n" % (
             self.emitter.tail_decay_start, self.emitter.tail_decay_end, self.emitter.tail_decay_repeat))
         fw("\tTextureID %d,\n" % textures.index(self.emitter.texture_path))
 

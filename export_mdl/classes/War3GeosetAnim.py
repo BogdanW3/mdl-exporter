@@ -63,7 +63,7 @@ class War3GeosetAnim:
             #           "Color", fw, global_seqs, "\t")
 
         elif self.color is not None:
-            fw("\tstatic Color {%s, %s, %s},\n" % tuple(map(float2str, reversed(self.color[:3]))))
+            fw("\tstatic Color { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.color[:3]))))
 
         fw("\tGeosetId %d,\n" % geoset_id)
 

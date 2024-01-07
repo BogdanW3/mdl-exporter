@@ -105,7 +105,7 @@ class War3RibbonEmitter(War3Emitter):
             self.write_animated(fw, global_seqs, "Color", self.ribbon_color_anim)
             # write_anim_vec(self.ribbon_color_anim, 'Color', 'ribbon_color', fw, global_seqs, Matrix(), Matrix(), "\t", (2, 1, 0))
         else:
-            fw("\tstatic Color {%s, %s, %s},\n" % tuple(map(float2str, reversed(emitter.ribbon_color))))
+            fw("\tstatic Color { %s, %s, %s },\n" % tuple(map(float2str, reversed(emitter.ribbon_color))))
 
         fw("\tstatic TextureSlot %d,\n" % textures.index(emitter.texture_path))
 

@@ -27,7 +27,7 @@ def chunkifier(chunk_to_split: str) -> List[str]:
     while split_start < last_bracket:
         end_bracket_index = chunk_to_split.index("}", split_start)
         bracket_count = count_brackets(0, chunk_to_split[split_start:end_bracket_index+1])
-        while bracket_count > 0:
+        while 0 < bracket_count:
             end_bracket_index = chunk_to_split.index("}", end_bracket_index+1)
             bracket_count = count_brackets(0, chunk_to_split[split_start:end_bracket_index+1])
         chunks.append(chunk_to_split[split_start:end_bracket_index+1].strip('\n\t\r ,'))

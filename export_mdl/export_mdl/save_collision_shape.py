@@ -17,7 +17,7 @@ def save_collision_shape(fw: TextIO.write, model: War3Model):
 
         fw("\tVertices %d {\n" % len(collider.verts))
         for vert in collider.verts:
-            fw("\t\t{%s, %s, %s},\n" % tuple(float2str(rnd(x)) for x in list(vert)))
+            fw("\t\t{ %s, %s, %s },\n" % tuple(float2str(rnd(x)) for x in list(vert)))
         fw("\t}\n")
         if collider.type == 'Sphere':
             fw("\tBoundsRadius %s,\n" % float2str(rnd(collider.radius)))
