@@ -17,7 +17,7 @@ def parse_textures(data: bytes):
     for _ in range(textures_count):
         texture = War3Texture()
         texture.replaceable_id = r.getf('<I')[0]
-        texture.image_file_name = r.gets(260)
+        texture.texture_path = r.gets(260)
         flags = r.getf('<I')[0]
         textures.append(texture)
 
