@@ -27,8 +27,12 @@ class War3BpyMaterial:
         shader_node = self.find_shader_node()
         if shader_node is None:
             shader_node = self.get_new_node(0, 1, "ShaderNodeBsdfPrincipled")
-        shader_node.inputs[5].default_value = 0.0  # no specular
-        shader_node.inputs[7].default_value = 1.0  # full roughness
+        if shader_node.inputs.get("Specular"):
+            shader_node.inputs.get("Specular").default_value = 0.0  # no specular
+        elif shader_node.inputs.get("Specular IOR Level"):
+            shader_node.inputs.get("Specular IOR Level").default_value = 0.0  # no specular
+        if shader_node.inputs.get("Roughness"):
+            shader_node.inputs.get("Roughness").default_value = 1.0  # full roughness
         return shader_node
 
     def find_shader_node(self) -> Optional[bpy.types.Node]:

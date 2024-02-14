@@ -14,7 +14,6 @@ from export_mdl.import_stuff.create_other_objects import create_other_objects
 
 
 def load_warcraft_3_model(model: War3Model, import_properties: MDXImportProperties):
-    # bpy_materials: Dict[str, bpy.types.Material] = create_material(model, import_properties.team_color)
     bpy_materials: Dict[str, War3BpyMaterial] = create_material(model, import_properties.team_color)
     armature_object: bpy.types.Object = create_armature_object(model, import_properties.bone_size)
 

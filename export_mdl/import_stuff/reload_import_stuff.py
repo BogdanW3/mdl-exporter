@@ -2,6 +2,12 @@ import importlib
 from .mdl_parser import reload_mdl_parser
 from .mdx_parser import reload_mdx_parser
 from . import create_armature_actions
+
+import bpy
+if bpy.app.version[0] < 4:
+    from . import create_bone_groups
+else:
+    from . import create_bone_collections as create_bone_groups
 from . import create_armature_object
 from . import create_material
 from . import create_mesh_objects
@@ -20,6 +26,7 @@ try:
     print("    reloading import modules")
     importlib.reload(reload_mdl_parser)
     importlib.reload(reload_mdx_parser)
+    importlib.reload(create_bone_groups)
     importlib.reload(create_armature_actions)
     importlib.reload(create_armature_object)
     importlib.reload(create_material)
