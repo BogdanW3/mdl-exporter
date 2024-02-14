@@ -55,7 +55,7 @@ def create_edit_bones(bone_size: float,
         # print("  adding node \"%s\" (%i)" % (node.name, node.obj_id))
         if node.name in bone_names:
             for i in range(1, 999):
-                temp_name = node.name + ("\"%03.f\"" % i)
+                temp_name = node.name + (".%03.f" % i)
                 if temp_name not in bone_names:
                     node.name = temp_name
                     break
