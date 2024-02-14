@@ -30,7 +30,7 @@ def parse_sequences(data: str) -> List[War3AnimationAction]:
                 move_speed = float(info.strip().replace(",", "").split(" ")[1])
 
             if label == "NonLooping":
-                flags = "NonLooping"
+                flags = True
 
             if label == "MinimumExtent":
                 extent = extract_bracket_content(info).strip().split(",")

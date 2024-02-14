@@ -1,12 +1,9 @@
-from typing import Dict
-
 from .mdl_reader import get_between, chunkifier, extract_bracket_content, extract_float_values
 from .parse_node import parse_node
 from ...classes.War3CollisionShape import War3CollisionShape
-from ...classes.War3Node import War3Node
 
 
-def parse_collision_shapes(data: str, id_to_node: Dict[str, War3Node]) -> War3CollisionShape:
+def parse_collision_shapes(data: str) -> War3CollisionShape:
     collision_shape = War3CollisionShape("")
     if data.find("BoundsRadius") > -1:
         collision_shape.radius = float(get_between(data, "BoundsRadius", ","))
@@ -27,5 +24,5 @@ def parse_collision_shapes(data: str, id_to_node: Dict[str, War3Node]) -> War3Co
         collision_shape.type = "Plane"
     elif data.find("Cylinder") > -1:
         collision_shape.type = "Cylinder"
-    parse_node(data, collision_shape, id_to_node)
+    parse_node(data, collision_shape)
     return collision_shape

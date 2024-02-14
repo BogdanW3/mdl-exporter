@@ -4,6 +4,7 @@ from mathutils import Matrix
 class War3ExportSettings:
     def __init__(self):
         self.global_matrix = Matrix()
+        self.scale = 1.0
         self.use_selection = False
         self.optimize_animation = False
         self.demote_to_helper = True

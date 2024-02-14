@@ -7,15 +7,19 @@ from .War3AnimationCurve import War3AnimationCurve
 
 class War3Node:  # Stores information about an MDL object (not a blender object!)
     def __init__(self, name: str,
+                 obj_id: int = 0,
                  pivot: List[float] = [0, 0, 0],
+                 parent_id: Optional[int] = None,
                  parent: Optional[str] = None,
                  anim_loc: Optional[War3AnimationCurve] = None,
                  anim_rot: Optional[War3AnimationCurve] = None,
                  anim_scale: Optional[War3AnimationCurve] = None,
                  bindpose: Optional[Matrix] = None):
-        # self.parent: Optional[bpy.types.Object] = parent  # bpy parent
-        self.parent: Optional[str] = parent  # bpy parent
         self.name: str = name
+        self.obj_id: int = obj_id
+        self.parent_id: Optional[int] = parent_id
+        self.parent: Optional[str] = parent
+        self.parent_node: Optional[War3Node] = None
         self.pivot: List[float] = pivot  # TODO
         self.anim_loc: Optional[War3AnimationCurve] = anim_loc
         self.anim_rot: Optional[War3AnimationCurve] = anim_rot
@@ -26,7 +30,8 @@ class War3Node:  # Stores information about an MDL object (not a blender object!
 
     @classmethod
     def create_from(cls, node: 'War3Node'):
-        return War3Node(node.name, node.pivot, node.parent,
+        return War3Node(node.name, node.obj_id, node.pivot,
+                        node.parent_id, node.parent,
                         node.anim_loc, node.anim_rot, node.anim_scale,
                         node.bindpose)
 

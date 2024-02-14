@@ -8,7 +8,7 @@ from ...classes.War3Attachment import War3Attachment
 from ...classes.War3Node import War3Node
 
 
-def parse_attachments(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Attachment]:
+def parse_attachments(data: bytes) -> List[War3Attachment]:
     data_size = len(data)
     reader = binary_reader.Reader(data)
 
@@ -22,7 +22,7 @@ def parse_attachments(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3
         r = binary_reader.Reader(node_data)
         data_size_chunk = len(node_data)
         node = War3Attachment("")
-        parse_node(r, node, id_to_node)
+        parse_node(r, node)
         path = r.gets(260)
         node_id = r.getf('<I')[0]
 

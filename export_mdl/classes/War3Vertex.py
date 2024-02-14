@@ -2,7 +2,6 @@ from typing import Optional, List, Tuple
 
 
 class War3Vertex:
-    # def __init__(self, pos: [float], normal: [float], uv: [float], matrix, skin, tangent: [float]):
     def __init__(self, pos: List[float], normal: List[float], uv: List[float],
                  matrix: Optional[int] = None,
                  bone_list: Optional[List[str]] = None,
@@ -14,6 +13,8 @@ class War3Vertex:
         self.uv: [float] = uv
         self.matrix: Optional[int] = matrix
         # self.skin = skin
+        self.bone_id_list: Optional[List[int]] = []
+        self.bone_name_list: Optional[List[str]] = []
         self.bone_list: Optional[List[str]] = bone_list
         self.weight_list: Optional[List[int]] = weight_list
         # self.weight_list = []

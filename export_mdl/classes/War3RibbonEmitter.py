@@ -6,7 +6,7 @@ from mathutils import Vector, Matrix
 from .War3Material import War3Material
 from .War3Texture import War3Texture
 from ..export_mdl.write_animation_chunk import write_animation_chunk
-from ..utils import float2str, calc_bounds_radius, rnd
+from ..utils import float2str, rnd
 from .War3AnimationAction import War3AnimationAction
 from .War3Node import War3Node
 from .War3Emitter import War3Emitter
@@ -17,13 +17,15 @@ from ..properties import War3ParticleSystemProperties
 
 class War3RibbonEmitter(War3Emitter):
     def __init__(self, name,
+                 obj_id: int = 0,
                  pivot: List[float] = [0, 0, 0],
+                 parent_id: Optional[int] = None,
                  parent: Optional[str] = None,
                  anim_loc: Optional[War3AnimationCurve] = None,
                  anim_rot: Optional[War3AnimationCurve] = None,
                  anim_scale: Optional[War3AnimationCurve] = None,
                  bindpose: Optional[Matrix] = None):
-        super().__init__(name, pivot, parent, anim_loc, anim_rot, anim_scale, bindpose)
+        super().__init__(name, obj_id, pivot, parent_id, parent, anim_loc, anim_rot, anim_scale, bindpose)
         self.speed_anim: Optional[War3AnimationCurve] = None
         self.variation_anim: Optional[War3AnimationCurve] = None
         self.latitude_anim: Optional[War3AnimationCurve] = None
@@ -34,7 +36,8 @@ class War3RibbonEmitter(War3Emitter):
 
     @classmethod
     def create_from(cls, node: 'War3Node'):
-        return War3RibbonEmitter(node.name, node.pivot, node.parent,
+        return War3RibbonEmitter(node.name, node.obj_id, node.pivot,
+                                 node.parent_id, node.parent,
                                  node.anim_loc, node.anim_rot, node.anim_scale,
                                  node.bindpose)
 

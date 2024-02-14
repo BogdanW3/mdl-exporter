@@ -10,6 +10,8 @@ class War3Geoset:
         self.vertices: List[War3Vertex] = []
         self.triangles: List[List[int]] = []
         self.matrices: List[List[str]] = []
+        self.matrices_id: List[List[int]] = []
+        self.matrices_name: List[List[str]] = []
         self.skin_matrices: List[List[str]] = []
         # self.skin_weights = []
         # self.objects: List[bpy.types.Object] = []

@@ -7,6 +7,7 @@ from .War3AnimationAction import War3AnimationAction
 from .War3AnimationCurve import War3AnimationCurve
 from .War3Attachment import War3Attachment
 from .War3Bone import War3Bone
+from .War3Camera import War3Camera
 from .War3CollisionShape import War3CollisionShape
 from .War3EventObject import War3EventObject
 from .War3Geoset import War3Geoset
@@ -27,9 +28,9 @@ class War3Model:
     default_texture = "Textures\\white.blp"
     decimal_places = 5
 
-    # def __init__(self, context: bpy.types.Context):
     def __init__(self, name: str):
         self.objects: Dict[str, List[War3Node]] = {}
+        self.id_to_object: Dict[int, War3Node] = {}
 
         self.attachments: List[War3Attachment] = []
         self.bones: List[War3Bone] = []
@@ -41,19 +42,26 @@ class War3Model:
         self.particle_ribbon: List[War3RibbonEmitter] = []
         self.lights: List[War3Light] = []
 
+        self.pivot_points: List[List[float]] = []
+
         self.objects_all: List[War3Node] = []
         self.object_indices: Dict[str, int] = {}
+
         self.geosets: List[War3Geoset] = []
         self.geoset_map: Dict[Tuple[str, int], War3Geoset] = {}
         self.geoset_anims: List[War3GeosetAnim] = []
         self.geoset_anim_map: Dict[str, War3GeosetAnim] = {}
+
         self.materials: List[War3Material] = []
+
         self.sequences: List[War3AnimationAction] = []
         self.global_extents_min: List[float] = [0, 0, 0]
         self.global_extents_max: List[float] = [0, 0, 0]
         self.const_color_mats = set()
         self.global_seqs: Set[int] = set()
-        self.cameras: List[bpy.types.Object] = []
+
+        self.cameras: List[War3Camera] = []
+
         self.textures_paths: List[str] = []
         self.textures: List[War3Texture] = []
         self.tvertex_anims: List[War3TextureAnim] = []
@@ -67,3 +75,28 @@ class War3Model:
     def register_global_sequence(self, curve: Optional[War3AnimationCurve]):
         if curve is not None and curve.global_sequence > 0:
             self.global_seqs.add(curve.global_sequence)
+
+    def process_nodes(self):
+        self.process_node_list(self.bones)
+        self.process_node_list(self.helpers)
+        self.process_node_list(self.attachments)
+        self.process_node_list(self.collision_shapes)
+        self.process_node_list(self.event_objects)
+        self.process_node_list(self.particle_systems)
+        self.process_node_list(self.particle_systems2)
+        self.process_node_list(self.particle_ribbon)
+        self.process_node_list(self.lights)
+
+        self.setup_node_parents()
+
+    def process_node_list(self, nodes: List[War3Node]):
+        for node in nodes:
+            self.id_to_object[node.obj_id] = node
+            node.pivot = self.pivot_points[node.obj_id]
+            self.object_indices[node.name] = node.obj_id
+
+    def setup_node_parents(self):
+        for node in self.id_to_object.values():
+            if node.parent_id:
+                node.parent = self.id_to_object[node.parent_id].name
+                node.parent_node = self.id_to_object[node.parent_id]

@@ -1,19 +1,18 @@
-from typing import Union, List, Dict
+from typing import List
 
 from ...classes.War3Helper import War3Helper
 from . import binary_reader
 from .parse_node import parse_node
-from ...classes.War3Node import War3Node
 
 
-def parse_helpers(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Helper]:
+def parse_helpers(data: bytes) -> List[War3Helper]:
     data_size = len(data)
     r = binary_reader.Reader(data)
 
     nodes: List[War3Helper] = []
     while r.offset < data_size:
         node = War3Helper("")
-        parse_node(r, node, id_to_node)
+        parse_node(r, node)
         nodes.append(node)
     return nodes
 

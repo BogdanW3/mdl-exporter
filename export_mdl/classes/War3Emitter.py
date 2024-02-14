@@ -1,7 +1,6 @@
 from typing import Optional, List, TextIO, Set, Dict
 
-import bpy
-from mathutils import Vector, Matrix
+from mathutils import Matrix
 
 from .War3Texture import War3Texture
 from ..export_mdl.write_animation_chunk import write_animation_chunk
@@ -13,13 +12,15 @@ from ..properties import War3ParticleSystemProperties
 
 class War3Emitter(War3Node):
     def __init__(self, name: str,
+                 obj_id: int = 0,
                  pivot: List[float] = [0, 0, 0],
+                 parent_id: Optional[int] = None,
                  parent: Optional[str] = None,
                  anim_loc: Optional[War3AnimationCurve] = None,
                  anim_rot: Optional[War3AnimationCurve] = None,
                  anim_scale: Optional[War3AnimationCurve] = None,
                  bindpose: Optional[Matrix] = None):
-        super().__init__(name, pivot, parent, anim_loc, anim_rot, anim_scale, bindpose)
+        super().__init__(name, obj_id, pivot, parent_id, parent, anim_loc, anim_rot, anim_scale, bindpose)
         self.emission_rate_anim: Optional[War3AnimationCurve] = None
         self.life_span_anim: Optional[War3AnimationCurve] = None
         self.gravity_anim: Optional[War3AnimationCurve] = None
@@ -29,7 +30,8 @@ class War3Emitter(War3Node):
 
     @classmethod
     def create_from(cls, node: 'War3Node'):
-        return War3Emitter(node.name, node.pivot, node.parent,
+        return War3Emitter(node.name, node.obj_id, node.pivot,
+                           node.parent_id, node.parent,
                            node.anim_loc, node.anim_rot, node.anim_scale,
                            node.bindpose)
     # def set_from(self, obj: bpy.types.Object, sequences: List[War3AnimationAction], global_seqs: Set[int]):
@@ -204,23 +206,23 @@ class War3Emitter(War3Node):
         fw("\tTailLength %s,\n" % float2str(rnd(self.emitter.tail_length)))
         fw("\tTime %s,\n" % float2str(rnd(self.emitter.time)))
         fw("\tSegmentColor {\n")
-        fw("\t\tColor {%s, %s, %s},\n" % tuple(map(float2str, reversed(self.emitter.start_color))))
-        fw("\t\tColor {%s, %s, %s},\n" % tuple(map(float2str, reversed(self.emitter.mid_color))))
-        fw("\t\tColor {%s, %s, %s},\n" % tuple(map(float2str, reversed(self.emitter.end_color))))
+        fw("\t\tColor { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.emitter.start_color))))
+        fw("\t\tColor { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.emitter.mid_color))))
+        fw("\t\tColor { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.emitter.end_color))))
         fw("\t},\n")
 
         alpha = (self.emitter.start_alpha, self.emitter.mid_alpha, self.emitter.end_alpha)
-        fw("\tAlpha {%s, %s, %s},\n" % tuple(map(float2str, alpha)))
+        fw("\tAlpha { %s, %s, %s },\n" % tuple(map(float2str, alpha)))
 
         particle_scales = (self.emitter.start_scale, self.emitter.mid_scale, self.emitter.end_scale)
 
-        fw("\tParticleScaling {%s, %s, %s},\n" % tuple(map(float2str, particle_scales)))
-        fw("\tLifeSpanUVAnim {%d, %d, %d},\n" % (
+        fw("\tParticleScaling { %s, %s, %s },\n" % tuple(map(float2str, particle_scales)))
+        fw("\tLifeSpanUVAnim { %d, %d, %d },\n" % (
             self.emitter.head_life_start, self.emitter.head_life_end, self.emitter.head_life_repeat))
-        fw("\tDecayUVAnim {%d, %d, %d},\n" % (
+        fw("\tDecayUVAnim { %d, %d, %d },\n" % (
             self.emitter.head_decay_start, self.emitter.head_decay_end, self.emitter.head_decay_repeat))
-        fw("\tTailUVAnim {%d, %d, %d},\n" % (self.emitter.tail_life_start, self.emitter.tail_life_end, self.emitter.tail_life_repeat))
-        fw("\tTailDecayUVAnim {%d, %d, %d},\n" % (
+        fw("\tTailUVAnim { %d, %d, %d },\n" % (self.emitter.tail_life_start, self.emitter.tail_life_end, self.emitter.tail_life_repeat))
+        fw("\tTailDecayUVAnim { %d, %d, %d },\n" % (
             self.emitter.tail_decay_start, self.emitter.tail_decay_end, self.emitter.tail_decay_repeat))
         fw("\tTextureID %d,\n" % textures.index(self.emitter.texture_path))
 

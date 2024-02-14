@@ -7,6 +7,7 @@ from mathutils import Vector, Matrix
 from .create_material_stuff import get_new_material2
 from .make_bones import parse_armatures
 from ..War3AnimationAction import War3AnimationAction
+from ..War3Camera import War3Camera
 from ..War3CollisionShape import War3CollisionShape
 from ..War3Emitter import War3Emitter
 from ..War3ExportSettings import War3ExportSettings
@@ -203,6 +204,7 @@ def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,
                        war3_model: War3Model,
                        actions: List[bpy.types.Action]):
     global_matrix: Matrix = settings.global_matrix
+    global_scale: float = settings.scale
     optimize_animation: bool = settings.optimize_animation
     optimize_tolerance: float = settings.optimize_tolerance if optimize_animation else -1
     sequences: List[War3AnimationAction] = war3_model.sequences
@@ -259,7 +261,25 @@ def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,
         war3_model.attachments.append(attachment)
 
     for bpy_obj in bpy_scene_objects.cameras:
-        war3_model.cameras.append(bpy_obj)
+        camera = get_camera(bpy_obj, global_matrix, global_scale)
+        war3_model.cameras.append(camera)
+
+
+def get_camera(bpy_obj: bpy.types.Object, global_matrix: Matrix, global_scale: float):
+    camera = War3Camera(bpy_obj.name)
+
+    camera.pivot = global_matrix @ Vector(bpy_obj.location)
+    camera.field_of_view = bpy_obj.data.angle
+    camera.far_clip = bpy_obj.data.clip_end * global_scale
+    camera.near_clip = bpy_obj.data.clip_start * global_scale
+
+    if bpy_obj.data.dof.focus_object is None:
+        targetDist = bpy_obj.data.dof.focus_distance
+        camera.target = global_matrix @ bpy_obj.matrix_world @ Vector([0, 0, -targetDist])
+    else:
+        camera.target = global_matrix @ bpy_obj.data.dof.focus_object.location
+
+    return camera
 
 
 def fix_skin_bones(bone_list: List[str], weight_list: List[int], bone_zero: str):

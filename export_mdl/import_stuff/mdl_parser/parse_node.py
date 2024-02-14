@@ -1,25 +1,21 @@
 import re
-from typing import Dict
 
 from .parse_geoset_transformation import parse_geoset_transformation
 from .mdl_reader import get_between, extract_bracket_content, chunkifier
 from ...classes.War3Node import War3Node
 
 
-def parse_node(data: str, node: War3Node, id_to_node: Dict[str, War3Node]):
+def parse_node(data: str, node: War3Node):
     # print("parse_node")
     node.name = data.split("\"")[1]
-    node.id = 0
+    node.obj_id = 0
     if data.find("ObjectId") > -1:
-        # node.id = int(get_between(data, "ObjectId", ","))
-        id_to_node[get_between(data, "ObjectId", ",")] = node
+        node_id = get_between(data, "ObjectId", ",")
+        node.obj_id = int(node_id)
 
     node.parent = None
     if data.find("Parent") > -1:
         node.parent = get_between(data, "Parent", ",")
-
-    # if data.find("AttachmentID") > -1:
-    #     node.attachment_id = int(get_between(data, "AttachmentID", ","))
 
     bone_info = extract_bracket_content(data)
     start_points = []

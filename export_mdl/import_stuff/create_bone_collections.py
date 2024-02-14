@@ -2,13 +2,13 @@ from typing import List, Dict
 
 import bpy
 
-from export_mdl.classes.War3Attachment import War3Attachment
-from export_mdl.classes.War3Bone import War3Bone
-from export_mdl.classes.War3CollisionShape import War3CollisionShape
-from export_mdl.classes.War3EventObject import War3EventObject
-from export_mdl.classes.War3Helper import War3Helper
-from export_mdl.classes.War3Light import War3Light
-from export_mdl.classes.War3Node import War3Node
+from ..classes.War3Attachment import War3Attachment
+from ..classes.War3Bone import War3Bone
+from ..classes.War3CollisionShape import War3CollisionShape
+from ..classes.War3EventObject import War3EventObject
+from ..classes.War3Helper import War3Helper
+from ..classes.War3Light import War3Light
+from ..classes.War3Node import War3Node
 
 
 def create_bone_groups(war3_nodes: List[War3Node], bpy_armature_object: bpy.types.Object):

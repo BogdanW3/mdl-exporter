@@ -28,6 +28,6 @@ def parse_sequences(data: bytes) -> List[War3AnimationAction]:
         print(" Parsed Sequence: ", name,
               "\tstart:", interval_start, "\tend:", interval_end,
               "\tlen:", (interval_end-interval_start))
-        sequence = War3AnimationAction(name, interval_start, interval_end, False, move_speed, rarity)
+        sequence = War3AnimationAction(name, interval_start, interval_end, flags == 1, move_speed, rarity)
         sequences.append(sequence)
     return sequences

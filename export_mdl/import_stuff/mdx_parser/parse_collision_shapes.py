@@ -1,12 +1,11 @@
-from typing import List, Dict
+from typing import List
 
 from ...classes.War3CollisionShape import War3CollisionShape
 from . import binary_reader
 from .parse_node import parse_node
-from ...classes.War3Node import War3Node
 
 
-def parse_collision_shapes(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3CollisionShape]:
+def parse_collision_shapes(data: bytes) -> List[War3CollisionShape]:
     data_size = len(data)
     r = binary_reader.Reader(data)
 
@@ -14,7 +13,7 @@ def parse_collision_shapes(data: bytes, id_to_node: Dict[str, War3Node]) -> List
     while r.offset < data_size:
 
         node = War3CollisionShape("")
-        parse_node(r, node, id_to_node)
+        parse_node(r, node)
         collision_type = r.getf('<I')[0]
 
         if collision_type == 0:

@@ -76,6 +76,7 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             to_up=self.axis_up,
         ).to_4x4() @ Matrix.Scale(self.global_scale, 4)
 
+        settings.scale = self.global_scale
         settings.use_selection = self.use_selection
         settings.optimize_animation = self.optimize_animation
         settings.demote_to_helper = self.demote_to_helper

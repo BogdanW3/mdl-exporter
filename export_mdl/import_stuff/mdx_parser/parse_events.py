@@ -1,14 +1,13 @@
-from typing import List, Dict
+from typing import List
 
 from ...classes.War3EventObject import War3EventObject
 from ... import constants
 from . import binary_reader
 from .parse_node import parse_node
 from .parse_tracks import parse_tracks
-from ...classes.War3Node import War3Node
 
 
-def parse_events(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3EventObject]:
+def parse_events(data: bytes) -> List[War3EventObject]:
     data_size = len(data)
     r = binary_reader.Reader(data)
 
@@ -16,7 +15,7 @@ def parse_events(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Event
     while r.offset < data_size:
 
         node = War3EventObject("")
-        parse_node(r, node, id_to_node)
+        parse_node(r, node)
 
         if r.offset < data_size:
             chunk_id = r.gets(4)

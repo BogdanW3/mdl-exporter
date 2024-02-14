@@ -1,7 +1,5 @@
 from typing import TextIO, List
 
-from ..classes.War3Bone import War3Bone
-from ..classes.War3Model import War3Model
 from ..classes.War3Node import War3Node
 from ..utils import float2str
 

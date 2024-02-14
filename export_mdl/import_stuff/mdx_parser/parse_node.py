@@ -1,22 +1,19 @@
-from typing import Dict
-
 from .binary_reader import Reader
 from ...classes.War3Node import War3Node
 from ... import constants
 from .parse_timeline import parse_timeline
 
 
-def parse_node(r: Reader, node: War3Node, id_to_node: Dict[str, War3Node]):
+def parse_node(r: Reader, node: War3Node):
     inclusive_size = r.offset + r.getf('<I')[0]
     node.name = r.gets(80)
     node_id = r.getf('<I')[0]
-    id_to_node[str(node_id)] = node
+    node.obj_id = int(node_id)
     parent = r.getf('<I')[0]
 
     if parent != 0xffffffff:
+        node.parent_id = parent
         node.parent = str(parent)
-    # if parent == 0xffffffff:
-    #     node.parent = None
 
     flags = r.getf('<I')[0]
 

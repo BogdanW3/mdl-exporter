@@ -2,13 +2,13 @@ from typing import List, Dict
 
 import bpy
 
-from export_mdl.classes.War3Attachment import War3Attachment
-from export_mdl.classes.War3Bone import War3Bone
-from export_mdl.classes.War3CollisionShape import War3CollisionShape
-from export_mdl.classes.War3EventObject import War3EventObject
-from export_mdl.classes.War3Helper import War3Helper
-from export_mdl.classes.War3Light import War3Light
-from export_mdl.classes.War3Node import War3Node
+from ..classes.War3Attachment import War3Attachment
+from ..classes.War3Bone import War3Bone
+from ..classes.War3CollisionShape import War3CollisionShape
+from ..classes.War3EventObject import War3EventObject
+from ..classes.War3Helper import War3Helper
+from ..classes.War3Light import War3Light
+from ..classes.War3Node import War3Node
 
 
 def create_bone_groups(war3_nodes: List[War3Node], bpy_armature_object: bpy.types.Object):
@@ -43,7 +43,7 @@ def get_group_color(nodeType: str) -> str:
     elif nodeType == 'attachments':
         return 'THEME09'
     elif nodeType == 'collision_shapes':
-        return 'THEME0s'
+        return 'THEME02'
     elif nodeType == 'events':
         return 'THEME03'
     elif nodeType == 'helpers':
@@ -65,49 +65,3 @@ def get_group_name(node: War3Node) -> str:
     elif isinstance(node, War3EventObject):
         return 'events'
     return 'defaults'
-
-
-
-# def create_bone_groups(node_types: List[str], pose_bone_groups: bpy.types.BoneGroups):
-#     for node_type in node_types:
-#         bone_group: bpy.types.BoneGroup = pose_bone_groups.get(node_type + 's')
-#         if bone_group is None:
-#             bone_group = pose_bone_groups.new(name=node_type + 's')
-#             bone_group.color_set = get_bone_group_color(node_type)
-#
-#
-# def get_bone_group_dict(node_types: List[str], pose_bone_groups: bpy.types.BoneGroups):
-#     bone_groups: Dict[str, bpy.types.BoneGroup] = {}
-#     for node_type in node_types:
-#         bone_groups[node_type] = pose_bone_groups.get(node_type + 's')
-#     return bone_groups
-#
-#
-# def get_bone_group_color(nodeType: str) -> str:
-#     if nodeType == 'bone':
-#         return 'THEME04'
-#     elif nodeType == 'attachment':
-#         return 'THEME09'
-#     elif nodeType == 'collision_shape':
-#         return 'THEME02'
-#     elif nodeType == 'event':
-#         return 'THEME03'
-#     elif nodeType == 'helper':
-#         return 'THEME01'
-#     return 'DEFAULT'
-#
-#
-# def get_node_type(node: War3Node) -> str:
-#     if isinstance(node, War3Bone):
-#         return 'bone'
-#     elif isinstance(node, War3Helper):
-#         return 'helper'
-#     elif isinstance(node, War3Attachment):
-#         return 'attachment'
-#     elif isinstance(node, War3CollisionShape):
-#         return 'collision_shape'
-#     elif isinstance(node, War3Light):
-#         return 'light'
-#     elif isinstance(node, War3EventObject):
-#         return 'event'
-#     return 'default'

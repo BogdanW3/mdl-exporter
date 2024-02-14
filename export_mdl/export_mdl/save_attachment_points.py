@@ -3,7 +3,6 @@ from typing import TextIO, Dict, Set, List
 from .write_billboard import write_billboard
 from .write_animation_chunk import write_animation_chunk
 from ..classes.War3Attachment import War3Attachment
-from ..classes.War3Model import War3Model
 
 
 def save_attachment_points(fw: TextIO.write, attachments: List[War3Attachment], global_seqs: Set[int], object_indices: Dict[str, int]):

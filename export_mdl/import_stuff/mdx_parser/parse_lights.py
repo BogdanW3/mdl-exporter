@@ -1,14 +1,13 @@
-from typing import List, Dict
+from typing import List
 
 from .parse_timeline import parse_timeline
 from ... import constants
 from ...classes.War3Light import War3Light
 from . import binary_reader
 from .parse_node import parse_node
-from ...classes.War3Node import War3Node
 
 
-def parse_lights(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Light]:
+def parse_lights(data: bytes) -> List[War3Light]:
     data_size = len(data)
     reader = binary_reader.Reader(data)
 
@@ -22,7 +21,7 @@ def parse_lights(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Light
         r = binary_reader.Reader(node_data)
         data_size_chunk = len(node_data)
         node = War3Light("")
-        parse_node(r, node, id_to_node)
+        parse_node(r, node)
 
         print("  reading light static data!")
         node.light_type = ('Omnidirectional', 'Directional', 'Ambient')[r.get_int()]
@@ -64,7 +63,7 @@ def parse_lights(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Light
     return nodes
 
 
-def parse_lights1(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Light]:
+def parse_lights1(data: bytes) -> List[War3Light]:
     data_size = len(data)
     reader = binary_reader.Reader(data)
 
@@ -78,7 +77,7 @@ def parse_lights1(data: bytes, id_to_node: Dict[str, War3Node]) -> List[War3Ligh
         r = binary_reader.Reader(node_data)
         data_size_chunk = len(node_data)
         node = War3Light("")
-        parse_node(r, node, id_to_node)
+        parse_node(r, node)
         nodes.append(node)
     return nodes
 
