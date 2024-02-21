@@ -1,5 +1,6 @@
 from typing import TextIO, List, Dict, Optional
 
+from .War3Bone import War3Bone
 from .War3GeosetAnim import War3GeosetAnim
 from .War3Vertex import War3Vertex
 from ..utils import float2str, calc_bounds_radius
@@ -35,6 +36,7 @@ class War3Geoset:
 
     def write_geoset(self, fw: TextIO.write, material_names,
                      sequences,
+                     bones: List[War3Bone],
                      object_indices: Dict[str, int],
                      use_skinweights: bool):
         fw("Geoset {\n")
@@ -69,8 +71,8 @@ class War3Geoset:
         sorted_bone_name_dict: Dict[str, int] = {}
         if use_skinweights:
             skin_groups = {}
-            for name in object_indices:
-                skin_groups[object_indices[name]] = name
+            for bone in bones:
+                skin_groups[bone.obj_id] = bone.name
             for index in range(0, len(skin_groups)):
                 sorted_bone_name_dict[skin_groups[index]] = index
 

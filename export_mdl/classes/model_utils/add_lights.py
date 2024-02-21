@@ -20,7 +20,7 @@ def get_lights(sequences: List[War3AnimationAction],
     visibility = get_visibility(sequences, global_seqs, actions, bpy_light.bpy_obj)
 
     pivot = global_matrix @ Vector(bpy_light.location)
-    light = War3Light(bpy_light.name, pivot, None, None, None, bpy_light.bpy_obj.matrix_basis)
+    light = War3Light(bpy_light.name, -1, pivot, None, None, None, None, None, bpy_light.bpy_obj.matrix_basis)
     light.visibility = visibility
 
     light.billboarded = bpy_light.billboarded

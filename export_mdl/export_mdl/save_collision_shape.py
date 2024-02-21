@@ -1,15 +1,15 @@
-from typing import TextIO
+from typing import TextIO, List
 
-from ..classes.War3Model import War3Model
+from ..classes.War3CollisionShape import War3CollisionShape
 from ..utils import float2str, rnd
 
 
-def save_collision_shape(fw: TextIO.write, model: War3Model):
-    for collider in model.collision_shapes:
+def save_collision_shape(fw: TextIO.write, collision_shapes: List[War3CollisionShape]):
+    for collider in collision_shapes:
         fw("CollisionShape \"%s\" {\n" % collider.name)
-        fw("\tObjectId %d,\n" % model.object_indices[collider.name])
-        if collider.parent is not None:
-            fw("\tParent %d,\n" % model.object_indices[collider.parent])
+        fw("\tObjectId %d,\n" % collider.obj_id)
+        if collider.parent_id is not None:
+            fw("\tParent %d,\n" % collider.parent_id)
         if collider.type == 'Box':
             fw("\tBox,\n")
         else:

@@ -123,7 +123,7 @@ def get_helper(sequences: List[War3AnimationAction],
                optimize_tolerance: float,
                global_matrix: Matrix):
     node = get_object_node(sequences, global_seqs, actions, bpy_empty_node, optimize_tolerance, global_matrix,
-                           lambda n, piv, p, l, r, s, bp: War3Helper(n, piv, p, l, r, s, bp))
+                           lambda n, piv, p, l, r, s, bp: War3Helper(n, -1, piv, None, p, l, r, s, bp))
     # helper = War3Helper.create_from(node)
     return node
 
@@ -136,7 +136,7 @@ def get_bone(sequences: List[War3AnimationAction],
              global_matrix: Matrix):
     # node = get_object_node(sequences, global_seqs, actions, bpy_empty_node, optimize_tolerance, global_matrix)
     node = get_object_node(sequences, global_seqs, actions, bpy_empty_node, optimize_tolerance, global_matrix,
-                           lambda n, piv, p, l, r, s, bp: War3Bone(n, piv, p, l, r, s, bp))
+                           lambda n, piv, p, l, r, s, bp: War3Bone(n, -1, piv, None, p, l, r, s, bp))
     # bone = War3Bone.create_from(node)
     return node
 

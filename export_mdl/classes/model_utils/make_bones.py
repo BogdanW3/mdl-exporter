@@ -1,4 +1,4 @@
-from typing import List, Set, Optional, Tuple
+from typing import List, Set, Optional, Tuple, Dict
 
 import bpy
 from mathutils import Matrix, Vector
@@ -19,6 +19,7 @@ def parse_armatures(bpy_scene_objects: BpySceneObjects,
                     sequences: List[War3AnimationAction],
                     global_seqs: Set[int]) -> List[War3Bone]:
     print("parsing armature!")
+    pb_to_bones: Dict[bpy.types.PoseBone, War3Bone] = {}
     bones: List[War3Bone] = []
     for armature in bpy_scene_objects.armatures:
         animation_data: bpy.types.AnimData = armature.animation_data
@@ -26,6 +27,14 @@ def parse_armatures(bpy_scene_objects: BpySceneObjects,
         for pose_bone in bpy_scene_objects.bpy_nodes[armature.name]:
             bone = get_wc3_bone(armature, animation_data, global_matrix, global_seqs, matrix_world, pose_bone, actions,
                                 sequences, optimize_tolerance)
+            pb_to_bones[pose_bone] = bone
+            # if pose_bone.parent is not None and pose_bone.parent in pb_to_bones:
+            if pose_bone.parent is not None:
+                bone.parent_node = pb_to_bones[pose_bone.parent]
+            #     p_node_name = None if bone.parent_node is None else bone.parent_node.name
+            #     print("set parentNode", bone.name, "\t to \t", p_node_name, "=?", bone.parent)
+            # else:
+            #     print("set parentNode", bone.name, "\t to \t", None, "=?", bone.parent)
             bones.append(bone)
     if len(bones) == 0 and len(bpy_scene_objects.geosets) == 0:
         bones.append(War3Bone("No_Bones_Found"))
@@ -48,7 +57,7 @@ def get_wc3_bone(armature: bpy.types.Object, animation_data: bpy.types.AnimData,
     bone_p_name = None if b_parent is None else b_parent.name
     pivot_ = matrix_world @ Vector(pose_bone.bone.head_local)  # Armature space to world space
     pivot = global_matrix @ Vector(pivot_)  # Axis conversion
-    bone = War3Bone(pose_bone.name, pivot, bone_p_name, anim_loc, anim_rot, anim_scale, pose_bone.matrix_basis)
+    bone = War3Bone(pose_bone.name, -1, pivot, None, bone_p_name, anim_loc, anim_rot, anim_scale, pose_bone.matrix_basis)
     return bone
 
 

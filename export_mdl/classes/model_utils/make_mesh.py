@@ -40,7 +40,7 @@ def make_mesh(war3_model: War3Model,
         pivot = settings.global_matrix @ Vector(bpy_geoset.bpy_obj.location)
 
         obj_name = bpy_geoset.name
-        bone: War3Bone = War3Bone(obj_name, pivot, parent_name, anim_loc, anim_rot, anim_scale,
+        bone: War3Bone = War3Bone(obj_name, -1, pivot, None, parent_name, anim_loc, anim_rot, anim_scale,
                                   bpy_geoset.bpy_obj.matrix_basis)
         bone.billboarded = billboarded
         bone.billboard_lock = billboard_lock
@@ -146,7 +146,7 @@ def create_geoset_bone(bpy_geoset: BpyGeoset,
     pivot = settings.global_matrix @ Vector(bpy_geoset.bpy_obj.location)
 
     obj_name = bpy_geoset.name
-    bone: War3Bone = War3Bone(obj_name, pivot, None, anim_loc, anim_rot, anim_scale,
+    bone: War3Bone = War3Bone(obj_name, -1, pivot, None, None, anim_loc, anim_rot, anim_scale,
                               bpy_geoset.bpy_obj.matrix_basis)
 
     if anim_loc is not None:

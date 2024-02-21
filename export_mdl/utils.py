@@ -21,7 +21,7 @@ def float2str(value: float) -> str:
     return ('%.6f' % value).rstrip('0').rstrip('.')
 
 
-def calc_bounds_radius(min_ext, max_ext):
+def calc_bounds_radius(min_ext: List[float], max_ext: List[float]):
     x = (max_ext[0] - min_ext[0])/2
     y = (max_ext[1] - min_ext[1])/2
     z = (max_ext[2] - min_ext[2])/2

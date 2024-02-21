@@ -31,7 +31,8 @@ def get_particle_emitter(sequences: List[War3AnimationAction],
 
     pivot = global_matrix @ Vector(bpy_emitter.bpy_obj.location)
 
-    particle_sys: War3ParticleEmitter = War3ParticleEmitter(bpy_emitter.bpy_obj.name, pivot, bpy_emitter.parent_name,
+    particle_sys: War3ParticleEmitter = War3ParticleEmitter(bpy_emitter.bpy_obj.name, -1, pivot,
+                                                            None, bpy_emitter.parent_name,
                                                             anim_loc, anim_rot, anim_scale,
                                                             bpy_emitter.bpy_obj.matrix_basis)
     particle_sys.set_from(bpy_emitter.bpy_obj, actions, sequences, global_seqs)
@@ -62,7 +63,8 @@ def get_particle_emitter2(sequences: List[War3AnimationAction],
 
     pivot = global_matrix @ Vector(bpy_emitter.bpy_obj.location)
 
-    particle_sys: War3ParticleSystem = War3ParticleSystem(bpy_emitter.bpy_obj.name, pivot, bpy_emitter.parent_name,
+    particle_sys: War3ParticleSystem = War3ParticleSystem(bpy_emitter.bpy_obj.name, -1, pivot,
+                                                          None, bpy_emitter.parent_name,
                                                           anim_loc, anim_rot, anim_scale,
                                                           bpy_emitter.bpy_obj.matrix_basis)
     particle_sys.set_from(bpy_emitter.bpy_obj, actions, sequences, global_seqs)
@@ -95,7 +97,8 @@ def get_ribbon_emitter(sequences: List[War3AnimationAction],
 
     pivot = global_matrix @ Vector(bpy_emitter.location)
 
-    particle_sys: War3RibbonEmitter = War3RibbonEmitter(bpy_emitter.name, pivot, bpy_emitter.parent_name,
+    particle_sys: War3RibbonEmitter = War3RibbonEmitter(bpy_emitter.name, -1, pivot,
+                                                        None, bpy_emitter.parent_name,
                                                         anim_loc, anim_rot, anim_scale,
                                                         bpy_emitter.bpy_obj.matrix_basis)
     particle_sys.set_from(bpy_emitter.bpy_obj, actions, sequences, global_seqs)

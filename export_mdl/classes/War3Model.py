@@ -45,7 +45,7 @@ class War3Model:
         self.pivot_points: List[List[float]] = []
 
         self.objects_all: List[War3Node] = []
-        self.object_indices: Dict[str, int] = {}
+        # self.object_indices: Dict[str, int] = {}
 
         self.geosets: List[War3Geoset] = []
         self.geoset_map: Dict[Tuple[str, int], War3Geoset] = {}
@@ -91,9 +91,10 @@ class War3Model:
 
     def process_node_list(self, nodes: List[War3Node]):
         for node in nodes:
+            if node.obj_id == -1:
+                node.obj_id = len(self.id_to_object)
             self.id_to_object[node.obj_id] = node
             node.pivot = self.pivot_points[node.obj_id]
-            self.object_indices[node.name] = node.obj_id
 
     def setup_node_parents(self):
         for node in self.id_to_object.values():

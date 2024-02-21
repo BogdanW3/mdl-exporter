@@ -13,11 +13,11 @@ def save_helpers(fw: TextIO.write, model: War3Model):
             name = "Bone_" + name
 
         fw("Helper \"%s\" {\n" % name)
-        if len(model.object_indices) > 1:
-            fw("\tObjectId %d,\n" % model.object_indices[helper.name])
+        if 0 <= helper.obj_id:
+            fw("\tObjectId %d,\n" %  helper.obj_id)
 
-        if helper.parent is not None:
-            fw("\tParent %d,\n" % model.object_indices[helper.parent])
+        if helper.parent_id is not None:
+            fw("\tParent %d,\n" % helper.parent_id)
 
         if hasattr(helper, "billboarded"):
             write_billboard(fw, helper.billboarded, helper.billboard_lock)

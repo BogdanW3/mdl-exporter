@@ -109,13 +109,13 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         save_helpers(fw, model)
 
         # ATTACHMENT POINTS
-        save_attachment_points(fw, model.attachments, model.global_seqs, model.object_indices)
+        save_attachment_points(fw, model.attachments, model.global_seqs)
 
         # PIVOT POINTS
         save_pivot_points(fw, model.objects_all)
 
         # MODEL EMITTERS
-        save_model_emitters(fw, model.particle_systems, model.object_indices, model.global_seqs)
+        save_model_emitters(fw, model.particle_systems, model.global_seqs)
 
         # PARTICLE EMITTERS
         save_particle_emitters(fw, model)
@@ -127,10 +127,10 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         save_cameras(fw, model, settings)
 
         # EVENT OBJECTS
-        save_event_objects(fw, model.event_objects, model.object_indices, model.global_seqs)
+        save_event_objects(fw, model.event_objects, model.global_seqs)
 
         # COLLISION SHAPES
-        save_collision_shape(fw, model)
+        save_collision_shape(fw, model.collision_shapes)
 
         if settings.use_skinweights:
             fw("BindPose {\n")

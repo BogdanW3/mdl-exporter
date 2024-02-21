@@ -109,12 +109,11 @@ def from_scene(context: bpy.types.Context,
             war3_model.textures.append(particle_sys.emitter.texture_path)
             war3_model.textures_paths.append(particle_sys.emitter.texture_path)
 
+    collect_all_nodes(war3_model)
+
     vertices_all: List[List[float]] = []
-
-    object_indices = war3_model.object_indices
-    model_objects_all = war3_model.objects_all
-
-    collect_all_pos(model_objects_all, object_indices, vertices_all, war3_model)
+    vertices_all.extend(collect_all_pos(war3_model.objects_all))
+    # collect_all_pos(model_objects_all, object_indices, vertices_all, war3_model)
 
     for geoset in war3_model.geosets:
         for vertex in geoset.vertices:
@@ -136,67 +135,83 @@ def from_scene(context: bpy.types.Context,
 
     war3_model.geoset_anims = list(set(g.geoset_anim for g in war3_model.geosets if g.geoset_anim is not None))
 
-    war3_model.global_extents_min, war3_model.global_extents_max = calc_extents(vertices_all) if len(vertices_all) else [[0, 0, 0], [0, 0, 0]]
+    war3_model.global_extents_min, war3_model.global_extents_max \
+        = calc_extents(vertices_all) if len(vertices_all) else ([0, 0, 0], [0, 0, 0])
     war3_model.global_seqs = sorted(war3_model.global_seqs)
 
     return war3_model
 
 
 def demote_to_helpers(war3_model: War3Model):
-    bones_to_remove = []
+    bones_to_remove: Dict[War3Node, War3Node] = {}
     for bone in war3_model.bones:
         if not any([geoset for geoset in war3_model.geosets if
                     bone.name in itertools.chain.from_iterable(geoset.matrices)]):
             # print("demoting", bone.name, "to helper")
-            helper = War3Helper(bone.name, bone.pivot, bone.parent,
+            helper = War3Helper(bone.name, bone.obj_id, bone.pivot,
+                                bone.parent_id, bone.parent,
                                 bone.anim_loc, bone.anim_rot, bone.anim_scale,
                                 bone.bindpose)
             helper.billboard_lock = bone.billboard_lock
             helper.billboarded = bone.billboarded
             helper.bindpose = bone.bindpose
             war3_model.helpers.append(helper)
-            bones_to_remove.append(bone)
-    for bone in bones_to_remove:
+            bones_to_remove[bone] = helper
+
+    for node in (n for n in war3_model.bones if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.lights if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.helpers if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.attachments if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.particle_systems if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.particle_systems2 if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.particle_ribbon if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.event_objects if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.collision_shapes if n.parent_node in bones_to_remove):
+        node.parent_node = bones_to_remove[node.parent_node]
+
+    for bone in bones_to_remove.keys():
         war3_model.bones.remove(bone)
 
 
-def collect_all_pos(model_objects_all: List[War3Node],
-                    object_indices: Dict[str, int],
-                    vertices_all: List[List[float]],
-                    war3_model: War3Model):
-    index = 0
-    for war3_node in war3_model.bones:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.lights:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.helpers:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.attachments:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.particle_systems:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.particle_systems2:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.particle_ribbon:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.event_objects:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
-    for war3_node in war3_model.collision_shapes:
-        index = collect_all_nodes(index, war3_node, model_objects_all, object_indices, vertices_all)
+def collect_all_nodes(war3_model: War3Model):
+    model_objects_all = war3_model.objects_all
+    model_objects_all.extend(war3_model.bones)
+    model_objects_all.extend(war3_model.lights)
+    model_objects_all.extend(war3_model.helpers)
+    model_objects_all.extend(war3_model.attachments)
+    model_objects_all.extend(war3_model.particle_systems)
+    model_objects_all.extend(war3_model.particle_systems2)
+    model_objects_all.extend(war3_model.particle_ribbon)
+    model_objects_all.extend(war3_model.event_objects)
+    model_objects_all.extend(war3_model.collision_shapes)
+
+    for i, war3_node in enumerate(model_objects_all):
+        # print("Setting nodeID: ", i, war3_node.name)
+        war3_node.obj_id = i
+
+    for war3_node in model_objects_all:
+        if war3_node.parent_node is not None:
+            # print("setting parent id to", war3_node.parent_node.obj_id,
+            #       "for", war3_node.name, "\t(", war3_node.parent_node.name, ")")
+            war3_node.parent_id = war3_node.parent_node.obj_id
 
 
-def collect_all_nodes(index: int,
-                      model_object: War3Node,
-                      model_objects_all: List[War3Node],
-                      object_indices: Dict[str, int],
-                      vertices_all: List[List[float]]):
-    object_indices[model_object.name] = index
-    model_objects_all.append(model_object)
-    vertices_all.append(model_object.pivot)
-    if isinstance(model_object, War3CollisionShape):
-        for vert in model_object.verts:
-            vertices_all.append(vert)
-    return index + 1
+def collect_all_pos(model_objects_all: List[War3Node]) -> List[List[float]]:
+    pos_all: List[List[float]] = []
+    for war3_node in model_objects_all:
+        pos_all.append(war3_node.pivot)
+        if isinstance(war3_node, War3CollisionShape):
+            for vert in war3_node.verts:
+                pos_all.append(vert)
+    return pos_all
 
 
 def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,

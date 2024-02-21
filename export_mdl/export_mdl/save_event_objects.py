@@ -1,4 +1,4 @@
-from typing import TextIO, Dict, Set, List
+from typing import TextIO, Set, List
 
 from .write_animation_chunk import write_animation_chunk
 from ..classes.War3EventObject import War3EventObject
@@ -6,14 +6,13 @@ from ..classes.War3EventObject import War3EventObject
 
 def save_event_objects(fw: TextIO.write,
                        event_objects: List[War3EventObject],
-                       object_indices: Dict[str, int],
                        global_seqs: Set[int]):
     for event in event_objects:
         fw("EventObject \"%s\" {\n" % event.name)
-        if len(object_indices) > 1:
-            fw("\tObjectId %d,\n" % object_indices[event.name])
-        if event.parent is not None:
-            fw("\tParent %d,\n" % object_indices[event.parent])
+        if event.obj_id:
+            fw("\tObjectId %d,\n" % event.obj_id)
+        if event.parent_id is not None:
+            fw("\tParent %d,\n" % event.parent_id)
 
         event_track = event.track
         if event_track is not None:

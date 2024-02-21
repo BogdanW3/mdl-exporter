@@ -10,11 +10,11 @@ from ..utils import float2str
 def save_lights(fw: TextIO.write, model: War3Model):
     for light in model.lights:
         fw("Light \"%s\" {\n" % light.name)
-        if len(model.object_indices) > 1:
-            fw("\tObjectId %d,\n" % model.object_indices[light.name])
+        if 0 <= light.obj_id:
+            fw("\tObjectId %d,\n" % light.obj_id)
 
-        if light.parent is not None:
-            fw("\tParent %d,\n" % model.object_indices[light.parent])
+        if light.parent_id is not None:
+            fw("\tParent %d,\n" % light.parent_id)
 
         write_billboard(fw, light.billboarded, light.billboard_lock)
 

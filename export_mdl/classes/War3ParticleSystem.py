@@ -16,7 +16,7 @@ from ..properties import War3ParticleSystemProperties
 
 class War3ParticleSystem(War3Emitter):
     def __init__(self, name,
-                 obj_id: int = 0,
+                 obj_id: int = -1,
                  pivot: List[float] = [0, 0, 0],
                  parent_id: Optional[int] = None,
                  parent: Optional[str] = None,
@@ -89,14 +89,13 @@ class War3ParticleSystem(War3Emitter):
         return curve
 
     def write_particle(self, fw: TextIO.write,
-                       object_indices: Dict[str, int],
                        global_seqs: Set[int],
                        textures: List[War3Texture]):
         fw("ParticleEmitter2 \"%s\" {\n" % self.name)
-        if len(object_indices) > 1:
-            fw("\tObjectId %d,\n" % object_indices[self.name])
-        if self.parent is not None:
-            fw("\tParent %d,\n" % object_indices[self.parent])
+        if 0 <= self.obj_id:
+            fw("\tObjectId %d,\n" % self.obj_id)
+        if self.parent_id is not None:
+            fw("\tParent %d,\n" % self.parent_id)
 
         if self.emitter.sort_far_z:
             fw("\tSortPrimsFarZ,\n")

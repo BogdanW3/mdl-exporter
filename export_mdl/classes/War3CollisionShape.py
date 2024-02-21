@@ -8,7 +8,7 @@ from .War3Node import War3Node
 
 class War3CollisionShape(War3Node):
     def __init__(self, name: str,
-                 obj_id: int = 0,
+                 obj_id: int = -1,
                  pivot: List[float] = [0, 0, 0],
                  parent_id: Optional[int] = None,
                  parent: Optional[str] = None,

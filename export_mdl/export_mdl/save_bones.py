@@ -8,7 +8,6 @@ from ..classes.War3Model import War3Model
 
 def save_bones(fw: TextIO.write, model: War3Model):
     global_seqs = model.global_seqs
-    indices = model.object_indices
     geosets = model.geosets
     geoset_anims = model.geoset_anims
     geoset_anim_map = model.geoset_anim_map
@@ -18,10 +17,10 @@ def save_bones(fw: TextIO.write, model: War3Model):
         #     name = "Bone_" + name
 
         fw("Bone \"%s\" {\n" % name)
-        if 1 <= len(indices):
-            fw("\tObjectId %d,\n" % indices[bone.name])
-        if bone.parent is not None:
-            fw("\tParent %d,\n" % indices[bone.parent])
+        if 0 <= bone.obj_id:
+            fw("\tObjectId %d,\n" % bone.obj_id)
+        if bone.parent_id is not None:
+            fw("\tParent %d,\n" % bone.parent_id)
 
         if hasattr(bone, "billboarded"):
             write_billboard(fw, bone.billboarded, bone.billboard_lock)
