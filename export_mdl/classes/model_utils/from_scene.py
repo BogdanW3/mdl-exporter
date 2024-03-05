@@ -294,6 +294,7 @@ def get_camera(bpy_obj: bpy.types.Object, global_matrix: Matrix, global_scale: f
         camera.target = global_matrix @ bpy_obj.matrix_world @ Vector([0, 0, -targetDist])
     else:
         camera.target = global_matrix @ bpy_obj.data.dof.focus_object.location
+    camera.bindpose = bpy_obj.matrix_basis
 
     return camera
 

@@ -51,7 +51,13 @@ def get_bpy_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mes
 
     bpy_mesh.calc_normals_split()
     bpy_mesh.calc_loop_triangles()
-    bpy_mesh.calc_tangents()
+
+    layer = bpy_mesh.uv_layers[0]
+    if layer \
+            and (hasattr(layer, "uv") and layer.uv
+                 or hasattr(layer, "data") and layer.data
+                 and hasattr(layer.data, "uv") and layer.data.uv):
+        bpy_mesh.calc_tangents()
     #
     # if(len(bpy_mesh.materials) == 0):
     #     bpy_mesh.materials.

@@ -140,7 +140,7 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
                 bp = tuple(obj_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
                 fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
             for cam in model.cameras:
-                cam_mat = mat_to_tuple(Matrix(cam.bindpose))
+                cam_mat = mat_to_tuple(cam.bindpose)
                 bp = tuple(cam_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
                 fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
             fw("\t}\n")
