@@ -52,12 +52,12 @@ def get_bpy_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mes
     bpy_mesh.calc_normals_split()
     bpy_mesh.calc_loop_triangles()
 
-    layer = bpy_mesh.uv_layers[0]
-    if layer \
-            and (hasattr(layer, "uv") and layer.uv
-                 or hasattr(layer, "data") and layer.data
-                 and hasattr(layer.data, "uv") and layer.data.uv):
-        bpy_mesh.calc_tangents()
+    if bpy_mesh.uv_layers and bpy_mesh.uv_layers[0]:
+        layer = bpy_mesh.uv_layers[0]
+        if (hasattr(layer, "uv") and layer.uv
+            or hasattr(layer, "data") and layer.data
+                and hasattr(layer.data, "uv") and layer.data.uv):
+            bpy_mesh.calc_tangents()
     #
     # if(len(bpy_mesh.materials) == 0):
     #     bpy_mesh.materials.
