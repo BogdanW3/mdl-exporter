@@ -118,8 +118,8 @@ def write_animation_chunk(fw: TextIO.write,
                     hl = wxyz_to_xyzw(hl)
                     hr = wxyz_to_xyzw(hr)
 
-                fw(indent +"\t\tInTan " + line % tuple(float2str(rnd(x)) for x in hl))
-                fw(indent +"\t\tOutTan " + line % tuple(float2str(rnd(x)) for x in hr))
+                fw(indent + "\t\tInTan " + line % tuple(float2str(rnd(x)) for x in hl))
+                fw(indent + "\t\tOutTan " + line % tuple(float2str(rnd(x)) for x in hr))
 
     fw(indent+"}\n")
 

@@ -5,8 +5,8 @@ from typing import Optional
 def get_parent_name(bpy_obj: bpy.types.Object) -> Optional[str]:
     parent: bpy.types.Object = bpy_obj.parent
 
-    print("parent: ", parent)
-    print("parent_type: ", bpy_obj.parent_type)
+    # print("parent: ", parent)
+    # print("parent_type: ", bpy_obj.parent_type)
     if parent is None:
         return None
     elif bpy_obj.parent_type == 'BONE':

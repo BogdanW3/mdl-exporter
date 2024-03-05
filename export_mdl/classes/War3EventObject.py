@@ -17,6 +17,7 @@ class War3EventObject(War3Node):
                  anim_scale: Optional[War3AnimationCurve] = None,
                  bindpose: Optional[Matrix] = None):
         super().__init__(name, obj_id, pivot, parent_id, parent, anim_loc, anim_rot, anim_scale, bindpose)
+        self.track: Optional[War3AnimationCurve] = None
 
     @classmethod
     def create_from(cls, node: 'War3Node'):

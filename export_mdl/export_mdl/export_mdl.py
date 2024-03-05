@@ -91,10 +91,10 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         save_materials(fw, model.materials, model.textures, model.tvertex_anims, model.global_seqs)
 
         # TEXTURE ANIMATIONS
-        material_names = save_texture_animations(fw, model.tvertex_anims, model.materials, model.global_seqs)
+        save_texture_animations(fw, model.tvertex_anims, model.global_seqs)
 
         # GEOSETS
-        save_geosets(fw, material_names, model, settings)
+        save_geosets(fw, model, settings)
 
         # GEOSET ANIMS
         save_geoset_animations(fw, model.geoset_anims, model.geosets, model.global_seqs)

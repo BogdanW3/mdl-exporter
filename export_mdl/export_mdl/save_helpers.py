@@ -14,7 +14,7 @@ def save_helpers(fw: TextIO.write, model: War3Model):
 
         fw("Helper \"%s\" {\n" % name)
         if 0 <= helper.obj_id:
-            fw("\tObjectId %d,\n" %  helper.obj_id)
+            fw("\tObjectId %d,\n" % helper.obj_id)
 
         if helper.parent_id is not None:
             fw("\tParent %d,\n" % helper.parent_id)

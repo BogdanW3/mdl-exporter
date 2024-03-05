@@ -11,25 +11,6 @@ def process_warcraft_3_model(model: War3Model):
         elif geoset.name.isnumeric():
             geoset.name = geoset.name + " " + model.name
 
-        for mg in geoset.matrices_id:
-            b_names = []
-            for bone in mg:
-                b_names.append(model.id_to_object[int(bone)].name)
-            geoset.matrices_name.append(b_names)
-
-        for vert in geoset.vertices:
-            b_names = []
-            b_ids = []
-            for bone in vert.bone_list:
-                if int(bone) in model.id_to_object:
-                    b_names.append(model.id_to_object[int(bone)].name)
-                    b_ids.append(int(bone))
-            if b_names:
-                vert.bone_id_list.clear()
-                vert.bone_id_list.extend(b_ids)
-                vert.bone_name_list.clear()
-                vert.bone_name_list.extend(b_names)
-
         for mg in geoset.matrices:
             b_names = []
             for bone in mg:

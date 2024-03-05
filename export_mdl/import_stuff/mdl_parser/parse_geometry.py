@@ -20,7 +20,6 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
     locations: List[List[float]] = []
     normals: List[List[float]] = []
     uvs: List[List[float]] = []
-    sw_bones_id: List[List[int]] = []
     sw_bones: List[List[str]] = []
     sw_weights: List[List[int]] = []
     for data_chunk in geoset_chunks:
@@ -88,29 +87,24 @@ def parse_geometry(geoset_chunks: List[str]) -> War3Geoset:
 
             for bones_weights in skinning:
                 sw_vals = extract_int_values(bones_weights)
-                sw_bones_id.append([s for s in sw_vals[0:4]])
                 sw_bones.append([str(s) for s in sw_vals[0:4]])
                 sw_weights.append(sw_vals[4:8])
 
     if not len(sw_bones):
         for group in vert_matrix_groups:
-            v_b_id: List[int] = []
             v_b: List[str] = []
             v_w: List[int] = []
             for bone in matrix_groups[group]:
-                v_b_id.append(bone)
                 v_b.append(str(bone))
                 v_w.append(255)
-            sw_bones_id.append(v_b_id)
             sw_bones.append(v_b)
             sw_weights.append(v_w)
 
     # print("locations:", len(locations), "normals:", len(normals), "uvs:", len(uvs), "sw_bones:", len(sw_bones), "sw_weights:", len(sw_weights), )
     for loc, norm, uv, v_b, v_w in zip(locations, normals, uvs, sw_bones, sw_weights):
         # print("\t adding vert to geoset ", loc, "weight:", v_w, "bone:", v_b)
-        geoset.vertices.append(War3Vertex(loc, norm, uv, None, v_b, v_w))
+        geoset.vertices.append(War3Vertex(loc, norm, uv, v_b, v_w))
 
-    geoset.matrices_id = sw_bones_id
     geoset.matrices = sw_bones
 
     return geoset

@@ -113,7 +113,6 @@ def from_scene(context: bpy.types.Context,
 
     vertices_all: List[List[float]] = []
     vertices_all.extend(collect_all_pos(war3_model.objects_all))
-    # collect_all_pos(model_objects_all, object_indices, vertices_all, war3_model)
 
     for geoset in war3_model.geosets:
         for vertex in geoset.vertices:
@@ -124,9 +123,6 @@ def from_scene(context: bpy.types.Context,
         if geoset.geoset_anim is not None:
             for bone in itertools.chain.from_iterable(geoset.matrices):
                 war3_model.geoset_anim_map[bone] = geoset.geoset_anim
-
-        for bone in war3_model.bones:
-            geoset.skin_matrices.append([bone.name])
 
     # # Account for particle systems when calculating bounds
     # for particle_sys in list(war3_model.particle_systems) + list(war3_model.particle_systems2) + list(war3_model.particle_ribbon):
@@ -143,41 +139,46 @@ def from_scene(context: bpy.types.Context,
 
 
 def demote_to_helpers(war3_model: War3Model):
-    bones_to_remove: Dict[War3Node, War3Node] = {}
+    used_bones: Set[str] = set()
+    for geoset in war3_model.geosets:
+        for m in geoset.matrices:
+            for name in m:
+                used_bones.add(name)
+    bone_to_helper: Dict[War3Node, War3Node] = {}
     for bone in war3_model.bones:
-        if not any([geoset for geoset in war3_model.geosets if
-                    bone.name in itertools.chain.from_iterable(geoset.matrices)]):
+        if bone.name not in used_bones:
             # print("demoting", bone.name, "to helper")
             helper = War3Helper(bone.name, bone.obj_id, bone.pivot,
                                 bone.parent_id, bone.parent,
                                 bone.anim_loc, bone.anim_rot, bone.anim_scale,
                                 bone.bindpose)
+            helper.parent_node = bone.parent_node
             helper.billboard_lock = bone.billboard_lock
             helper.billboarded = bone.billboarded
             helper.bindpose = bone.bindpose
             war3_model.helpers.append(helper)
-            bones_to_remove[bone] = helper
+            bone_to_helper[bone] = helper
 
-    for node in (n for n in war3_model.bones if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.lights if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.helpers if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.attachments if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.particle_systems if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.particle_systems2 if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.particle_ribbon if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.event_objects if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
-    for node in (n for n in war3_model.collision_shapes if n.parent_node in bones_to_remove):
-        node.parent_node = bones_to_remove[node.parent_node]
+    for node in (n for n in war3_model.bones if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.lights if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.helpers if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.attachments if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.particle_systems if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.particle_systems2 if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.particle_ribbon if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.event_objects if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
+    for node in (n for n in war3_model.collision_shapes if n.parent_node in bone_to_helper):
+        node.parent_node = bone_to_helper[node.parent_node]
 
-    for bone in bones_to_remove.keys():
+    for bone in bone_to_helper.keys():
         war3_model.bones.remove(bone)
 
 

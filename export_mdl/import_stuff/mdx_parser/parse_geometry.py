@@ -148,7 +148,7 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
             sw_weights.append(v_w)
 
     for pos, norm, uv, v_b, v_w in zip(locations, normals, uvs, sw_bones, sw_weights):
-        geoset.vertices.append(War3Vertex(pos, norm, uv, None, v_b, v_w))
+        geoset.vertices.append(War3Vertex(pos, norm, uv, v_b, v_w))
 
     geoset.matrices = sw_bones
 

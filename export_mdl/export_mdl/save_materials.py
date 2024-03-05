@@ -54,6 +54,7 @@ def save_materials(fw: TextIO.write,
 
                 if layer.texture_anim is not None:
                     fw("\t\t\tTVertexAnimId %d,\n" % tvertex_anims.index(layer.texture_anim))
+
                 if layer.alpha_anim is not None:
                     write_animation_chunk(fw, layer.alpha_anim, "Alpha", global_seqs, "\t\t")
                     # write_animation_chunk(layer.alpha_anim.keyframes, layer.alpha_anim.type,

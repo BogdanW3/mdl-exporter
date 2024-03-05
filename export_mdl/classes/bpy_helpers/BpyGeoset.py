@@ -8,7 +8,7 @@ class BpyGeoset:
     def __init__(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object, material_slot: int, bone_names: List[str]):
         # self.vertex_list: List[int] = []  # indices
         self.name = bpy_obj.name
-        print("BpyGeoset - name:", self.name)
+        print("Processing BpyGeoset - name:", self.name)
         self.bpy_mesh: bpy.types.Mesh = bpy_mesh
         self.bpy_obj: bpy.types.Object = bpy_obj
         self.material_slot: int = material_slot
@@ -32,7 +32,7 @@ class BpyGeoset:
         self.no_vgs: bool = not all_vgs
         self.self_as_parent: bool = bpy_obj.parent is None and not all_vgs
         self.parent_name: Optional[str] = get_parent_name(bpy_obj)
-        print("geoset has self as parent:", self.self_as_parent)
+        # print("geoset has self as parent:", self.self_as_parent)
 
         for tri in bpy_mesh.loop_triangles:
             if tri.material_index is material_slot:
