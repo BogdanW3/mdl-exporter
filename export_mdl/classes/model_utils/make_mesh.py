@@ -155,3 +155,29 @@ def create_geoset_bone(bpy_geoset: BpyGeoset,
         transform_rot(anim_rot.keyframes, bpy_geoset.bpy_obj.matrix_world.inverted())
         transform_rot(anim_rot.keyframes, settings.global_matrix)
     return bone
+
+
+def create_armature_bone(bpy_geoset: BpyGeoset,
+                         actions: List[bpy.types.Action],
+                         sequences: List[War3AnimationAction],
+                         global_seqs: Set[int],
+                         settings: War3ExportSettings) -> War3Bone:
+    if bpy_geoset.bpy_obj.parent:
+        animation_data: bpy.types.AnimData = bpy_geoset.bpy_obj.parent.animation_data
+
+        action: List[bpy.types.Action] = []
+        if animation_data:
+            action.append(animation_data.action)
+        anim_loc, anim_rot, anim_scale = get_loc_rot_scale(sequences, global_seqs, '%s', action,
+                                                           animation_data,
+                                                           settings.optimize_tolerance)
+        pivot = settings.global_matrix @ Vector(bpy_geoset.bpy_obj.parent.location)
+
+        bone: War3Bone = War3Bone(bpy_geoset.parent_name, -1, pivot, None, None, anim_loc, anim_rot, anim_scale,
+                                  bpy_geoset.bpy_obj.parent.matrix_basis)
+        return bone
+    else:
+        pivot = settings.global_matrix @ Vector(bpy_geoset.bpy_obj.location)
+        bone: War3Bone = War3Bone(bpy_geoset.parent_name, -1, pivot, None, None, None, None, None,
+                                  bpy_geoset.bpy_obj.matrix_basis)
+        return bone

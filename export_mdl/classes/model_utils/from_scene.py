@@ -20,7 +20,7 @@ from .add_lights import get_lights
 from .add_particle_systems import get_particle_emitter, get_particle_emitter2, get_ribbon_emitter
 from .get_actions import get_actions
 from ..War3Node import War3Node
-from .make_mesh import create_geoset, get_geoset_anim, create_geoset_bone
+from .make_mesh import create_geoset, get_geoset_anim, create_geoset_bone, create_armature_bone
 from ..War3Texture import War3Texture
 from ..bpy_helpers.BpySceneObjects import BpySceneObjects
 from ...utils import calc_extents
@@ -50,6 +50,10 @@ def from_scene(context: bpy.types.Context,
             war3_model.bones.append(create_geoset_bone(bpy_geoset, actions,
                                                        war3_model.sequences, war3_model.global_seqs,
                                                        settings))
+        elif bpy_geoset.no_vgs and bpy_geoset.parent_name not in [b.name for b in war3_model.bones]:
+            war3_model.bones.append(create_armature_bone(bpy_geoset, actions,
+                                                         war3_model.sequences, war3_model.global_seqs,
+                                                         settings))
         war_geoset = create_geoset(bpy_geoset)
         war3_model.geosets.append(war_geoset)
 

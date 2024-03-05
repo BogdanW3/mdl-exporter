@@ -106,7 +106,7 @@ class War3Geoset:
         else:
             fw("\tGroups %d %d {\n" % (len(self.matrices), sum(len(mtrx) for mtrx in self.matrices)))
             for matrix in self.matrices:
-                fw("\t\tMatrices { %s },\n" % ','.join(str(object_indices[g]) for g in matrix))
+                fw("\t\tMatrices { %s },\n" % ','.join(str(object_indices.get(g, 0)) for g in matrix))
             fw("\t}\n")
 
         fw("\tMinimumExtent { %s, %s, %s },\n" % tuple(map(float2str, self.min_extent)))
