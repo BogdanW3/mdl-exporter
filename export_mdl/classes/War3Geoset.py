@@ -100,7 +100,7 @@ class War3Geoset:
             fw("\tGroups %d %d {\n" % (len(object_indices), sum(len(mtrx) for mtrx in object_indices)))
             i = 0
             for matrix in object_indices:
-                fw("\t\tMatrices { %s },\n" % ','.join(str(i) for _ in matrix))
+                fw("\t\tMatrices { %s },\n" % ', '.join(str(i) for _ in matrix))
                 i = i+1
             fw("\t}\n")
         else:
