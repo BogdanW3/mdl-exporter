@@ -82,7 +82,7 @@ class BpyGeoset:
                                 else:
                                     self.bone_list.append([""])
                                 # should this be 255..?
-                                self.weight_list.append([1])
+                                self.weight_list.append([255])
 
                             # self.bone_list.append(list(all_vgs[vg.group].name for vg in vertex_groups if vg.weight != 0 and all_vgs[vg.group].name in bone_names))
                             # self.weight_list.append(self.get_int_weights(list(vg.weight for vg in vertex_groups if vg.weight != 0 and all_vgs[vg.group].name in bone_names)))
@@ -94,7 +94,7 @@ class BpyGeoset:
                             else:
                                 self.bone_list.append([""])
                             # should this be 255..?
-                            self.weight_list.append([1])
+                            self.weight_list.append([255])
 
                     tri_vert_map[vert_index] = self.vertex_map[vertex_key]
                 self.tri_map[tuple(tri.vertices)] = tuple([tri_vert_map[v] for v in tri.vertices])
