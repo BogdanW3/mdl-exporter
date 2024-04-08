@@ -8,7 +8,8 @@ def save_geosets(fw: TextIO.write, model: War3Model, settings):
     if len(model.geosets):
         material_names = [mat.name for mat in model.materials]
         for geoset in model.geosets:
-            geoset.write_geoset(fw, material_names, model.sequences, model.bones, settings.use_skinweights)
+            if 0 < len(geoset.vertices):
+                geoset.write_geoset(fw, material_names, model.sequences, model.bones, settings.use_skinweights)
             # fw("Geoset {\n")
             # # Vertices
             # fw("\tVertices %d {\n" % len(geoset.vertices))
