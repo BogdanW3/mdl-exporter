@@ -14,8 +14,12 @@ def get_actions(f2ms: float, bpy_actions: List[bpy.types.Action], use_actions: b
     if use_actions:
         for action in bpy_actions:
             if action.name != "all sequences" and action.name != "#UNANIMATED" and use_actions:
-                sequence = War3AnimationAction(action.name, action.frame_range[0],
-                                               action.frame_range[1], False, 270)
+                first_frame = action.frame_range[0]
+                second_frame = action.frame_range[1]
+                if first_frame == second_frame:
+                    second_frame += 1
+                sequence = War3AnimationAction(action.name, first_frame,
+                                               second_frame, False, 270)
                 sequences.append(sequence)
                 actions.append(action)
     else:
