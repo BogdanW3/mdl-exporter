@@ -33,6 +33,7 @@ class War3RibbonEmitter(War3Emitter):
         self.ribbon_color_anim: Optional[War3AnimationCurve] = None
         self.dimensions: Optional[Vector] = None
         self.scale_anim: Optional[War3AnimationCurve] = None
+        self.material: Optional[War3Material] = None
 
     @classmethod
     def create_from(cls, node: 'War3Node'):

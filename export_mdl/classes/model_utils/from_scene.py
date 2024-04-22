@@ -108,9 +108,14 @@ def from_scene(context: bpy.types.Context,
     emitters.extend(war3_model.particle_systems)
     emitters.extend(war3_model.particle_systems2)
     emitters.extend(war3_model.particle_ribbon)
-    for particle_sys in emitters:
-        if particle_sys.emitter.texture_path not in war3_model.textures:
-            war3_model.textures.append(particle_sys.emitter.texture_path)
+    # for particle_sys in emitters:
+    #     if particle_sys.emitter.texture_path not in war3_model.textures_paths:
+    #         # war3_model.textures.append(War3Texture(particle_sys.emitter.texture_path))
+    #         war3_model.textures.append(particle_sys.texture)
+    #         war3_model.textures_paths.append(particle_sys.emitter.texture_path)
+    for particle_sys in war3_model.particle_systems2:
+        if particle_sys.emitter.texture_path not in war3_model.textures_paths:
+            war3_model.textures.append(particle_sys.texture)
             war3_model.textures_paths.append(particle_sys.emitter.texture_path)
 
     collect_all_nodes(war3_model)
@@ -247,13 +252,18 @@ def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,
     for bpy_emitter in bpy_scene_objects.particle2s:
         emitter_ = get_particle_emitter2(sequences, global_seqs, actions, bpy_emitter,
                                          optimize_tolerance,
-                                         global_matrix)
+                                         global_matrix, global_scale)
         war3_model.particle_systems2.append(emitter_)
 
     for bpy_emitter in bpy_scene_objects.ribbons:
         ribbon_emitter = get_ribbon_emitter(sequences, global_seqs, actions, bpy_emitter,
                                             optimize_tolerance,
                                             global_matrix)
+        validMaterials = [m for m in war3_model.materials if (m.name == ribbon_emitter.emitter.ribbon_material.name)]
+        if 0 < len(validMaterials):
+            ribbon_emitter.material = validMaterials[0]
+        elif 0 < len(war3_model.materials):
+            ribbon_emitter.material = war3_model.materials[0]
         war3_model.particle_ribbon.append(ribbon_emitter)
 
     for bpy_light in bpy_scene_objects.lights:

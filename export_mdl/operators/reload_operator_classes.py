@@ -4,6 +4,7 @@ from . import WAR3_OT_add_anim_sequence
 from . import WAR3_OT_create_collision_shape
 from . import WAR3_OT_create_eventobject
 from . import WAR3_OT_emitter_preset_add
+from . import WAR3_OT_emitter_set_from_bpy
 from . import WAR3_OT_export_mdl
 from . import WAR3_OT_material_list_action
 from . import WAR3_OT_search_event_id
@@ -21,6 +22,7 @@ try:
     importlib.reload(WAR3_OT_create_collision_shape)
     importlib.reload(WAR3_OT_create_eventobject)
     importlib.reload(WAR3_OT_emitter_preset_add)
+    importlib.reload(WAR3_OT_emitter_set_from_bpy)
     importlib.reload(WAR3_OT_export_mdl)
     importlib.reload(WAR3_OT_material_list_action)
     importlib.reload(WAR3_OT_search_event_id)

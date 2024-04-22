@@ -38,6 +38,7 @@ class War3ParticleSystem(War3Emitter):
         self.emitter: War3ParticleSystemProperties = None
         self.dimensions: Optional[Vector] = None
         self.scale_anim: Optional[War3AnimationCurve] = None
+        self.texture: Optional[War3Texture] = None
 
     @classmethod
     def create_from(cls, node: 'War3Node'):
@@ -51,6 +52,8 @@ class War3ParticleSystem(War3Emitter):
 
         self.emitter: War3ParticleSystemProperties = settings.mdl_particle_sys
         self.scale_anim: Optional[War3AnimationCurve] = self.anim_stuff(obj.animation_data, actions, 'scale', 2, sequences, global_seqs)
+
+        self.texture = War3Texture(self.emitter.texture_path)
 
         # Animated properties
         bby_anim_data = settings.animation_data
@@ -194,7 +197,8 @@ class War3ParticleSystem(War3Emitter):
         fw("\tDecayUVAnim { %d, %d, %d },\n" % (self.emitter.head_decay_start, self.emitter.head_decay_end, self.emitter.head_decay_repeat))
         fw("\tTailUVAnim { %d, %d, %d },\n" % (self.emitter.tail_life_start, self.emitter.tail_life_end, self.emitter.tail_life_repeat))
         fw("\tTailDecayUVAnim { %d, %d, %d },\n" % (self.emitter.tail_decay_start, self.emitter.tail_decay_end, self.emitter.tail_decay_repeat))
-        fw("\tTextureID %d,\n" % textures.index(self.emitter.texture_path))
+        # fw("\tTextureID %d,\n" % textures.index(self.emitter.texture_path))
+        fw("\tTextureID %d,\n" % textures.index(self.texture))
 
         if self.emitter.priority_plane != 0:
             fw("\tPriorityPlane %d,\n" % self.emitter.priority_plane)

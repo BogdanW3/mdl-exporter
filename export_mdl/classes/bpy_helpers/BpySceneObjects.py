@@ -106,11 +106,11 @@ class BpySceneObjects:
             data = bpy_obj.particle_systems[0].settings
             if getattr(data, "mdl_particle_sys"):
                 particle_settings: War3ParticleSystemProperties = data.mdl_particle_sys
-                if particle_settings.emiter_type == 'ParticleEmitter':
+                if particle_settings.emitter_type == 'ParticleEmitter':
                     self.particle1s.append(BpyEmitter(bpy_obj, global_matrix, particle_settings))
-                elif particle_settings.emiter_type == 'ParticleEmitter2':
+                elif particle_settings.emitter_type == 'ParticleEmitter2':
                     self.particle2s.append(BpyEmitter(bpy_obj, global_matrix, particle_settings))
-                elif particle_settings.emiter_type == 'RibbonEmitter':
+                elif particle_settings.emtitter_type == 'RibbonEmitter':
                     emitter = BpyEmitter(bpy_obj, global_matrix, particle_settings)
                     self.ribbons.append(emitter)
                     self.materials.add(emitter.particle_settings.ribbon_material)

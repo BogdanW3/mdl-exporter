@@ -48,7 +48,8 @@ def get_particle_emitter2(sequences: List[War3AnimationAction],
                           global_seqs: Set[int], actions: List[bpy.types.Action],
                           bpy_emitter: BpyEmitter,
                           optimize_tolerance: float,
-                          global_matrix: Matrix) -> War3ParticleSystem:
+                          global_matrix: Matrix,
+                          global_scale: float) -> War3ParticleSystem:
     visibility = get_visibility(sequences, global_seqs, actions, bpy_emitter.bpy_obj)
 
     animation_data: bpy.types.AnimData = bpy_emitter.bpy_obj.animation_data

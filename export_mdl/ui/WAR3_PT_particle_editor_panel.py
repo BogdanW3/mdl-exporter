@@ -1,6 +1,8 @@
 import bpy
 from bpy.types import Panel
 
+from export_mdl import War3ParticleSystemProperties
+
 
 class WAR3_PT_particle_editor_panel(Panel):
     """Creates a particle editor Panel in the Particles window"""
@@ -75,6 +77,7 @@ class WAR3_PT_particle_editor_panel(Panel):
             layout.prop(psys, "filter_mode")
 
             layout.separator()
+            layout.operator("war_3.emitter_set_from_bpy", text="Set from Blender Particle")
 
             layout.prop(psys, "emission_rate")
             layout.prop(psys, "speed")
@@ -187,3 +190,11 @@ class WAR3_PT_particle_editor_panel(Panel):
             col.prop(psys, "xy_quad")
             col.prop(psys, "head")
             col.prop(psys, "tail")
+
+def setFromBSettings(p_settings: War3ParticleSystemProperties, p_sys: bpy.types.ParticleSettings):
+    num = p_sys.count * p_sys.child_nbr
+    time = p_sys.frame_end - p_sys.frame_start
+    life_time = p_sys.lifetime
+    p_settings.emission_rate = num/time
+    p_settings.life_span = life_time
+
