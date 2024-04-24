@@ -1,8 +1,6 @@
 import bpy
 from bpy.types import Panel
 
-from export_mdl import War3ParticleSystemProperties
-
 
 class WAR3_PT_particle_editor_panel(Panel):
     """Creates a particle editor Panel in the Particles window"""
@@ -13,7 +11,7 @@ class WAR3_PT_particle_editor_panel(Panel):
     bl_context = 'particle'
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         return context.active_object is not None and len(context.active_object.particle_systems)
 
     def draw(self, context):
@@ -190,11 +188,4 @@ class WAR3_PT_particle_editor_panel(Panel):
             col.prop(psys, "xy_quad")
             col.prop(psys, "head")
             col.prop(psys, "tail")
-
-def setFromBSettings(p_settings: War3ParticleSystemProperties, p_sys: bpy.types.ParticleSettings):
-    num = p_sys.count * p_sys.child_nbr
-    time = p_sys.frame_end - p_sys.frame_start
-    life_time = p_sys.lifetime
-    p_settings.emission_rate = num/time
-    p_settings.life_span = life_time
 
