@@ -38,16 +38,20 @@ def parse_materials(data: str) -> List[War3Material]:
                             # 	GlobalSeqId 0
                             # 	0: 0,
                             # 	...
-                            texture_chunk = re.split(",\n*\\s*(?=TextureID)", chunk)[1]
-                            layer.texture_anim = parse_geoset_transformation(texture_chunk)
-                            layer.texture_path = get_between(info, "TextureID ", "{")
+                            split = re.split(",\n*\\s*(?=TextureID)", chunk)
+                            if 1 < len(split):
+                                texture_chunk = split[1]
+                                layer.texture_anim = parse_geoset_transformation(texture_chunk)
+                                layer.texture_path = get_between(info, "TextureID ", "{")
 
                     if info.find("Alpha") > -1:
                         if info.find("static Alpha") > -1:
                             layer.alpha_value = float(get_between(info, "static Alpha ", ","))
                         else:
-                            alpha_chunk = re.split(",\n*\\s*(?=Alpha)", chunk)[1]
-                            layer.alpha_anim = parse_geoset_transformation(alpha_chunk)
+                            split = re.split(",\n*\\s*(?=Alpha)", chunk)
+                            if 1 < len(split):
+                                alpha_chunk = split[1]
+                                layer.alpha_anim = parse_geoset_transformation(alpha_chunk)
 
                     # if info.find("FresnelColor") > -1:
                     #     if info.find("static FresnelColor") > -1:
