@@ -48,10 +48,12 @@ def create_bpy_material(bpy_images_of_layer: List[bpy.types.Image], material: Wa
                 war3_bpy_material.connect(diffuse.outputs.get("Color"), war3_bpy_material.mix_node.inputs.get("Color2"))
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), war3_bpy_material.get_input("Alpha"))
             elif i == 1:
-                normal_map = war3_bpy_material.get_new_node(1, i, 'ShaderNodeNormalMap')
-                normal_map.colorspace_settings.name = 'NONCOLOR'
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), normal_map.inputs.get("Color"))
-                war3_bpy_material.connect(normal_map.outputs.get("Normal"), war3_bpy_material.get_input("Normal"))
+                # normal_map = war3_bpy_material.get_new_node(1, i, 'ShaderNodeNormalMap')
+                # normal_map.colorspace_settings.name = 'NONCOLOR'
+                # war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), normal_map.inputs.get("Color"))
+                # war3_bpy_material.connect(normal_map.outputs.get("Normal"), war3_bpy_material.get_input("Normal"))
+                texture_mat_node.image.colorspace_settings.is_data = True
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), war3_bpy_material.get_input("Normal"))
             elif i == 2:
                 orm = war3_bpy_material.get_new_node(2, i, 'ShaderNodeSeparateRGB')
 
@@ -66,7 +68,9 @@ def create_bpy_material(bpy_images_of_layer: List[bpy.types.Image], material: Wa
                 war3_bpy_material.connect(orm.outputs.get("B"), war3_bpy_material.get_input("Metallic"))
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), diffuse.inputs.get("Fac"))
             elif i == 3:
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), war3_bpy_material.get_input("Emission"))
+                if emSlot is None:
+                    emSlot = war3_bpy_material.get_input("Emission Color")
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), emSlot)
             elif i == 4:
                 team_color = war3_bpy_material.get_new_node(2, 0, 'ShaderNodeRGB')
                 team_color.name = 'Team Color'
@@ -183,13 +187,19 @@ def get_image_file(team_color: str, texture: War3Texture, texture_ext: str) -> s
 
 
 def get_repl_img(repl_id: int, team_color: str):
-    match repl_id:
-        case 1:
-            return constants.TEAM_COLOR_IMAGES[team_color]
-        case 2:
-            return constants.TEAM_GLOW_IMAGES[team_color]
-        case _:
-            return 'ReplaceableTextures\\AshenvaleTree\\AshenCanopyTree.blp'
+    if repl_id == 1:
+        return constants.TEAM_COLOR_IMAGES[team_color]
+    elif repl_id == 2:
+        return constants.TEAM_GLOW_IMAGES[team_color]
+    else:
+        return 'ReplaceableTextures\\AshenvaleTree\\AshenCanopyTree.blp'
+    # match repl_id:
+    #     case 1:
+    #         return constants.TEAM_COLOR_IMAGES[team_color]
+    #     case 2:
+    #         return constants.TEAM_GLOW_IMAGES[team_color]
+    #     case _:
+    #         return 'ReplaceableTextures\\AshenvaleTree\\AshenCanopyTree.blp'
 
 
 def find_file(image_path_comps: List[str], folders: List[Path]) -> str:

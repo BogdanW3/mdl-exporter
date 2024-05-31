@@ -101,6 +101,7 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
 
         # print("numTextures:", numTextures)
 
+        layer.multi_texture_ids = []
         i = 0
         while i < numTextures:
             animOrTextureId = r.getf('<I')[0]
@@ -113,6 +114,7 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
                 layer.texture_anim = parse_timeline(r, '<I')
             else:
                 textureSlot = r.getf('<I')[0]
+                layer.multi_texture_ids.append(textureSlot)
                 # print("Texture:", i, "textureSlot", textureSlot, ", textureID: ", animOrTextureId)
             i += 1
 

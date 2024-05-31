@@ -19,6 +19,7 @@ class War3Layer:
         self.alpha_value: float = 1.0
         self.no_depth_test: bool = False
         self.no_depth_set: bool = False
+        self.multi_texture_ids: Optional[List[int]] = None
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):
