@@ -68,6 +68,7 @@ def create_bpy_material(bpy_images_of_layer: List[bpy.types.Image], material: Wa
                 war3_bpy_material.connect(orm.outputs.get("B"), war3_bpy_material.get_input("Metallic"))
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), diffuse.inputs.get("Fac"))
             elif i == 3:
+                emSlot = war3_bpy_material.get_input("Emission")
                 if emSlot is None:
                     emSlot = war3_bpy_material.get_input("Emission Color")
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), emSlot)
