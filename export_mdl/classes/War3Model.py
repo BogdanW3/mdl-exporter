@@ -98,6 +98,6 @@ class War3Model:
 
     def setup_node_parents(self):
         for node in self.id_to_object.values():
-            if node.parent_id:
+            if node.parent_id in self.id_to_object:
                 node.parent = self.id_to_object[node.parent_id].name
                 node.parent_node = self.id_to_object[node.parent_id]
