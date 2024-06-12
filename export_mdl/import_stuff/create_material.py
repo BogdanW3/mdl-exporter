@@ -184,6 +184,7 @@ def get_image_file(team_color: str, texture: War3Texture, texture_ext: str) -> s
         image_file = get_repl_img(texture.replaceable_id, team_color)
 
     sub = re.sub("\\.blp$", texture_ext, image_file)
+    sub = re.sub("\\.tif$", texture_ext, sub)
     return re.sub("[/\\\\]", re.escape(os.path.sep), sub)
 
 
