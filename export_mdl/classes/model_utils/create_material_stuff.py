@@ -31,9 +31,10 @@ def get_new_material2(bpy_material: bpy.types.Material,
     if not len(material.layers):
         from_nodes = layers_from_mat_nodes(bpy_material)
         if from_nodes is not None:
-            if use_skin_weights:
-                material.is_hd = True
             material.layers.extend(from_nodes)
+            if use_skin_weights:
+                for layer in material.layers:
+                    layer.hd = True
         else:
             layer = War3Layer()
             layer.texture = War3Texture()
