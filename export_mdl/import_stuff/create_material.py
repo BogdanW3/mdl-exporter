@@ -19,79 +19,85 @@ def create_material(model: War3Model, team_color: str) -> Dict[str, War3BpyMater
     print(" creating materials")
     bpy_materials: Dict[str, War3BpyMaterial] = {}
     for i, material in enumerate(model.materials):
-        print("  material #" + str(i), material)
-        bpy_images_of_layer: List[bpy.types.Image] = []
+        print("  material #" + str(i), material.name)
+        images: List[bpy.types.Image] = []
         for layer in material.layers:
-            bpy_images_of_layer.append(bpy_images[layer.texture.texture_path])
+            images.append(bpy_images[layer.texture.texture_path])
 
-        bpy_material = create_bpy_material(bpy_images_of_layer, material)
+        bpy_material = create_bpy_material(images, layer.hd, team_color)
 
         bpy_materials[str(i)] = bpy_material
 
     return bpy_materials
 
 
-def create_bpy_material(bpy_images_of_layer: List[bpy.types.Image], material: War3Material):
-    material_name = bpy_images_of_layer[-1].filepath.split(os.path.sep)[-1].split('.')[0]
+def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str):
+    material_name = images[0].filepath.split(os.path.sep)[-1].split('.')[0]
     war3_bpy_material = War3BpyMaterial(material_name)
 
-    if material.is_hd:
+    tc_mix = war3_bpy_material.get_new_node(1, 0, 'ShaderNodeMix')
+    tc_mix.blend_type = 'MULTIPLY'
+    tc_mix.data_type = 'RGBA'
+    tc_mix.inputs[0].default_value = 1.0
+        
+    war3_bpy_material.connect(tc_mix.outputs.get("Result"), war3_bpy_material.get_input("Base Color"))
+    if hd:
 
-        diffuse = war3_bpy_material.get_new_node(1, 0, 'ShaderNodeMixRGB')
-        diffuse.blend_type = 'COLOR'
-
-        for i, bpy_image in enumerate(bpy_images_of_layer):
-            texture_mat_node = war3_bpy_material.get_new_node(3, i, 'ShaderNodeTexImage')
-            texture_mat_node.image = bpy_image
+        for i, bpy_image in enumerate(images):
+            if i < 4: # don't create image nodes for the textures we don't use
+                texture_mat_node = war3_bpy_material.get_new_node(3, i, 'ShaderNodeTexImage')
+                texture_mat_node.image = bpy_image
             if i == 0:
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), diffuse.inputs.get("Color1"))
-                war3_bpy_material.connect(diffuse.outputs.get("Color"), war3_bpy_material.mix_node.inputs.get("Color2"))
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), tc_mix.inputs.get("A"))
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), war3_bpy_material.get_input("Alpha"))
             elif i == 1:
-                # normal_map = war3_bpy_material.get_new_node(1, i, 'ShaderNodeNormalMap')
-                # normal_map.colorspace_settings.name = 'NONCOLOR'
-                # war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), normal_map.inputs.get("Color"))
-                # war3_bpy_material.connect(normal_map.outputs.get("Normal"), war3_bpy_material.get_input("Normal"))
                 texture_mat_node.image.colorspace_settings.is_data = True
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), war3_bpy_material.get_input("Normal"))
-            elif i == 2:
-                orm = war3_bpy_material.get_new_node(2, i, 'ShaderNodeSeparateRGB')
+                normal_map_node = war3_bpy_material.get_new_node(1, i, 'ShaderNodeNormalMap')
 
-                roughthness_inv = war3_bpy_material.get_new_node(1, i, "ShaderNodeMath")
-                roughthness_inv.operation = 'SUBTRACT'
-                roughthness_inv.inputs[0].default_value = 1
+                # Blender 3.x added support for dds normal maps, we don't need to do anything special anymore
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), normal_map_node.inputs.get("Color"))
+
+                war3_bpy_material.connect(normal_map_node.outputs.get("Normal"), war3_bpy_material.get_input("Normal"))
+            elif i == 2:
+                orm = war3_bpy_material.get_new_node(1, i, 'ShaderNodeSeparateRGB')
 
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), orm.inputs.get("Image"))
-                # I don't currently know how to do occlusion
-                war3_bpy_material.connect(orm.outputs.get("G"), roughthness_inv.inputs[1])
-                war3_bpy_material.connect(roughthness_inv.outputs[0], war3_bpy_material.get_input("Roughness"))
+
+                war3_bpy_material.connect(orm.outputs.get("G"), war3_bpy_material.get_input("Roughness"))
                 war3_bpy_material.connect(orm.outputs.get("B"), war3_bpy_material.get_input("Metallic"))
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), diffuse.inputs.get("Fac"))
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), tc_mix.inputs.get("Factor"))
             elif i == 3:
                 emSlot = war3_bpy_material.get_input("Emission")
                 if emSlot is None:
                     emSlot = war3_bpy_material.get_input("Emission Color")
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), emSlot)
             elif i == 4:
-                team_color = war3_bpy_material.get_new_node(2, 0, 'ShaderNodeRGB')
-                team_color.name = 'Team Color'
-                team_color.outputs[0].default_value = (1, 0, 0, 1)
-                war3_bpy_material.connect(team_color.outputs.get("Color"), diffuse.inputs.get("Color2"))
-            # else:
-            # skip the environmental map, possibly change the world's map to it
+                color_wheel = war3_bpy_material.get_new_node(3, -1, 'ShaderNodeRGB')
+                color_wheel.outputs[0].default_value = (*constants.TEAM_COLORS[int(team_color)], 1.0)
+
+                war3_bpy_material.connect(color_wheel.outputs.get("Color"), tc_mix.inputs.get("B"))
+                pass
+            elif i == 5:
+                # skip the environmental map, possibly change the world's map to it
+                pass
+            else:
+                print("Unknown texture slot", i, " in ", material_name)
             print(bpy_image.filepath, " at place ", i)
     else:
-        next_color_input = war3_bpy_material.mix_node.inputs.get("Color2")
-        next_alpha_input = war3_bpy_material.geo_alpha_node.inputs[0]
-        for i, bpy_image in enumerate(bpy_images_of_layer):
+        next_color_input = tc_mix.inputs.get("B")
+        next_alpha_input = war3_bpy_material.get_geoset_anim_alpha_node().inputs[0]
+        for i, bpy_image in enumerate(images):
             texture_mat_node = war3_bpy_material.get_new_node(i*2+3, i, 'ShaderNodeTexImage')
             texture_mat_node.image = bpy_image
-            mix_node = war3_bpy_material.get_new_node(i*2+1.5, i, "ShaderNodeMixRGB")
-            mix_node.inputs.get("Color1").default_value = (1, 1, 1, 1)
-            war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), mix_node.inputs.get("Color2"))
+            mix_node = war3_bpy_material.get_new_node(i*2+1.5, i, "ShaderNodeMix")
+            mix_node.blend_type = 'MULTIPLY' # shouldn't always be multiply...
+            mix_node.data_type = 'RGBA'
+            mix_node.inputs[0].default_value = 1.0
+            mix_node.inputs.get("A").default_value = (1, 1, 1, 1)
+            war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), mix_node.inputs.get("B"))
             war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), mix_node.inputs[0])
-            war3_bpy_material.connect(mix_node.outputs.get("Color"), next_color_input)
-            next_color_input = mix_node.inputs.get("Color2")
+            war3_bpy_material.connect(mix_node.outputs.get("Result"), next_color_input)
+            next_color_input = mix_node.inputs.get("B")
 
             alpha_node = war3_bpy_material.get_new_node(i*2+1, 4, "ShaderNodeMath")
             alpha_node.inputs[1].default_value = 0.0
@@ -190,9 +196,9 @@ def get_image_file(team_color: str, texture: War3Texture, texture_ext: str) -> s
 
 def get_repl_img(repl_id: int, team_color: str):
     if repl_id == 1:
-        return constants.TEAM_COLOR_IMAGES[team_color]
+        return constants.get_team_color(team_color)
     elif repl_id == 2:
-        return constants.TEAM_GLOW_IMAGES[team_color]
+        return constants.get_team_glow(team_color)
     else:
         return 'ReplaceableTextures\\AshenvaleTree\\AshenCanopyTree.blp'
     # match repl_id:

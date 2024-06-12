@@ -9,7 +9,6 @@ class War3Material:
         self.layers: List[War3Layer] = []
         self.use_const_color: bool = False
         self.priority_plane: int = 0
-        self.is_hd: bool = False
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):

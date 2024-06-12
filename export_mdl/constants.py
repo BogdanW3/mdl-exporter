@@ -1,5 +1,5 @@
-
 MDX_VERSIONS = [800, 900, 1000, 1100]
+MDL_VERSIONS = [800, 900, 1000]
 MDX_CURRENT_VERSION = 800
 # MDX FILE CHUNKS
 CHUNK_MDX_MODEL                 = 'MDLX'
@@ -158,29 +158,44 @@ INTERPOLATION_TYPE_MDL_NAMES = {
     3: 'Bezier'
     }
 # TEAM COLORS
-TEAM_COLORS = {
-    'RED': (1.0, 0.000911, 0.000911),
-    'DARK_BLUE': (0.0, 0.054480, 1.0),
-    'TURQUOISE': (0.011612, 0.791298, 0.485150),
-    'VIOLET': (0.088656, 0.000000, 0.219526),
-    'YELLOW': (1.000000, 0.973446, 0.000304),
-    'ORANGE': (0.991102, 0.254152, 0.004391),
-    'GREEN': (0.014444, 0.527115, 0.000000),
-    'PINK': (0.783538, 0.104617, 0.434154),
-    'GREY': (0.300544, 0.304987, 0.309469),
-    'BLUE': (0.208637, 0.520996, 0.879623),
-    'DARK_GREEN': (0.005182, 0.122139, 0.061246),
-    'BROWN': (0.076185, 0.023153, 0.001214),
-    'BLACK': (0.021219, 0.021219, 0.021219)
-}
+TEAM_COLORS = [
+    (1.000000, 0.011765, 0.011765), # Red
+    (0.000000, 0.258824, 1.000000), # Blue
+    (0.105882, 0.905882, 0.729412), # Teal
+    (0.333333, 0.000000, 0.505882), # Purple
+    (0.996078, 0.988235, 0.000000), # Yellow
+    (0.996078, 0.537255, 0.050980), # Orange
+    (0.129412, 0.749020, 0.000000), # Green
+    (0.894118, 0.360784, 0.686275), # Pink
+    (0.576471, 0.584314, 0.588235), # Gray
+    (0.494118, 0.749020, 0.945098), # Light Blue
+    (0.062745, 0.384314, 0.278431), # Dark Green
+    (0.309804, 0.168627, 0.019608), # Brown
+    
+    (0.611765, 0.000000, 0.000000), # Maroon
+    (0.000000, 0.000000, 0.764706), # Navy
+    (0.000000, 0.921569, 1.000000), # Turquoise
+    (0.741176, 0.000000, 1.000000), # Violet
+    (0.925490, 0.807843, 0.529412), # Wheat
+    (0.968627, 0.647059, 0.545098), # Peach
+    (0.749020, 1.000000, 0.505882), # Mint
+    (0.858824, 0.721569, 0.921569), # Lavender
+    (0.309804, 0.313725, 0.333333), # Coal
+    (0.925490, 0.941176, 1.000000), # Snow
+    (0.000000, 0.470588, 0.117647), # Emerald
+    (0.647059, 0.435294, 0.203922), # Peanut
+
+    (0.180392, 0.176471, 0.180392)  # Black
+]
+
 TEAM_COLOR_IMAGE_PATH = 'ReplaceableTextures\\TeamColor\\TeamColor'
 TEAM_GLOW_IMAGE_PATH = 'ReplaceableTextures\\TeamGlow\\TeamGlow'
-TEAM_IMAGE_EXT = '.blp'
+TEAM_IMAGE_EXT = '.dds'
 
 FILTER_MODES = {
     0: 'None',
-    1: 'Blend',
-    2: 'Transparent',
+    1: 'Transparent',
+    2: 'Blend',
     3: 'Additive',
     4: 'AddAlpha',
     5: 'Modulate',
@@ -193,38 +208,6 @@ def get_team_color(teamColorIndex):
 
 def get_team_glow(teamGlowIndex):
     return TEAM_GLOW_IMAGE_PATH + '{0:0>2}'.format(teamGlowIndex) + TEAM_IMAGE_EXT
-
-
-TEAM_COLOR_IMAGES = {
-    'RED': get_team_color(0),
-    'DARK_BLUE': get_team_color(1),
-    'TURQUOISE': get_team_color(2),
-    'VIOLET': get_team_color(3),
-    'YELLOW': get_team_color(4),
-    'ORANGE': get_team_color(5),
-    'GREEN': get_team_color(6),
-    'PINK': get_team_color(7),
-    'GREY': get_team_color(8),
-    'BLUE': get_team_color(9),
-    'DARK_GREEN': get_team_color(10),
-    'BROWN': get_team_color(11),
-    'BLACK': get_team_color(12)
-}
-TEAM_GLOW_IMAGES = {
-    'RED': get_team_glow(0),
-    'DARK_BLUE': get_team_glow(1),
-    'TURQUOISE': get_team_glow(2),
-    'VIOLET': get_team_glow(3),
-    'YELLOW': get_team_glow(4),
-    'ORANGE': get_team_glow(5),
-    'GREEN': get_team_glow(6),
-    'PINK': get_team_glow(7),
-    'GREY': get_team_glow(8),
-    'BLUE': get_team_glow(9),
-    'DARK_GREEN': get_team_glow(10),
-    'BROWN': get_team_glow(11),
-    'BLACK': get_team_glow(12)
-}
 
 ENCODINGS = {
     'LATIN_1': 'latin-1',

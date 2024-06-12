@@ -93,7 +93,6 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
     selection_group = r.getf('<I')[0]
     selection_flags = r.getf('<I')[0]
 
-    # if constants.MDX_CURRENT_VERSION > 800:
     if version > 800:
         lod = r.getf('<I')[0]
         lod_name = r.gets(80)
@@ -109,7 +108,6 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
         minimum_extent = r.getf('<3f')
         maximum_extent = r.getf('<3f')
 
-    # if constants.MDX_CURRENT_VERSION > 800:
     if 800 < version:
         chunk_id = r.getid((constants.CHUNK_TANGENTS, constants.CHUNK_SKIN, constants.CHUNK_TEXTURE_VERTEX_GROUP))
         if chunk_id == constants.CHUNK_TANGENTS:
@@ -118,7 +116,7 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
             chunk_id = r.getid((constants.CHUNK_SKIN, constants.CHUNK_TEXTURE_VERTEX_GROUP))
         if chunk_id == constants.CHUNK_SKIN:
             skin_size = r.getf('<I')[0]
-            for i in range(skin_size // 8):
+            for _ in range(skin_size // 8):
                 sw_weight = r.getf('<8B')
                 sw_bones.append([str(sw_weight[0]), str(sw_weight[1]), str(sw_weight[2]), str(sw_weight[3])])
                 sw_weights.append([sw_weight[4], sw_weight[5], sw_weight[6], sw_weight[7]])

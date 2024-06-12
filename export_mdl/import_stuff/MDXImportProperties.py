@@ -4,7 +4,7 @@ import bpy
 class MDXImportProperties:
     def __init__(self):
         self.mdx_file_path: str = ''
-        self.team_color: str = 'RED'
+        self.team_color: str = '0'
         self.bone_size: float = 1.0
         self.use_custom_fps: bool = False
         self.fps: float = 30

@@ -10,7 +10,7 @@ from export_mdl.import_stuff.mdx_parser.load_mdx import load_mdx
 
 
 def set_team_color_property(operator, something):
-    operator.teamColor = constants.TEAM_COLORS[operator.setTeamColor]
+    operator.teamColor = constants.TEAM_COLORS[int(operator.setTeamColor)]
 
 
 class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
@@ -29,7 +29,7 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
     boneSize: bpy.props.FloatProperty(name='Bone Size', default=5.0, min=0.0001, max=1000.0)
     teamColor: bpy.props.FloatVectorProperty(
         name='Team Color',
-        default=constants.TEAM_COLORS['RED'],
+        default=constants.TEAM_COLORS[0],
         min=0.0,
         max=1.0,
         size=3,
@@ -38,23 +38,35 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
         )
     setTeamColor: bpy.props.EnumProperty(
         items=[
-            ('RED', 'Red', ''),
-            ('DARK_BLUE', 'Dark Blue', ''),
-            ('TURQUOISE', 'Turquoise', ''),
-            ('VIOLET', 'Violet', ''),
-            ('YELLOW', 'Yellow', ''),
-            ('ORANGE', 'Orange', ''),
-            ('GREEN', 'Green', ''),
-            ('PINK', 'Pink', ''),
-            ('GREY', 'Grey', ''),
-            ('BLUE', 'Blue', ''),
-            ('DARK_GREEN', 'Dark Green', ''),
-            ('BROWN', 'Brown', ''),
-            ('BLACK', 'Black', '')
+            ("0", 'Red', ''),
+            ("1", 'Blue', ''),
+            ("2", 'Teal', ''),
+            ("3", 'Purple', ''),
+            ("4", 'Yellow', ''),
+            ("5", 'Orange', ''),
+            ("6", 'Green', ''),
+            ("7", 'Pink', ''),
+            ("8", 'Grey', ''),
+            ("9", 'Light Blue', ''),
+            ("10", 'Dark Green', ''),
+            ("11", 'Brown', ''),
+            ("12", 'Maroon', ''),
+            ("13", 'Navy', ''),
+            ("14", 'Turquoise', ''),
+            ("15", 'Violet', ''),
+            ("16", 'Wheat', ''),
+            ("17", 'Peach', ''),
+            ("18", 'Mint', ''),
+            ("19", 'Lavender', ''),
+            ("20", 'Coal', ''),
+            ("21", 'Snow', ''),
+            ("22", 'Emerald', ''),
+            ("23", 'Peanut', ''),
+            ("24", 'Black', '')
             ],
         name='Set Team Color',
         update=set_team_color_property,
-        default='RED'
+        default="0"
         )
 
     def draw(self, context):

@@ -10,9 +10,6 @@ class War3BpyMaterial:
         self.material_node_tree = self.bpy_material.node_tree
         self.shader_node: bpy.types.Node = self.get_shader_node()
         self.node_width: float = self.shader_node.width
-        self.mix_node: bpy.types.Node = self.get_mix_node()
-        self.geo_color_node = self.get_geoset_anim_color_node(self.mix_node)
-        self.geo_alpha_node = self.get_geoset_anim_alpha_node()
 
     def get_new_material(self, material_name: str):
         bpy_material: bpy.types.Material = bpy.data.materials.new(name=material_name)
@@ -49,11 +46,11 @@ class War3BpyMaterial:
         return mix_node
 
     def get_geoset_anim_color_node(self, mix_node):
-        geo_color_node = self.get_new_node(1, 1, "ShaderNodeRGB")
+        geo_color_node = self.get_new_node(1, 1, "ShaderNode")
         geo_color_node.outputs[0].default_value = (1, 1, 1, 1)
         geo_color_node.name = 'Geoset Anim Color'
         geo_color_node.label = 'Geoset Anim Color'
-        self.connect(geo_color_node.outputs.get("Color"), mix_node.inputs.get("Color1"))
+        self.connect(geo_color_node.outputs.get("Result"), mix_node.inputs.get("A"))
         return geo_color_node
 
     def get_geoset_anim_alpha_node(self):
