@@ -13,10 +13,8 @@ class War3BpyMaterial:
 
     def get_new_material(self, material_name: str):
         bpy_material: bpy.types.Material = bpy.data.materials.new(name=material_name)
-        bpy_material.shadow_method = 'NONE'
         bpy_material.use_nodes = True
         bpy_material.blend_method = 'HASHED'
-        bpy_material.shadow_method = 'HASHED'
         bpy_material.diffuse_color = (1.0, 1.0, 1.0, 1.0)
         return bpy_material
 

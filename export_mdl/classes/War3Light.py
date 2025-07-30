@@ -24,6 +24,7 @@ class War3Light(War3Node):
         self.intensity: Optional[float] = None
         self.amb_color: Optional[List[float]] = None
         self.amb_intensity: Optional[float] = None
+        self.shadow_intensity: Optional[float] = None
         self.atten_start_anim: Optional[War3AnimationCurve] = None
         self.atten_end_anim: Optional[War3AnimationCurve] = None
         self.color_anim: Optional[War3AnimationCurve] = None

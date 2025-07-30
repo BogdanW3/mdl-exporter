@@ -63,7 +63,7 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
             model.helpers.extend(parse_helpers(chunk_data))
         elif chunk_id == constants.CHUNK_LIGHT:
             print(" Lights!")
-            model.lights.extend(parse_lights(chunk_data))
+            model.lights.extend(parse_lights(chunk_data, model.version))
         elif chunk_id == constants.CHUNK_ATTACHMENT:
             model.attachments.extend(parse_attachments(chunk_data))
         elif chunk_id == constants.CHUNK_EVENT_OBJECT:

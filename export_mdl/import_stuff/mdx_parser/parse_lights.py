@@ -7,7 +7,7 @@ from . import binary_reader
 from .parse_node import parse_node
 
 
-def parse_lights(data: bytes) -> List[War3Light]:
+def parse_lights(data: bytes, version: int) -> List[War3Light]:
     data_size = len(data)
     reader = binary_reader.Reader(data)
 
@@ -31,6 +31,10 @@ def parse_lights(data: bytes) -> List[War3Light]:
         node.intensity = r.get_float()
         node.amb_color = r.get_floats(3)
         node.amb_intensity = r.get_float()
+        if version >= 1200:
+            node.shadow_intensity = r.get_float()
+        else:
+            node.shadow_intensity = 0.4
         print(
             ("   pos: [%.2f, %.2f, %.2f]"     % tuple(node.pivot)) +
             (", light_type: %s"             % node.light_type) +
