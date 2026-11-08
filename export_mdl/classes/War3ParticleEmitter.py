@@ -121,7 +121,7 @@ class War3ParticleEmitter(War3Emitter):
             self.write_animated(fw, global_seqs, "Longitude", self.longitude_anim)
             # write_anim(self.longitude_anim, "Longitude", fw, global_seqs, "\t")
         else:
-            fw("\tstatic Longitude %s,\n" % float2str(rnd(emitter.latitude)))
+            fw("\tstatic Longitude %s,\n" % float2str(rnd(emitter.longitude)))
 
         if self.latitude_anim is not None:
             self.write_animated(fw, global_seqs, "Latitude", self.latitude_anim)

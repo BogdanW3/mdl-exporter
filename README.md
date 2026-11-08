@@ -7,11 +7,12 @@ By Kalle Halvarsson
 * Add the export_mdl folder to a zip file.
 * In Blender, go to Edit > Preferences > Add-ons, open the drop-down in the top right and pick "Install from Disk...". Select your zipped folder.
 * MDL Exporter should now show up in the add-on list. Make sure it is enabled by ticking the box.
-* The option to export to .mdl will now appear in the export menu, and .mdl/.mdx in the import menu.
+* "Warcraft 3 (.mdx/.mdl)" will now appear in both the import and the export menu.
 
 ## Format Versions
-Models from MDX/MDL version 800 up to 1800 (the latest, as of Warcraft III 3.0) can be imported. When exporting, pick the
-"Format Version" in the export options; fields that don't exist in that version are left out.
+Models from MDX/MDL version 800 up to 1800 (the latest, as of Warcraft III 3.0) can be imported. When exporting, pick
+the "Format" (binary .mdx, which the game loads, or text .mdl) and the "Format Version" in the export options; fields
+that don't exist in that version are left out.
 
 | Version | Adds |
 |---------|------|

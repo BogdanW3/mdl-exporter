@@ -35,6 +35,7 @@ from .save_ribbon_emitters import save_ribbon_emitters
 from .save_sequences import save_sequences
 from .save_texture_animations import save_texture_animations
 from .save_textures import save_textures
+from .write_mdx import write_mdx_file
 from ..classes.War3ExportSettings import War3ExportSettings
 from ..classes.War3Model import War3Model
 from ..classes.model_utils.from_scene import from_scene
@@ -42,7 +43,8 @@ from ..utils import float2str
 from ..action_compat import get_action_slot, restore_action
 
 
-def save(operator, context: bpy.types.Context, settings: War3ExportSettings, filepath="", mdl_version=800):
+def save(operator, context: bpy.types.Context, settings: War3ExportSettings, filepath="", mdl_version=800,
+         file_format='MDL'):
 
     print("Save, context: ", context)
     scene = context.scene
@@ -61,7 +63,15 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
         restore_action(obj, anim, slot)
     scene.frame_set(current_frame)
 
-    write_model_file(filepath, mdl_version, model, frame2ms, settings)
+    if settings.use_skinweights and mdl_version < 900:
+        # Tangents and skin weights don't exist before v900
+        print("Skin weights need format version 900 or newer, exporting as %d" % 1000)
+        mdl_version = 1000
+
+    if file_format == 'MDX':
+        write_mdx_file(filepath, mdl_version, model, frame2ms, settings)
+    else:
+        write_model_file(filepath, mdl_version, model, frame2ms, settings)
     print('Done saving "%s"' % filepath)
 
 
@@ -72,10 +82,6 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         date = datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y")
         fw("// Exported on %s by %s\n" % (date, getpass.getuser()))
 
-        if settings.use_skinweights and mdl_version < 900:
-            # Tangents and SkinWeights don't exist before v900
-            print("Skin weights need format version 900 or newer, exporting as %d" % 1000)
-            mdl_version = 1000
         fw("Version {\n\tFormatVersion %d,\n}\n" % mdl_version)
         # HEADER
         save_model_header(fw, model)

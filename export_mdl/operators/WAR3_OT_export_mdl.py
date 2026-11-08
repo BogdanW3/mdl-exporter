@@ -1,3 +1,5 @@
+import os
+
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
 from bpy.types import Operator
@@ -10,7 +12,7 @@ FORMAT_VERSIONS = [
     ('800', "800 (Classic / SD)", "Classic SD format, readable by every game version and tool"),
     ('900', "900", "Adds HD materials, tangents and skin weights"),
     ('1000', "1000", "Adds layer emissive and fresnel settings"),
-    ('1100', "1100", "HD textures are bound per slot in a single layer"),
+    ('1100', "1100", "Layers name their own shader and list their textures by slot"),
     ('1200', "1200", "Adds light shadow intensity"),
     ('1300', "1300", "Adds light shadow casting"),
     ('1400', "1400", "16 bit skin bone indices"),
@@ -21,18 +23,25 @@ FORMAT_VERSIONS = [
 
 @orientation_helper(axis_forward='Y', axis_up='Z')
 class WAR3_OT_export_mdl(Operator, ExportHelper):
-    """MDL Exporter"""
+    """Warcraft 3 Model Exporter"""
     bl_idname = 'export.mdl_exporter'
-    bl_description = 'Warcraft 3 MDL Exporter'
-    bl_label = 'Export .MDL'
-    filename_ext = ".mdl"
+    bl_description = 'Export a Warcraft 3 model (.mdx or .mdl)'
+    bl_label = 'Export Warcraft 3 Model'
+    filename_ext = ".mdx"
 
     filter_glob: StringProperty(
-            default="*.mdl", options={'HIDDEN'}
+            default="*.mdx;*.mdl", options={'HIDDEN'}
             )
 
     filepath: StringProperty(
             subtype="FILE_PATH"
+            )
+
+    file_format: EnumProperty(
+            name="Format",
+            items=[('MDX', "MDX (binary)", "Binary model, what the game and most tools load"),
+                   ('MDL', "MDL (text)", "Text model, readable and editable by hand")],
+            default='MDX',
             )
 
     use_selection: BoolProperty(
@@ -85,9 +94,21 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             unit='LENGTH'
             )
 
+    def check(self, context: bpy.types.Context):
+        # Keep the file extension in line with the chosen format
+        root, ext = os.path.splitext(self.filepath)
+        wanted = "." + self.file_format.lower()
+        if os.path.basename(root) and ext.lower() != wanted:
+            self.filepath = root + wanted
+            return True
+        return False
+
     def execute(self, context: bpy.types.Context):
         filepath = self.filepath
-        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
+        # An explicit .mdl/.mdx extension (e.g. from a script) decides the format
+        ext = os.path.splitext(filepath)[1].lower()
+        file_format = {'.mdx': 'MDX', '.mdl': 'MDL'}.get(ext, self.file_format)
+        filepath = bpy.path.ensure_ext(filepath, "." + file_format.lower())
 
         settings: War3ExportSettings = War3ExportSettings()
         settings.global_matrix = axis_conversion(
@@ -104,13 +125,20 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         settings.use_skinweights = self.use_skinweights
 
         from ..export_mdl import export_mdl
-        export_mdl.save(self, context, settings, filepath=filepath, mdl_version=int(self.format_version))
+        try:
+            export_mdl.save(self, context, settings, filepath=filepath, mdl_version=int(self.format_version),
+                            file_format=file_format)
+        except ValueError as e:
+            # Things the chosen format can't hold, explained in the message
+            self.report({'ERROR'}, str(e))
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
 
+        layout.prop(self, "file_format")
         layout.prop(self, "format_version")
         if self.use_skinweights and int(self.format_version) < 900:
             layout.label(text="Skin weights will be exported as version 1000", icon='INFO')

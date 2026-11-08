@@ -97,8 +97,8 @@ bl_info = {
     'version': (0, 0, 1),
     "blender": (3, 4, 0),
     'category': 'Import-Export',
-    "location": "File > Export > Warcraft MDL (.mdl)",
-    "description": "Export mesh as Warcraft .MDL",
+    "location": "File > Import-Export > Warcraft 3 (.mdx/.mdl)",
+    "description": "Import and export Warcraft 3 .mdx and .mdl models",
     }
 
 
@@ -150,7 +150,7 @@ ui_classes = (
 def menu_func(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
     # self.layout.operator(WAR3_OT_export_mdl.WAR3_OT_export_mdl.bl_idname, text="Warcraft MDL (.mdl)")
-    self.layout.operator(WAR3_OT_export_mdl.bl_idname, text="Warcraft 3 MDL (.mdl)")
+    self.layout.operator(WAR3_OT_export_mdl.bl_idname, text="Warcraft 3 (.mdx/.mdl)")
 
 
 def menu_import_mdx(self, context):

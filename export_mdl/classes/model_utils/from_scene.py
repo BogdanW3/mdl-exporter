@@ -94,9 +94,10 @@ def from_scene(context: bpy.types.Context,
     war3_model.materials = sorted(war3_model.materials, key=lambda x: x.priority_plane)
 
     layers = list(itertools.chain.from_iterable([material.layers for material in war3_model.materials]))
-    war3_model.textures.extend(set((layer.texture for layer in layers)))
-    war3_model.textures_paths.extend(set((layer.texture_path for layer in layers)))
-    war3_model.tvertex_anims.extend(set((layer.texture_anim for layer in layers if layer.texture_anim is not None)))
+    # dict.fromkeys de-duplicates like a set but keeps layer order, so the same scene always exports the same file
+    war3_model.textures.extend(dict.fromkeys(layer.texture for layer in layers))
+    war3_model.textures_paths.extend(dict.fromkeys(layer.texture_path for layer in layers))
+    war3_model.tvertex_anims.extend(dict.fromkeys(layer.texture_anim for layer in layers if layer.texture_anim is not None))
     # Convert to set and back to list for unique entries
 
     if settings.demote_to_helper:
