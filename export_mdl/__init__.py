@@ -95,7 +95,7 @@ bl_info = {
     "name": "Warcraft MDL Exporter",
     "author": "Kalle Halvarsson (& twilac)",
     'version': (0, 0, 1),
-    "blender": (2, 80, 0),
+    "blender": (3, 4, 0),
     'category': 'Import-Export',
     "location": "File > Export > Warcraft MDL (.mdl)",
     "description": "Export mesh as Warcraft .MDL",
@@ -207,6 +207,7 @@ def unregister():
         unregister_class(cls)
 
     bpy.types.TOPBAR_MT_file_export.remove(menu_func)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_import_mdx)
 
 
 if __name__ == "__main__":

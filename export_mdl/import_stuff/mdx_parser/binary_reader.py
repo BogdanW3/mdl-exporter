@@ -55,6 +55,11 @@ class Reader:
         else:
             return chunk_id
 
+    def peek_id(self) -> str:
+        if len(self.__data) < self.offset + 4:
+            return ''
+        return struct.unpack_from('<4s', self.__data, self.offset)[0].decode(encoding='utf-8', errors='replace')
+
     def skip(self, count: int):
         self.offset += count
 

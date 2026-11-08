@@ -1,17 +1,29 @@
 import bpy
-from bpy.props import StringProperty, BoolProperty, FloatProperty
+from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
 from bpy.types import Operator
 from bpy_extras.io_utils import orientation_helper, ExportHelper, axis_conversion
 from mathutils import Matrix
 
 from ..classes.War3ExportSettings import War3ExportSettings
 
+FORMAT_VERSIONS = [
+    ('800', "800 (Classic / SD)", "Classic SD format, readable by every game version and tool"),
+    ('900', "900", "Adds HD materials, tangents and skin weights"),
+    ('1000', "1000", "Adds layer emissive and fresnel settings"),
+    ('1100', "1100", "HD textures are bound per slot in a single layer"),
+    ('1200', "1200", "Adds light shadow intensity"),
+    ('1300', "1300", "Adds light shadow casting"),
+    ('1400', "1400", "16 bit skin bone indices"),
+    ('1600', "1600", "Adds light falloff and damping"),
+    ('1800', "1800 (Latest)", "Latest format the game knows about"),
+]
+
 
 @orientation_helper(axis_forward='Y', axis_up='Z')
 class WAR3_OT_export_mdl(Operator, ExportHelper):
     """MDL Exporter"""
     bl_idname = 'export.mdl_exporter'
-    bl_description = 'Warctaft 3 MDL Exporter'
+    bl_description = 'Warcraft 3 MDL Exporter'
     bl_label = 'Export .MDL'
     filename_ext = ".mdl"
 
@@ -27,6 +39,13 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             name="Selected Objects",
             description="Export only selected objects on visible layers",
             default=False,
+            )
+
+    format_version: EnumProperty(
+            name="Format Version",
+            description="MDL FormatVersion to write. Fields newer than this version are left out",
+            items=FORMAT_VERSIONS,
+            default='800',
             )
 
     global_scale: FloatProperty(
@@ -85,13 +104,16 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
         settings.use_skinweights = self.use_skinweights
 
         from ..export_mdl import export_mdl
-        export_mdl.save(self, context, settings, filepath=filepath, mdl_version=800)
+        export_mdl.save(self, context, settings, filepath=filepath, mdl_version=int(self.format_version))
 
         return {'FINISHED'}
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
 
+        layout.prop(self, "format_version")
+        if self.use_skinweights and int(self.format_version) < 900:
+            layout.label(text="Skin weights will be exported as version 1000", icon='INFO')
         layout.prop(self, "use_selection")
         layout.prop(self, "global_scale")
         layout.prop(self, "axis_forward")

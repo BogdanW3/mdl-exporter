@@ -17,6 +17,7 @@ from export_mdl.import_stuff.create_attachment_empties import create_attachment_
 from export_mdl.import_stuff.create_collision_empties import create_collision_empties
 from export_mdl.import_stuff.create_event_empties import create_event_empties
 from export_mdl.import_stuff.create_light_objects import create_light_objects
+from ..action_compat import find_fcurve, new_fcurve
 
 
 def create_other_objects(model: War3Model,
@@ -112,11 +113,9 @@ def create_transformation_curves(action: bpy.types.Action,
 
     fcurves: List[bpy.types.FCurve] = []
 
-    current_fcurve = action.fcurves.find(data_path)
-    if current_fcurve is not None:
-        current_fcurve_index = action.fcurves.values().index(current_fcurve)
+    if find_fcurve(action, data_path) is not None:
         for i in range(len(trans_zero_values)):
-            fcurves.append(action.fcurves[current_fcurve_index + i])
+            fcurves.append(find_fcurve(action, data_path, i))
 
     # set the keyframe before and after the sequence to same as the first keyframe,
     # or T-pose if first keyframe is not present, to not ge weird
@@ -227,7 +226,7 @@ def set_new_curves(action: bpy.types.Action,
 
     for i in range(len(value)):
         if len(fcurves) <= i:
-            fcurves_new = action.fcurves.new(data_path, index=i, action_group=bone_name)
+            fcurves_new = new_fcurve(action, data_path, i, bone_name)
             fcurves.append(fcurves_new)
         org_len = len(fcurves[i].keyframe_points)
         if value is not None and i < len(value):

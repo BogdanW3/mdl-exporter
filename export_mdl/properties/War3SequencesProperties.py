@@ -7,6 +7,8 @@ from ..properties.War3SequenceProperties import War3SequenceProperties
 
 
 def set_current_sequence(prop: 'War3SequencesProperties', context: bpy.types.Context):
+    if not 0 <= prop.mdl_sequence_index < len(prop.mdl_sequences):
+        return
     bpy.context.scene.frame_start = prop.mdl_sequences[prop.mdl_sequence_index].start
     bpy.context.scene.frame_end = prop.mdl_sequences[prop.mdl_sequence_index].end
 

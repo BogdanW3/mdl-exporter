@@ -13,6 +13,12 @@ from export_mdl.import_stuff.War3BpyMaterial import War3BpyMaterial
 from export_mdl.properties.War3Preferences import War3Preferences
 
 
+def mix_socket(sockets, name: str):
+    # ShaderNodeMix has a socket per data type under the same name, only the current type's one is enabled.
+    # Blender 3.x returns the first (float) one from get(), so pick the enabled one.
+    return next((s for s in sockets if s.name == name and s.enabled), sockets.get(name))
+
+
 def create_material(model: War3Model, team_color: str) -> Dict[str, War3BpyMaterial]:
     bpy_images = load_and_get_textures(model, team_color)
 
@@ -40,7 +46,7 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
     tc_mix.data_type = 'RGBA'
     tc_mix.inputs[0].default_value = 1.0
         
-    war3_bpy_material.connect(tc_mix.outputs.get("Result"), war3_bpy_material.get_input("Base Color"))
+    war3_bpy_material.connect(mix_socket(tc_mix.outputs, "Result"), war3_bpy_material.get_input("Base Color"))
     if hd:
 
         for i, bpy_image in enumerate(images):
@@ -48,7 +54,7 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
                 texture_mat_node = war3_bpy_material.get_new_node(3, i, 'ShaderNodeTexImage')
                 texture_mat_node.image = bpy_image
             if i == 0:
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), tc_mix.inputs.get("A"))
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), mix_socket(tc_mix.inputs, "A"))
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), war3_bpy_material.get_input("Alpha"))
             elif i == 1:
                 texture_mat_node.image.colorspace_settings.is_data = True
@@ -59,13 +65,13 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
 
                 war3_bpy_material.connect(normal_map_node.outputs.get("Normal"), war3_bpy_material.get_input("Normal"))
             elif i == 2:
-                orm = war3_bpy_material.get_new_node(1, i, 'ShaderNodeSeparateRGB')
+                orm = war3_bpy_material.get_new_node(1, i, 'ShaderNodeSeparateColor')
 
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), orm.inputs.get("Image"))
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), orm.inputs.get("Color"))
 
-                war3_bpy_material.connect(orm.outputs.get("G"), war3_bpy_material.get_input("Roughness"))
-                war3_bpy_material.connect(orm.outputs.get("B"), war3_bpy_material.get_input("Metallic"))
-                war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), tc_mix.inputs.get("Factor"))
+                war3_bpy_material.connect(orm.outputs.get("Green"), war3_bpy_material.get_input("Roughness"))
+                war3_bpy_material.connect(orm.outputs.get("Blue"), war3_bpy_material.get_input("Metallic"))
+                war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), mix_socket(tc_mix.inputs, "Factor"))
             elif i == 3:
                 emSlot = war3_bpy_material.get_input("Emission")
                 if emSlot is None:
@@ -75,7 +81,7 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
                 color_wheel = war3_bpy_material.get_new_node(3, -1, 'ShaderNodeRGB')
                 color_wheel.outputs[0].default_value = (*constants.TEAM_COLORS[int(team_color)], 1.0)
 
-                war3_bpy_material.connect(color_wheel.outputs.get("Color"), tc_mix.inputs.get("B"))
+                war3_bpy_material.connect(color_wheel.outputs.get("Color"), mix_socket(tc_mix.inputs, "B"))
                 pass
             elif i == 5:
                 # skip the environmental map, possibly change the world's map to it
@@ -84,7 +90,7 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
                 print("Unknown texture slot", i, " in ", material_name)
             print(bpy_image.filepath, " at place ", i)
     else:
-        next_color_input = tc_mix.inputs.get("B")
+        next_color_input = mix_socket(tc_mix.inputs, "B")
         next_alpha_input = war3_bpy_material.get_geoset_anim_alpha_node().inputs[0]
         for i, bpy_image in enumerate(images):
             texture_mat_node = war3_bpy_material.get_new_node(i*2+3, i, 'ShaderNodeTexImage')
@@ -93,11 +99,11 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
             mix_node.blend_type = 'MULTIPLY' # shouldn't always be multiply...
             mix_node.data_type = 'RGBA'
             mix_node.inputs[0].default_value = 1.0
-            mix_node.inputs.get("A").default_value = (1, 1, 1, 1)
-            war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), mix_node.inputs.get("B"))
+            mix_socket(mix_node.inputs, "A").default_value = (1, 1, 1, 1)
+            war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), mix_socket(mix_node.inputs, "B"))
             war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), mix_node.inputs[0])
-            war3_bpy_material.connect(mix_node.outputs.get("Result"), next_color_input)
-            next_color_input = mix_node.inputs.get("B")
+            war3_bpy_material.connect(mix_socket(mix_node.outputs, "Result"), next_color_input)
+            next_color_input = mix_socket(mix_node.inputs, "B")
 
             alpha_node = war3_bpy_material.get_new_node(i*2+1, 4, "ShaderNodeMath")
             alpha_node.inputs[1].default_value = 0.0

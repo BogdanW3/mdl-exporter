@@ -33,7 +33,10 @@ def create_mesh_objects(model: War3Model,
         #     print(l)
 
         # print("creating mesh with %s verts" % len(locations))
-        bpy_mesh.from_pydata(locations, (), war3_geoset.triangles)
+        # Some Reforged models have zero-area triangles that repeat a vertex. Blender doesn't allow those,
+        # and 5.3 hangs in bmesh operations on meshes that have them.
+        triangles = [t for t in war3_geoset.triangles if len(set(t)) == 3]
+        bpy_mesh.from_pydata(locations, (), triangles)
 
         # print("applying uvs")
         apply_uvs(bpy_mesh, war3_geoset)
@@ -54,15 +57,18 @@ def create_mesh_objects(model: War3Model,
 
         # print("applying bones")
         print("   skinning")
-        for vertex in war3_geoset.vertices:
+        groups: bpy.types.VertexGroups = bpy_object.vertex_groups
+        for vertex_index, vertex in enumerate(war3_geoset.vertices):
             for i in range(0, len(vertex.bone_list)):
                 if vertex.weight_list[i] != 0:
                     v_bone = vertex.bone_list[i]
                     # print("bone:", v_bone, "weight", (vertex.weight_list[i] / 255.0))
 
-                    groups: bpy.types.VertexGroups = bpy_object.vertex_groups
                     vert_group: bpy.types.VertexGroup = groups.get(v_bone)
-                    vert_group.add([war3_geoset.vertices.index(vertex), ], vertex.weight_list[i] / 255.0, 'REPLACE')
+                    if vert_group is None:
+                        # HD skins can weight to any node, not only bones
+                        vert_group = groups.new(name=str(v_bone))
+                    vert_group.add([vertex_index, ], vertex.weight_list[i] / 255.0, 'REPLACE')
                     # bpy_object.vertex_groups.get(vertex.bone_list[i]).add([vertex_index, ], vertex.weight_list[i] / 255.0, 'REPLACE')
 
         bpy_object.modifiers.new(name='Armature', type='ARMATURE')

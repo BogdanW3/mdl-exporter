@@ -1,5 +1,3 @@
-import struct
-
 from ...classes.War3Layer import War3Layer
 from ... import constants
 from .binary_reader import Reader
@@ -13,25 +11,17 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
     layer = War3Layer()
     layer.filter_mode = constants.FILTER_MODES.get(r.getf('<I')[0], 'None')
     shadingFlags = r.getf('<I')[0]
-    if shadingFlags & 0x1:
-        layer.unshaded = True
-    if shadingFlags & 0x2:
-        # sphere env map
-        pass
-    if shadingFlags & 0x4:
-        # unknown
-        pass
-    if shadingFlags & 0x8:
-        # unknown
-        pass
-    if shadingFlags & 0x10:
-        layer.two_sided = True
-    if shadingFlags & 0x20:
-        layer.unfogged = True
-    if shadingFlags & 0x40:
-        layer.no_depth_test = True
-    if shadingFlags & 0x80:
-        layer.no_depth_set = True
+    layer.unshaded = bool(shadingFlags & 0x1)
+    layer.sphere_env_map = bool(shadingFlags & 0x2)
+    layer.wrap_width = bool(shadingFlags & 0x4)
+    layer.wrap_height = bool(shadingFlags & 0x8)
+    layer.two_sided = bool(shadingFlags & 0x10)
+    layer.unfogged = bool(shadingFlags & 0x20)
+    layer.no_depth_test = bool(shadingFlags & 0x40)
+    layer.no_depth_set = bool(shadingFlags & 0x80)
+    layer.unlit = bool(shadingFlags & 0x100)
+    layer.back_faces_for_shadows = bool(shadingFlags & 0x200)
+    layer.ambient_occlusion = bool(shadingFlags & 0x400)
 
     layer.texture_id = r.getf('<I')[0]
     layer.texture_path = str(layer.texture_id)
@@ -48,29 +38,18 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
         layer.fresnel_team_color = r.getf('<f')[0]
 
     if 1000 < version:
-        layer.hd = r.getf('<I')[0]
+        layer.shader = r.getf('<I')[0]
+        layer.hd = layer.shader in constants.HD_SHADER_IDS
         numTextures: int = r.getf('<I')[0]
 
-        # print("numTextures:", numTextures)
-
+        # Each texture is an id and a PBR slot, optionally followed by its own KMTF flipbook track
         layer.multi_texture_ids = []
-        i = 0
-        while i < numTextures:
-            animOrTextureId = r.getf('<I')[0]
-            # print("Texture:", i, ", animOrTextureId:", animOrTextureId)
-            if 1024 < animOrTextureId:
-                i -= 1
-                r.offset -= struct.calcsize('<I')
-                anim_id = r.getid(constants.SUB_CHUNKS_LAYER)
-                # print("Texture:", i, ", anim_id: ", anim_id)
+        for _ in range(numTextures):
+            texture_id, texture_slot = r.getf('<2I')
+            layer.multi_texture_ids.append(texture_id)
+            if r.peek_id() == constants.CHUNK_MATERIAL_TEXTURE_ID:
+                r.skip(4)
                 layer.texture_anim = parse_timeline(r, '<I')
-            else:
-                textureSlot = r.getf('<I')[0]
-                layer.multi_texture_ids.append(animOrTextureId)
-                # print("Texture:", i, "textureSlot", textureSlot, ", textureID: ", animOrTextureId)
-            i += 1
-
-    # print("r.offset:", r.offset, "of", data_size)
 
     while r.offset < data_size:
         chunk_id = r.getid(constants.SUB_CHUNKS_LAYER)
@@ -87,6 +66,8 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
             layer.fresnel_alpha = parse_timeline(r, '<f')
         elif chunk_id == constants.CHUNK_MATERIAL_FRESNEL_TEAMCOLOR:
             layer.fresnel_team_color = parse_timeline(r, '<f')
-        # print("r.offset:", r.offset, "of", data_size)
+        else:
+            # An unknown track can't be skipped without knowing its value size, give up on the rest of the layer
+            r.offset = data_size
 
     return layer

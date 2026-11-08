@@ -1,5 +1,7 @@
 import bpy
 
+from ..action_compat import assign_action
+
 
 def set_animation_name(seq_prop, context: bpy.types.Context):
     # armature_prop = context.armature.war_3
@@ -38,7 +40,7 @@ def set_animation(seq_prop, context: bpy.types.Context):
                 if action.name == object_animation_name:
                     if bpy_object.animation_data is None:
                         bpy_object.animation_data_create()
-                    bpy_object.animation_data.action = action
+                    assign_action(bpy_object, action)
                     print(bpy_object.animation_data.action)
 
 
@@ -48,7 +50,7 @@ def prepare_action(context: bpy.types.Context, animation_name: str, anim_length)
         armature_object.animation_data_create()
     bpy_action = bpy.data.actions[animation_name]
     # bpy_action = bpy.data.actions.get(animation_name)
-    armature_object.animation_data.action = bpy_action
+    assign_action(armature_object, bpy_action)
     # print("seqItem, action: ", armature_object.animation_data.action)
     # bpy.context.scene.frame_start = bpy_action.frame_range[0]
     # bpy.context.scene.frame_end = bpy_action.frame_range[1]

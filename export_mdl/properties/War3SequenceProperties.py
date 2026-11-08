@@ -23,7 +23,7 @@ def get_sequence_start(self):
     if not len(scene.war3_mdl_sequences.mdl_sequences):
         return 0
     # active_sequence = scene.mdl_sequences[scene.mdl_sequence_index]
-    return min(tuple(m.frame for m in scene.timeline_markers if m.name == self.seq_name))
+    return min((m.frame for m in scene.timeline_markers if m.name == self.seq_name), default=0)
 
 
 def get_sequence_end(self):
@@ -31,7 +31,7 @@ def get_sequence_end(self):
     if not len(scene.war3_mdl_sequences.mdl_sequences):
         return 0
     # active_sequence = scene.mdl_sequences[scene.mdl_sequence_index]
-    return max(tuple(m.frame for m in scene.timeline_markers if m.name == self.seq_name))
+    return max((m.frame for m in scene.timeline_markers if m.name == self.seq_name), default=0)
 
 
 class War3SequenceProperties(bpy.types.PropertyGroup):

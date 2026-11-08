@@ -1,5 +1,8 @@
-MDX_VERSIONS = [800, 900, 1000, 1100, 1200]
-MDL_VERSIONS = [800, 900, 1000]
+# Versions the game (and HiveWE) know about. 1300 adds light shadow casting and the camera variant,
+# 1400 widens SKIN bone indices to 16 bits, 1600 adds light falloff and 1800 is the current latest.
+MDX_VERSIONS = [800, 900, 1000, 1100, 1200, 1300, 1400, 1600, 1800]
+MDL_VERSIONS = MDX_VERSIONS
+MDX_LATEST_VERSION = MDX_VERSIONS[-1]
 MDX_CURRENT_VERSION = 800
 # MDX FILE CHUNKS
 CHUNK_MDX_MODEL                 = 'MDLX'
@@ -27,6 +30,7 @@ CHUNK_EVENT_OBJECT              = 'EVTS'
 CHUNK_COLLISION_SHAPE           = 'CLID'
 CHUNK_FACE_FX                   = 'FAFX'
 CHUNK_BIND_POSE                 = 'BPOS'
+CHUNK_GLIDER                    = 'DILG'  # Blizzard's spelling, it really is backwards on disk
 # TEXTURE ANIMATION SUB-CHUNKS
 CHUNK_TEX_ANIM_TRANSLATION      = 'KTAT'  # (MdlUtils.TOKEN_TRANSLATION, MdlxTimelineType.VECTOR3_TIMELINE),
 CHUNK_TEX_ANIM_ROTATION         = 'KTAR'  # (MdlUtils.TOKEN_ROTATION, MdlxTimelineType.VECTOR4_TIMELINE),
@@ -72,6 +76,11 @@ CHUNK_LIGHT_INTENSITY           = 'KLAI'  # (MdlUtils.TOKEN_INTENSITY, MdlxTimel
 CHUNK_LIGHT_AMBIENT_INTENSITY   = 'KLBI'  # (MdlUtils.TOKEN_AMB_INTENSITY, MdlxTimelineType.FLOAT_TIMELINE),
 CHUNK_LIGHT_AMBIENT_COLOR       = 'KLBC'  # (MdlUtils.TOKEN_AMB_COLOR, MdlxTimelineType.VECTOR3_TIMELINE),
 CHUNK_LIGHT_VISIBILITY          = 'KLAV'  # (MdlUtils.TOKEN_VISIBILITY, MdlxTimelineType.FLOAT_TIMELINE),
+CHUNK_LIGHT_SHADOW_CASTING_START = 'KLSS'  # v1300+
+CHUNK_LIGHT_SHADOW_CASTING_END  = 'KLSE'  # v1300+
+CHUNK_LIGHT_QUADRATIC_FALLOFF   = 'KLQF'  # v1600+
+CHUNK_LIGHT_LINEAR_FALLOFF      = 'KLLF'  # v1600+
+CHUNK_LIGHT_DAMPING             = 'KLDA'  # v1600+
 # SUB-CHUNKS
 SUB_CHUNKS_MDX_MODEL = (
     CHUNK_VERSION,
@@ -95,7 +104,8 @@ SUB_CHUNKS_MDX_MODEL = (
     CHUNK_RIBBON_EM,
     CHUNK_CAMERAS,
     CHUNK_FACE_FX,
-    CHUNK_BIND_POSE
+    CHUNK_BIND_POSE,
+    CHUNK_GLIDER
     )
 SUB_CHUNKS_LAYER = (
     CHUNK_MATERIAL_TEXTURE_ID,
@@ -126,7 +136,12 @@ SUB_CHUNKS_LIGHT = (
     CHUNK_LIGHT_INTENSITY,
     CHUNK_LIGHT_AMBIENT_INTENSITY,
     CHUNK_LIGHT_AMBIENT_COLOR,
-    CHUNK_LIGHT_VISIBILITY
+    CHUNK_LIGHT_VISIBILITY,
+    CHUNK_LIGHT_SHADOW_CASTING_START,
+    CHUNK_LIGHT_SHADOW_CASTING_END,
+    CHUNK_LIGHT_QUADRATIC_FALLOFF,
+    CHUNK_LIGHT_LINEAR_FALLOFF,
+    CHUNK_LIGHT_DAMPING
     )
 # INTERPOLATION TYPES
 INTERPOLATION_TYPE_NONE = 0
@@ -191,6 +206,23 @@ TEAM_COLORS = [
 TEAM_COLOR_IMAGE_PATH = 'ReplaceableTextures\\TeamColor\\TeamColor'
 TEAM_GLOW_IMAGE_PATH = 'ReplaceableTextures\\TeamGlow\\TeamGlow'
 TEAM_IMAGE_EXT = '.dds'
+
+# Shader names as the game registers them (matched case-insensitively). Layer shader ids are stored from v1100 on.
+SHADER_NAMES = {
+    0: 'Shader_SD_Legacy',
+    1: 'Shader_HD_DefaultUnit',
+    2: 'Shader_SD_FixedFunction',
+    24: 'Shader_HD_Crystal',
+}
+HD_SHADER_IDS = (1, 24)
+
+
+def shader_id_from_name(name: str) -> int:
+    for shader_id, shader_name in SHADER_NAMES.items():
+        if name.strip().lower() == shader_name.lower():
+            return shader_id
+    return 0
+
 
 FILTER_MODES = {
     0: 'None',

@@ -3,11 +3,29 @@ Warcraft MDL exporter for Blender
 By Kalle Halvarsson
 
 ## Installation
-* Select your branch - 2.79 or 2.8 depending on your Blender version, and download/clone.
-* Add export_mdl folder to a zip or rar file
-* In Blender, go to User Preferences (CTRL+ALT+U) and select "Install Add-on From File". Select your zipped folder.
-* MDL Exporter should now show up in the Import/Export plugins list. Make sure it is enabled by ticking the box.
-* The option to export to .mdl will now appear in the export menu (you may need to restart Blender first).
+* This branch supports Blender 3.4 up to 5.3 (tested on 5.3). Older Blender versions need the 2.79 or 2.8 branches.
+* Add the export_mdl folder to a zip file.
+* In Blender, go to Edit > Preferences > Add-ons, open the drop-down in the top right and pick "Install from Disk...". Select your zipped folder.
+* MDL Exporter should now show up in the add-on list. Make sure it is enabled by ticking the box.
+* The option to export to .mdl will now appear in the export menu, and .mdl/.mdx in the import menu.
+
+## Format Versions
+Models from MDX/MDL version 800 up to 1800 (the latest, as of Warcraft III 3.0) can be imported. When exporting, pick the
+"Format Version" in the export options; fields that don't exist in that version are left out.
+
+| Version | Adds |
+|---------|------|
+| 800  | Classic SD format, every game version and tool can read it |
+| 900  | HD materials, tangents and skin weights |
+| 1000 | Layer emissive gain and fresnel |
+| 1100 | The HD shader is named per layer instead of per material |
+| 1200 | Light shadow intensity |
+| 1300 | Light shadow casting and its start/end distance |
+| 1400 | 16 bit skin bone indices |
+| 1600 | Light quadratic/linear falloff and damping |
+| 1800 | Latest |
+
+Exporting with "Use SkinWeights" needs at least version 900, lower versions are bumped to 1000.
 
 ## Instructions
 This plugin tries to approximate the functionality of the Wc3 Art Tools exporter for 3ds Max. The ambition has been to support multiple ways of achieving the same result, so that users can set up their scene in whatever way feels most intuitive. There are, however, some implementation details you might need to know before using this plugin.

@@ -1,6 +1,8 @@
+import copy
 import re
 from typing import List
 
+from ... import constants
 from .parse_geoset_transformation import parse_geoset_transformation
 from .mdl_reader import extract_bracket_content, chunkifier, get_between
 from ...classes.War3Layer import War3Layer
@@ -19,19 +21,35 @@ def parse_materials(data: str) -> List[War3Material]:
         layer_chunks = chunkifier(material_info)
         layers = []
 
+        # v900/v1000 name the shader once per material, v1100+ per layer
+        material_shader = re.search(r'Shader\s+"([^"]*)"', material_info.split("Layer")[0])
+        material_shader_id = constants.shader_id_from_name(material_shader.group(1)) if material_shader else 0
+
         for chunk in layer_chunks:
             layer = War3Layer()
+            layer.shader = material_shader_id
+            layer.hd = material_shader_id in constants.HD_SHADER_IDS
             layer_info = extract_bracket_content(chunk).split(",")
+            slot_texture_ids: List[str] = []
 
             for info in layer_info:
                 label = info.strip().split(" ")[0]
 
                 if label == "FilterMode":
                     layer.filter_mode = get_between(info, "FilterMode ", ",")
+                elif label == "Shader":
+                    layer.shader = constants.shader_id_from_name(get_between(info, "Shader ", ",").strip('"'))
+                    layer.hd = layer.shader in constants.HD_SHADER_IDS
                 else:
                     if info.find("TextureID") > -1:
                         if info.find("static TextureID") > -1:
-                            layer.texture_path = get_between(info, "static TextureID ", ",")
+                            texture_id = get_between(info, "static TextureID ", ",")
+                            if "<=" in texture_id:
+                                # v1100+ HD: "static TextureID id <= slot", one line per PBR slot
+                                texture_id = texture_id.split("<=")[0].strip()
+                                slot_texture_ids.append(texture_id)
+                            if len(slot_texture_ids) <= 1:
+                                layer.texture_path = texture_id
                         else:
                             # Flip-book texture on format time: textureID,
                             #   DontInterp,
@@ -74,7 +92,14 @@ def parse_materials(data: str) -> List[War3Material]:
                     #         alpha_chunk = re.split(",\n*\\s*(?=FresnelTeamColor)", chunk)[1]
                     #         layer.fresnel_team_color_anim = parse_geoset_transformation(alpha_chunk)
 
-            layers.append(layer)
+            if 1 < len(slot_texture_ids):
+                # Split into one layer per texture, the layout the material importer expects for HD
+                for texture_id in slot_texture_ids:
+                    slot_layer = copy.copy(layer)
+                    slot_layer.texture_path = texture_id
+                    layers.append(slot_layer)
+            else:
+                layers.append(layer)
 
         material.layers = layers
         materials.append(material)

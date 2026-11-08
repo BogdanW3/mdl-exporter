@@ -24,18 +24,20 @@ def create_light_objects(nodes: List[War3Light], bpy_armature_object: bpy.types.
 
 def create_bpy_light(node):
     bpy_light: bpy.types.Light = bpy.data.lights.new(node.name, type="POINT")
-    bpy_light.energy = node.intensity
-    bpy_light.color = node.color
+    if node.intensity is not None:
+        bpy_light.energy = node.intensity
+    if node.color is not None:
+        bpy_light.color = node.color
     if hasattr(bpy_light, 'mdl_light'):
         light_settings: War3LightSettings = bpy_light.__getattribute__('mdl_light')
-        light_settings.light_type = node.light_type
         # light_settings.light_type = ('Omnidirectional', 'Directional', 'Ambient')[node.light_type]
-        light_settings.atten_start = node.atten_start
-        light_settings.atten_end = node.atten_end
-        light_settings.color = node.color
-        light_settings.intensity = node.intensity
-        light_settings.amb_color = node.amb_color
-        light_settings.amb_intensity = node.amb_intensity
+        # Values the file didn't specify are None, those keep the property defaults
+        for attr in ('light_type', 'atten_start', 'atten_end', 'color', 'intensity', 'amb_color', 'amb_intensity',
+                     'shadow_intensity', 'shadow_casting', 'shadow_casting_start', 'shadow_casting_end',
+                     'quadratic_falloff', 'linear_falloff', 'damping'):
+            value = getattr(node, attr)
+            if value is not None:
+                setattr(light_settings, attr, value)
     bpy_object = bpy.data.objects.new(node.name, bpy_light)
     bpy.context.scene.collection.objects.link(bpy_object)
     bpy_object.location = node.pivot

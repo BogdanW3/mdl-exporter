@@ -39,6 +39,7 @@ from ..classes.War3ExportSettings import War3ExportSettings
 from ..classes.War3Model import War3Model
 from ..classes.model_utils.from_scene import from_scene
 from ..utils import float2str
+from ..action_compat import get_action_slot, restore_action
 
 
 def save(operator, context: bpy.types.Context, settings: War3ExportSettings, filepath="", mdl_version=800):
@@ -50,14 +51,14 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
     obj_to_anim = {}  # save objects' active action
     for obj in scene.objects:
         if obj.animation_data is not None:
-            obj_to_anim[obj] = obj.animation_data.action
+            obj_to_anim[obj] = (obj.animation_data.action, get_action_slot(obj))
     scene.frame_set(0)
 
     frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
     model: War3Model = from_scene(context, settings)
 
-    for obj, anim in obj_to_anim.items():  # set objects' active actions
-        obj.animation_data.action = anim
+    for obj, (anim, slot) in obj_to_anim.items():  # set objects' active actions
+        restore_action(obj, anim, slot)
     scene.frame_set(current_frame)
 
     write_model_file(filepath, mdl_version, model, frame2ms, settings)
@@ -71,10 +72,11 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         date = datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y")
         fw("// Exported on %s by %s\n" % (date, getpass.getuser()))
 
-        if settings.use_skinweights:
-            fw("Version {\n\tFormatVersion %d,\n}\n" % 1000)
-        else:
-            fw("Version {\n\tFormatVersion %d,\n}\n" % mdl_version)
+        if settings.use_skinweights and mdl_version < 900:
+            # Tangents and SkinWeights don't exist before v900
+            print("Skin weights need format version 900 or newer, exporting as %d" % 1000)
+            mdl_version = 1000
+        fw("Version {\n\tFormatVersion %d,\n}\n" % mdl_version)
         # HEADER
         save_model_header(fw, model)
 
@@ -88,7 +90,7 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         save_textures(fw, model.textures)
 
         # MATERIALS
-        save_materials(fw, model.materials, model.textures, model.tvertex_anims, model.global_seqs)
+        save_materials(fw, model.materials, model.textures, model.tvertex_anims, model.global_seqs, mdl_version)
 
         # TEXTURE ANIMATIONS
         save_texture_animations(fw, model.tvertex_anims, model.global_seqs)
@@ -103,7 +105,7 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         save_bones(fw, model)
 
         # LIGHTS
-        save_lights(fw, model)
+        save_lights(fw, model, mdl_version)
 
         # HELPERS
         save_helpers(fw, model)

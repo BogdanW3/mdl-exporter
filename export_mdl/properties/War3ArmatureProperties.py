@@ -2,6 +2,8 @@ from typing import List, Dict
 
 import bpy
 
+from ..action_compat import assign_action
+
 from export_mdl.properties.War3ArmatureSequenceListItem import War3ArmatureSequenceListItem
 
 ACTION_NAME_UNANIMATED = '#UNANIMATED'
@@ -25,7 +27,7 @@ def set_animation(armature_prop: 'War3ArmatureProperties', context: bpy.types.Co
             if object_action:
                 if bpy_object.animation_data is None:
                     bpy_object.animation_data_create()
-                bpy_object.animation_data.action = object_action
+                assign_action(bpy_object, object_action)
     else:
         print("did not find", animation_name)
 
@@ -56,7 +58,7 @@ def prepare_action(context: bpy.types.Context, animation_name: str, anim_length:
     if armature_object.animation_data is None:
         armature_object.animation_data_create()
     bpy_action = bpy.data.actions.get(animation_name)
-    armature_object.animation_data.action = bpy_action
+    assign_action(armature_object, bpy_action)
     print(animation_name, 0, "-", anim_length)
     print("armature_object.animation_data.action:", armature_object.animation_data.action)
     bpy.context.scene.frame_start = 0

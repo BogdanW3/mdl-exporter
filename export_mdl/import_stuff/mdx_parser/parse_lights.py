@@ -24,7 +24,11 @@ def parse_lights(data: bytes, version: int) -> List[War3Light]:
         parse_node(r, node)
 
         print("  reading light static data!")
-        node.light_type = ('Omnidirectional', 'Directional', 'Ambient')[r.get_int()]
+        light_types = ('Omnidirectional', 'Directional', 'Ambient')
+        light_type = r.get_int()
+        node.light_type = light_types[light_type] if light_type < len(light_types) else light_types[0]
+        if version >= 1300:
+            node.shadow_casting = r.get_int() != 0
         node.atten_start = r.get_float()
         node.atten_end = r.get_float()
         node.color = r.get_floats(3)
@@ -35,6 +39,13 @@ def parse_lights(data: bytes, version: int) -> List[War3Light]:
             node.shadow_intensity = r.get_float()
         else:
             node.shadow_intensity = 0.4
+        if version >= 1300:
+            node.shadow_casting_start = r.get_float()
+            node.shadow_casting_end = r.get_float()
+        if version >= 1600:
+            node.quadratic_falloff = r.get_float()
+            node.linear_falloff = r.get_float()
+            node.damping = r.get_float()
         print(
             ("   pos: [%.2f, %.2f, %.2f]"     % tuple(node.pivot)) +
             (", light_type: %s"             % node.light_type) +
@@ -62,6 +73,19 @@ def parse_lights(data: bytes, version: int) -> List[War3Light]:
                 node.amb_intensity_anim = parse_timeline(r, '<f')
             elif chunk_id == constants.CHUNK_LIGHT_VISIBILITY:
                 node.visibility = parse_timeline(r, '<f')
+            elif chunk_id == constants.CHUNK_LIGHT_SHADOW_CASTING_START:
+                node.shadow_casting_start_anim = parse_timeline(r, '<f')
+            elif chunk_id == constants.CHUNK_LIGHT_SHADOW_CASTING_END:
+                node.shadow_casting_end_anim = parse_timeline(r, '<f')
+            elif chunk_id == constants.CHUNK_LIGHT_QUADRATIC_FALLOFF:
+                node.quadratic_falloff_anim = parse_timeline(r, '<f')
+            elif chunk_id == constants.CHUNK_LIGHT_LINEAR_FALLOFF:
+                node.linear_falloff_anim = parse_timeline(r, '<f')
+            elif chunk_id == constants.CHUNK_LIGHT_DAMPING:
+                node.damping_anim = parse_timeline(r, '<f')
+            else:
+                # Unknown track, its value size is unknown too so the rest of this light can't be read
+                break
 
         nodes.append(node)
     return nodes

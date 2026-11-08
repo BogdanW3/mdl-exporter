@@ -28,7 +28,8 @@ def create_bone_groups1(bone_to_group_name: Dict[str, str], bpy_armature_object:
 
     pose_bone_groups: bpy.types.BoneGroups = bpy_armature_object.pose.bone_groups
     for p_bone in bpy_armature_object.pose.bones:
-        group_name = bone_to_group_name.get(p_bone.name)
+        # Blender renames duplicate bone names (Bone.001), those aren't in the map
+        group_name = bone_to_group_name.get(p_bone.name, 'defaults')
         bone_group: bpy.types.BoneGroup = pose_bone_groups.get(group_name)
         if bone_group is None:
             bone_group = pose_bone_groups.new(name=group_name)

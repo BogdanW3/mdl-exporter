@@ -8,6 +8,7 @@ from export_mdl.classes.War3AnimationAction import War3AnimationAction
 from export_mdl.classes.War3AnimationCurve import War3AnimationCurve
 from export_mdl.classes.War3Model import War3Model
 from export_mdl.classes.War3Node import War3Node
+from ..action_compat import find_fcurve, new_fcurve
 
 
 def create_armature_actions(armature_object: bpy.types.Object, model: War3Model, fps_ratio: float):
@@ -162,11 +163,9 @@ def create_transformation_curves(action: bpy.types.Action,
 
     fcurves: List[bpy.types.FCurve] = []
 
-    current_fcurve = action.fcurves.find(data_path)
-    if current_fcurve is not None:
-        current_fcurve_index = action.fcurves.values().index(current_fcurve)
+    if find_fcurve(action, data_path) is not None:
         for i in range(len(trans_zero_values)):
-            fcurves.append(action.fcurves[current_fcurve_index + i])
+            fcurves.append(find_fcurve(action, data_path, i))
 
     # set the keyframe before and after the sequence to same as the first keyframe,
     # or T-pose if first keyframe is not present, to not ge weird
@@ -277,7 +276,7 @@ def set_new_curves(action: bpy.types.Action,
 
     for i in range(len(value)):
         if len(fcurves) <= i:
-            fcurves_new = action.fcurves.new(data_path, index=i, action_group=bone_name)
+            fcurves_new = new_fcurve(action, data_path, i, bone_name)
             fcurves.append(fcurves_new)
         org_len = len(fcurves[i].keyframe_points)
         if value is not None and i < len(value):
@@ -313,18 +312,16 @@ def set_new_curve1(action: bpy.types.Action,
 
     fcurves: List[bpy.types.FCurve] = []
 
-    current_fcurve = action.fcurves.find(data_path)
-    if current_fcurve is not None:
-        current_fcurve_index = action.fcurves.values().index(current_fcurve)
+    if find_fcurve(action, data_path) is not None:
         for i in range(len(trans_zero_values)):
-            fcurves.append(action.fcurves[current_fcurve_index + i])
+            fcurves.append(find_fcurve(action, data_path, i))
 
     if len(sequence_dict):
         first_time = list(sequence_dict)[0]
         first_value = sequence_dict[first_time][0]
         for i in range(len(first_value)):
             if len(fcurves) <= i:
-                fcurves_new = action.fcurves.new(data_path, index=i, action_group=bone_name)
+                fcurves_new = new_fcurve(action, data_path, i, bone_name)
                 fcurves.append(fcurves_new)
 
     # for time, value, h_left, h_right in sequence_dict.items():
@@ -398,7 +395,7 @@ def set_new_curve1(action: bpy.types.Action,
 #         first_value = sequence_dict[first_time][0]
 #         for i in range(len(first_value)):
 #             if len(fcurves) <= i:
-#                 fcurves_new = action.fcurves.new(data_path, index=i, action_group=bone_name)
+#                 fcurves_new = new_fcurve(action, data_path, i, bone_name)
 #                 fcurves.append(fcurves_new)
 #             org_leng[i] = len(fcurves[i].keyframe_points)
 #             fcurves[i].keyframe_points.add(len(sequence_dict))

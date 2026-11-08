@@ -7,7 +7,7 @@ from ..classes.War3Model import War3Model
 from ..utils import float2str
 
 
-def save_lights(fw: TextIO.write, model: War3Model):
+def save_lights(fw: TextIO.write, model: War3Model, version: int = 800):
     for light in model.lights:
         fw("Light \"%s\" {\n" % light.name)
         if 0 <= light.obj_id:
@@ -55,7 +55,28 @@ def save_lights(fw: TextIO.write, model: War3Model):
         if visibility is not None:
             name = "Visibility"
             write_animated(fw, global_seqs, name, visibility)
+
+        if version >= 1200 and light.shadow_intensity is not None:
+            fw("\tstatic ShadowIntensity %s,\n" % float2str(light.shadow_intensity))
+
+        if version >= 1300:
+            if light.shadow_casting:
+                fw("\tShadowCasting,\n")
+            write_static_or_animated(fw, global_seqs, "ShadowCastingStart", light.shadow_casting_start, light.shadow_casting_start_anim)
+            write_static_or_animated(fw, global_seqs, "ShadowCastingEnd", light.shadow_casting_end, light.shadow_casting_end_anim)
+
+        if version >= 1600:
+            write_static_or_animated(fw, global_seqs, "QuadraticFalloff", light.quadratic_falloff, light.quadratic_falloff_anim)
+            write_static_or_animated(fw, global_seqs, "LinearFalloff", light.linear_falloff, light.linear_falloff_anim)
+            write_static_or_animated(fw, global_seqs, "Damping", light.damping, light.damping_anim)
         fw("}\n")
+
+
+def write_static_or_animated(fw: TextIO.write, global_seqs: Set[int], name: str, value: float, anim: War3AnimationCurve):
+    if anim is not None:
+        write_animated(fw, global_seqs, name, anim)
+    else:
+        fw("\tstatic %s %s,\n" % (name, float2str(value)))
 
 
 def write_animated(fw: TextIO.write, global_seqs: Set[int], name: str, visibility: War3AnimationCurve):

@@ -39,3 +39,21 @@ class WAR3_PT_light_panel(Panel):
         else:
             layout.prop(data, "amb_color")
             layout.prop(data, "amb_intensity")
+
+        if hasattr(layout, "panel"):  # Blender 4.1+
+            header, body = layout.panel("WAR3_PT_light_panel_shadows", default_closed=True)
+            header.label(text="Shadows & Falloff (v1200+)")
+        else:
+            body = layout.box()
+            body.label(text="Shadows & Falloff (v1200+)")
+        if body:
+            body.prop(data, "shadow_intensity")
+            body.prop(data, "shadow_casting")
+            col = body.column()
+            col.active = data.shadow_casting
+            col.prop(data, "shadow_casting_start")
+            col.prop(data, "shadow_casting_end")
+            body.label(text="Falloff (v1600+)")
+            body.prop(data, "quadratic_falloff")
+            body.prop(data, "linear_falloff")
+            body.prop(data, "damping")

@@ -115,12 +115,15 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
             r.skip(16 * tangent_size)
             chunk_id = r.getid((constants.CHUNK_SKIN, constants.CHUNK_TEXTURE_VERTEX_GROUP))
         if chunk_id == constants.CHUNK_SKIN:
+            # The count is in elements. v1400 widened them to 16 bits so bone indices can go past 255,
+            # weights still sum to 255.
             skin_size = r.getf('<I')[0]
+            skin_format, element_size = ('<8H', 2) if 1400 <= version else ('<8B', 1)
             for _ in range(skin_size // 8):
-                sw_weight = r.getf('<8B')
+                sw_weight = r.getf(skin_format)
                 sw_bones.append([str(sw_weight[0]), str(sw_weight[1]), str(sw_weight[2]), str(sw_weight[3])])
                 sw_weights.append([sw_weight[4], sw_weight[5], sw_weight[6], sw_weight[7]])
-            r.skip(skin_size % 8)
+            r.skip((skin_size % 8) * element_size)
             chunk_id = r.getid(constants.CHUNK_TEXTURE_VERTEX_GROUP)
     else:
         chunk_id = r.getid(constants.CHUNK_TEXTURE_VERTEX_GROUP)

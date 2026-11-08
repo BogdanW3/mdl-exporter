@@ -25,12 +25,23 @@ class War3Light(War3Node):
         self.amb_color: Optional[List[float]] = None
         self.amb_intensity: Optional[float] = None
         self.shadow_intensity: Optional[float] = None
+        self.shadow_casting: bool = False  # v1300+
+        self.shadow_casting_start: float = 0.0  # v1300+
+        self.shadow_casting_end: float = 0.0  # v1300+
+        self.quadratic_falloff: float = 0.0005  # v1600+
+        self.linear_falloff: float = 0.0  # v1600+
+        self.damping: float = 0.00001  # v1600+
         self.atten_start_anim: Optional[War3AnimationCurve] = None
         self.atten_end_anim: Optional[War3AnimationCurve] = None
         self.color_anim: Optional[War3AnimationCurve] = None
         self.intensity_anim: Optional[War3AnimationCurve] = None
         self.amb_color_anim: Optional[War3AnimationCurve] = None
         self.amb_intensity_anim: Optional[War3AnimationCurve] = None
+        self.shadow_casting_start_anim: Optional[War3AnimationCurve] = None
+        self.shadow_casting_end_anim: Optional[War3AnimationCurve] = None
+        self.quadratic_falloff_anim: Optional[War3AnimationCurve] = None
+        self.linear_falloff_anim: Optional[War3AnimationCurve] = None
+        self.damping_anim: Optional[War3AnimationCurve] = None
         # self.bpy_obj: Optional[bpy.types.Object] = None
         self.visibility: Optional[War3AnimationCurve] = None
 

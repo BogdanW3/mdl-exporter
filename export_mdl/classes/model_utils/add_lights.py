@@ -57,6 +57,19 @@ def get_lights(sequences: List[War3AnimationAction],
         light.amb_intensity = light_data.amb_intensity
         light.amb_intensity_anim = anim_stuff(animation_data, actions, 'mdl_light.amb_intensity', 1, sequences, global_seqs)
 
+        light.shadow_intensity = light_data.shadow_intensity
+        light.shadow_casting = light_data.shadow_casting
+        light.shadow_casting_start = light_data.shadow_casting_start
+        light.shadow_casting_start_anim = anim_stuff(animation_data, actions, 'mdl_light.shadow_casting_start', 1, sequences, global_seqs)
+        light.shadow_casting_end = light_data.shadow_casting_end
+        light.shadow_casting_end_anim = anim_stuff(animation_data, actions, 'mdl_light.shadow_casting_end', 1, sequences, global_seqs)
+        light.quadratic_falloff = light_data.quadratic_falloff
+        light.quadratic_falloff_anim = anim_stuff(animation_data, actions, 'mdl_light.quadratic_falloff', 1, sequences, global_seqs)
+        light.linear_falloff = light_data.linear_falloff
+        light.linear_falloff_anim = anim_stuff(animation_data, actions, 'mdl_light.linear_falloff', 1, sequences, global_seqs)
+        light.damping = light_data.damping
+        light.damping_anim = anim_stuff(animation_data, actions, 'mdl_light.damping', 1, sequences, global_seqs)
+
     return light
 
 

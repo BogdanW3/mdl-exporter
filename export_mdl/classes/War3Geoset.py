@@ -97,11 +97,10 @@ class War3Geoset:
         fw("\t}\n")
 
         if use_skinweights:
-            fw("\tGroups %d %d {\n" % (len(object_indices), sum(len(mtrx) for mtrx in object_indices)))
-            i = 0
-            for matrix in object_indices:
-                fw("\t\tMatrices { %s },\n" % ', '.join(str(i) for _ in matrix))
-                i = i+1
+            # SkinWeights reference bones directly, so every bone just gets a group of its own
+            fw("\tGroups %d %d {\n" % (len(object_indices), len(object_indices)))
+            for obj_id in object_indices.values():
+                fw("\t\tMatrices { %d },\n" % obj_id)
             fw("\t}\n")
         else:
             fw("\tGroups %d %d {\n" % (len(self.matrices), sum(len(mtrx) for mtrx in self.matrices)))

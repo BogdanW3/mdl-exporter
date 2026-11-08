@@ -20,6 +20,13 @@ class War3Layer:
         self.no_depth_test: bool = False
         self.no_depth_set: bool = False
         self.hd: bool = False
+        self.shader: int = 0  # see constants.SHADER_NAMES
+        self.sphere_env_map: bool = False
+        self.wrap_width: bool = False
+        self.wrap_height: bool = False
+        self.unlit: bool = False
+        self.back_faces_for_shadows: bool = False
+        self.ambient_occlusion: bool = False
         self.multi_texture_ids: Optional[list[int]] = None
 
     def __eq__(self, other):
