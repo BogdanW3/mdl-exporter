@@ -9,16 +9,42 @@ from mathutils import Matrix
 from ..classes.War3ExportSettings import War3ExportSettings
 
 FORMAT_VERSIONS = [
-    ('800', "800 (Classic / SD)", "Classic SD format, readable by every game version and tool"),
-    ('900', "900", "Adds HD materials, tangents and skin weights"),
-    ('1000', "1000", "Adds layer emissive and fresnel settings"),
-    ('1100', "1100", "Layers name their own shader and list their textures by slot"),
-    ('1200', "1200", "Adds light shadow intensity"),
-    ('1300', "1300", "Adds light shadow casting"),
-    ('1400', "1400", "16 bit skin bone indices"),
-    ('1600', "1600", "Adds light falloff and damping"),
     ('1800', "1800 (Latest)", "Latest format the game knows about"),
+    ('1600', "1600", "Adds light falloff and damping"),
+    ('1400', "1400", "16 bit skin bone indices"),
+    ('1300', "1300", "Adds light shadow casting"),
+    ('1200', "1200", "Adds light shadow intensity"),
+    ('1100', "1100", "Layers name their own shader and list their textures by slot"),
+    ('1000', "1000", "Adds layer emissive and fresnel settings"),
+    ('900', "900", "Adds HD materials, tangents and skin weights"),
+    ('800', "800 (Classic / SD)", "Classic SD format, readable by every game version and tool"),
 ]
+
+# Export options remembered per .blend file, on the scene. The leading underscore hides it from the
+# Custom Properties panel.
+REMEMBERED_KEY = "_war3_export"
+REMEMBERED_OPTIONS = ("file_format", "format_version", "use_selection", "global_scale", "axis_forward", "axis_up",
+                      "optimize_animation", "optimize_tolerance", "demote_to_helper", "use_actions",
+                      "use_skinweights")
+
+
+def remember_options(operator, context: bpy.types.Context):
+    """Store the dialog's options on the scene, so the next export (even after a cancel) starts from them."""
+    try:
+        context.scene[REMEMBERED_KEY] = {key: getattr(operator, key) for key in REMEMBERED_OPTIONS}
+    except (AttributeError, TypeError, RuntimeError):
+        pass  # The scene can't be written to in this context
+
+
+def sub_panel(layout: bpy.types.UILayout, idname: str, title: str, default_closed: bool = False):
+    """A collapsible section (Blender 4.1+), or a plain box on older versions. Returns None when collapsed."""
+    if hasattr(layout, "panel"):
+        header, body = layout.panel(idname, default_closed=default_closed)
+        header.label(text=title)
+        return body
+    box = layout.box()
+    box.label(text=title)
+    return box
 
 
 @orientation_helper(axis_forward='Y', axis_up='Z')
@@ -51,10 +77,10 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             )
 
     format_version: EnumProperty(
-            name="Format Version",
-            description="MDL FormatVersion to write. Fields newer than this version are left out",
+            name="Version",
+            description="Format version to write. Fields newer than this version are left out",
             items=FORMAT_VERSIONS,
-            default='800',
+            default='1800',
             )
 
     global_scale: FloatProperty(
@@ -66,7 +92,8 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
 
     optimize_animation: BoolProperty(
             name="Optimize Keyframes",
-            description="Remove keyframes if the resulting motion deviates less than the tolerance value."
+            description="Remove keyframes if the resulting motion deviates less than the tolerance value. "
+                        "Experimental"
             )
 
     demote_to_helper: BoolProperty(
@@ -77,12 +104,16 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
 
     use_actions: BoolProperty(
             name="Use Actions",
-            description="Use actions instead of mdl-sequences"
+            description="Export each action as a sequence, instead of the timeline markers from the scene's "
+                        "sequence list. Experimental: rarity and non looping aren't exported yet"
             )
 
     use_skinweights: BoolProperty(
-            name="Use SkinWeights",
-            description="Use skin weights instead of vertex groups"
+            name="HD Skinning",
+            description="Materials set to Automatic become HD when their node tree has normal, ORM or emissive "
+                        "textures, and geosets using an HD material get skin weights and tangents. SD materials "
+                        "are left as they are. Ignored for version 800, which has no HD",
+            default=True
             )
 
     optimize_tolerance: FloatProperty(
@@ -94,7 +125,21 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
             unit='LENGTH'
             )
 
+    def invoke(self, context: bpy.types.Context, event):
+        # Start from what this .blend exported with last time
+        remembered = context.scene.get(REMEMBERED_KEY)
+        if remembered is not None:
+            for key in REMEMBERED_OPTIONS:
+                if key in remembered:
+                    try:
+                        setattr(self, key, remembered[key])
+                    except (TypeError, ValueError):
+                        pass  # An option whose choices changed since
+        return super().invoke(context, event)
+
     def check(self, context: bpy.types.Context):
+        # Called on every option change: remember the options even if the export is cancelled
+        remember_options(self, context)
         # Keep the file extension in line with the chosen format
         root, ext = os.path.splitext(self.filepath)
         wanted = "." + self.file_format.lower()
@@ -126,42 +171,47 @@ class WAR3_OT_export_mdl(Operator, ExportHelper):
 
         from ..export_mdl import export_mdl
         try:
-            export_mdl.save(self, context, settings, filepath=filepath, mdl_version=int(self.format_version),
-                            file_format=file_format)
+            warnings = export_mdl.save(self, context, settings, filepath=filepath,
+                                       mdl_version=int(self.format_version), file_format=file_format)
         except ValueError as e:
             # Things the chosen format can't hold, explained in the message
             self.report({'ERROR'}, str(e))
             return {'CANCELLED'}
 
+        for warning in warnings or ():
+            self.report({'WARNING'}, warning)
+        remember_options(self, context)
         return {'FINISHED'}
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        version = int(self.format_version)
 
-        layout.prop(self, "file_format")
-        layout.prop(self, "format_version")
-        if self.use_skinweights and int(self.format_version) < 900:
-            layout.label(text="Skin weights will be exported as version 1000", icon='INFO')
-        layout.prop(self, "use_selection")
-        layout.prop(self, "global_scale")
-        layout.prop(self, "axis_forward")
-        layout.prop(self, "axis_up")
-        layout.separator()
-        layout.prop(self, 'optimize_animation')
-        layout.prop(self, 'demote_to_helper')
-        layout.prop(self, 'use_actions')
-        layout.prop(self, 'use_skinweights')
-        if self.optimize_animation:
-            box = layout.box()
-            box.label(text="EXPERIMENTAL", icon='ERROR')
-            layout.prop(self, 'optimize_tolerance')
-        if self.use_actions:
-            box = layout.box()
-            box.label(text="EXPERIMENTAL", icon='ERROR')
-            box.label(text="Will export action and not marker based sequences. "
-                           "This does not yet support Rarity or NonLooping")
-        if self.use_skinweights:
-            box = layout.box()
-            box.label(text="EXPERIMENTAL", icon='ERROR')
-            box.label(text="Will export with skin weights and leave vertex groups empty.")
-            # layout.prop(self, 'use_actions')
+        body = sub_panel(layout, "WAR3_export_format", "Format")
+        if body:
+            body.prop(self, "file_format")
+            body.prop(self, "format_version")
+            row = body.row()
+            row.enabled = 900 <= version
+            row.prop(self, "use_skinweights")
+            if version < 900:
+                body.label(text="Version 800 has no HD, everything is written as SD", icon='INFO')
+
+        body = sub_panel(layout, "WAR3_export_transform", "Include & Transform")
+        if body:
+            body.prop(self, "use_selection")
+            body.prop(self, "global_scale")
+            body.prop(self, "axis_forward")
+            body.prop(self, "axis_up")
+
+        body = sub_panel(layout, "WAR3_export_animation", "Animation", default_closed=True)
+        if body:
+            body.prop(self, "demote_to_helper")
+            body.prop(self, "use_actions")
+            body.prop(self, "optimize_animation")
+            if self.optimize_animation:
+                body.prop(self, "optimize_tolerance")
+            if self.use_actions or self.optimize_animation:
+                body.label(text="Experimental options are on", icon='ERROR')

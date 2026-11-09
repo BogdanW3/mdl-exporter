@@ -4,7 +4,8 @@ import bpy
 
 from export_mdl import constants
 from export_mdl.classes.War3Model import War3Model
-from ..action_compat import find_fcurve, new_fcurve
+from ..action_compat import find_fcurve, new_fcurve, own_fcurve
+from ..geoset_preview import add_geoset_preview
 
 
 def create_object_actions1(model: War3Model,
@@ -94,85 +95,57 @@ def create_object_actions1(model: War3Model,
 def create_geoset_actions(model: War3Model,
                           bpy_objects: List[bpy.types.Object],
                           frame_time: float):
+    """Geoset animations go on each mesh object's Warcraft 3 Geoset Animation properties (Object tab), keyed on
+    the scene timeline like the sequence markers. Global-sequence tracks become looping (Cycles) curves."""
     print(" creating geoset animations")
-    geoset_animations = model.geoset_anims
-    sequences = model.sequences
-    data_path_color = 'color'
+    durations = getattr(model, "global_sequence_durations", [])
+    for geoset_anim in model.geoset_anims:
+        if not 0 <= geoset_anim.geoset_id < len(bpy_objects):
+            continue
+        obj = bpy_objects[geoset_anim.geoset_id]
+        props = obj.mdl_geoset
+        if geoset_anim.alpha:
+            props.alpha = geoset_anim.alpha[0]
+        if geoset_anim.color is not None:
+            # MDX stores colors RGB
+            props.color = tuple(geoset_anim.color[:3])
+        static_alpha = props.alpha
+        static_color = tuple(props.color)
+        key_track(obj, 'alpha', geoset_anim.alpha_anim, frame_time, durations, lambda v: v[0],
+                  model.sequences, static_alpha)
+        key_track(obj, 'color', geoset_anim.color_anim, frame_time, durations, lambda v: tuple(v[:3]),
+                  model.sequences, static_color)
+        add_geoset_preview(obj)
 
-    color_curves = []
-    color1 = [1.0, 0, 0, 0.5]
-    for geosetAnimation in geoset_animations:
-        action: bpy.types.Action = bpy.data.actions.get('#UNANIMATED')
-        if not action:
-            action = bpy.data.actions.new(name='#UNANIMATED')
-        for i in range(4):
-            data_path = '["' + geosetAnimation.geoset_name + '"].' + data_path_color
-            if find_fcurve(action, data_path, i) is None:
-                # color_curve.keyframe_points.insert(0.0, 1.0)
-                color_curve = new_fcurve(action, data_path, i, geosetAnimation.geoset_name)
-                color_curve.keyframe_points.insert(0.0, color1[i])
-                color_curves.append(color_curve)
 
-    for sequence in sequences:
-        interval_start = sequence.start
-        interval_end = sequence.end
-        for geosetAnimation in geoset_animations:
-            action: bpy.types.Action = bpy.data.actions.get(sequence.name)
-            if not action:
-                action = bpy.data.actions.new(name=sequence.name)
-
-            color_curves = []
-            color_anim = geosetAnimation.color_anim
-            g_name = geosetAnimation.geoset_name
-            data_path = '["' + geosetAnimation.geoset_name + '"].' + data_path_color
-            if color_anim:
-                interpolation_type = constants.INTERPOLATION_NAME_BLEND_NAME[color_anim.interpolation]
-
-                for time, color in color_anim.keyframes.items():
-                    if interval_start <= time <= interval_end or time == 0:
-                        real_time = round((time - interval_start) / frame_time, 0)
-
-                        for i in range(3):
-                            if find_fcurve(action, data_path, i) is not None:
-                                color_curves.append(find_fcurve(action, data_path, i))
-                            else:
-                                color_curves.append(new_fcurve(action, data_path, i, g_name))
-                            kf_point = color_curves[i].keyframe_points.insert(real_time, color[i])
-                            kf_point.interpolation = interpolation_type
-            else:
-                interpolation_type = constants.INTERPOLATION_NAME_BLEND_NAME['Linear']
-                color = geosetAnimation.color
-                real_time = 0
-                for i in range(3):
-                    if find_fcurve(action, data_path, i) is not None:
-                        color_curves.append(find_fcurve(action, data_path, i))
-                    else:
-                        color_curves.append(new_fcurve(action, data_path, i, g_name))
-                    kf_point = color_curves[i].keyframe_points.insert(real_time, color[i])
-                    kf_point.interpolation = interpolation_type
-
-            alpha_anim = geosetAnimation.alpha_anim
-            if alpha_anim:
-                interpolation_type = constants.INTERPOLATION_NAME_BLEND_NAME[alpha_anim.interpolation]
-
-                for time, alpha in alpha_anim.keyframes.items():
-                    if interval_start <= time <= interval_end or time == 0:
-                        real_time = round((time - interval_start) / frame_time, 0)
-
-                        if find_fcurve(action, data_path, 3) is not None:
-                            color_curves.append(find_fcurve(action, data_path, 3))
-                        else:
-                            color_curves.append(new_fcurve(action, data_path, 3, g_name))
-                        kf_point = color_curves[3].keyframe_points.insert(real_time, alpha[0])
-                        kf_point.interpolation = interpolation_type
-            else:
-                interpolation_type = constants.INTERPOLATION_NAME_BLEND_NAME['Linear']
-                alpha = geosetAnimation.alpha
-                real_time = 0
-                if find_fcurve(action, data_path, 3) is not None:
-                    color_curves.append(find_fcurve(action, data_path, 3))
-                else:
-                    color_curves.append(new_fcurve(action, data_path, 3, g_name))
-                kf_point = color_curves[3].keyframe_points.insert(real_time, alpha[0])
-                kf_point.interpolation = interpolation_type
-
+def key_track(obj: bpy.types.Object, prop: str, curve, frame_time: float, durations: List[int], convert,
+              sequences, static):
+    if curve is None or not curve.keyframes:
+        return
+    props = obj.mdl_geoset
+    data_path = 'mdl_geoset.' + prop
+    gs = curve.global_sequence
+    looping = isinstance(gs, int) and 0 <= gs < len(durations)
+    keys = {round(time / frame_time): convert(value) for time, value in curve.keyframes.items()}
+    if not looping:
+        # The game shows the static value in a sequence without keys, Blender would hold the previous key
+        for sequence in sequences:
+            if not any(sequence.start <= time <= sequence.end for time in curve.keyframes):
+                keys.setdefault(round(sequence.start / frame_time), static)
+    for frame, value in sorted(keys.items()):
+        setattr(props, prop, value)
+        obj.keyframe_insert(data_path=data_path, frame=frame, group="Geoset Animation")
+    interpolation = constants.INTERPOLATION_NAME_BLEND_NAME.get(curve.interpolation, 'LINEAR')
+    channels = 3 if prop == 'color' else 1
+    for index in range(channels):
+        fcurve = own_fcurve(obj, data_path, index)
+        if fcurve is None:
+            continue
+        for point in fcurve.keyframe_points:
+            point.interpolation = interpolation
+        if looping:
+            end = round(durations[gs] / frame_time)
+            if fcurve.keyframe_points[-1].co[0] < end:
+                # The loop length is where the curve ends, so close it with the first value
+                fcurve.keyframe_points.insert(end, fcurve.keyframe_points[0].co[1]).interpolation = interpolation
+            fcurve.modifiers.new('CYCLES')

@@ -58,6 +58,7 @@ import shutil
 from .ui.WAR3_PT_billboard_panel import WAR3_PT_billboard_panel
 from .ui.WAR3_PT_event_panel import WAR3_PT_event_panel
 from .ui.WAR3_PT_light_panel import WAR3_PT_light_panel
+from .ui.WAR3_PT_geoset_anim_panel import WAR3_PT_geoset_anim_panel
 from .ui.WAR3_PT_material_panel import WAR3_PT_material_panel
 from .ui.WAR3_PT_particle_editor_panel import WAR3_PT_particle_editor_panel
 from .ui.WAR3_PT_sequences_panel import WAR3_PT_sequences_panel
@@ -68,6 +69,7 @@ from .ui.WAR3_MT_sequence_context_menu import WAR3_MT_sequence_context_menu
 from .properties.War3BillboardProperties import War3BillboardProperties
 from .properties.War3EventProperties import War3EventProperties
 from .properties.War3LightSettings import War3LightSettings
+from .properties.War3GeosetAnimProperties import War3GeosetAnimProperties
 from .properties.War3MaterialLayerProperties import War3MaterialLayerProperties
 from .properties.War3ParticleSystemProperties import War3ParticleSystemProperties
 from .properties.War3ArmatureSequenceListItem import War3ArmatureSequenceListItem
@@ -90,6 +92,9 @@ from .operators.WAR3_OT_remove_seq_from_armature import WAR3_OT_remove_seq_from_
 from .operators.WAR3_OT_import_mdlx import WAR3_OT_import_mdlx
 from .operators.WAR3_OT_generate_from_actions import WAR3_OT_generate_from_actions
 from .operators.WAR3_OT_move_seq_in_list import WAR3_OT_move_seq_in_list
+from .operators.WAR3_OT_sequence_tools import WAR3_OT_sort_sequences, WAR3_OT_duplicate_sequence
+from .operators.WAR3_OT_setup_hd_nodes import WAR3_OT_setup_hd_nodes
+from .operators.WAR3_OT_geoset_preview import WAR3_OT_geoset_preview
 
 bl_info = {
     "name": "Warcraft MDL Exporter",
@@ -109,6 +114,7 @@ prop_classes = (
     War3BillboardProperties,
     War3ParticleSystemProperties,
     War3LightSettings,
+    War3GeosetAnimProperties,
     War3ArmatureSequenceListItem,
     War3ArmatureProperties,
     War3SequenceProperties,
@@ -130,7 +136,11 @@ op_classes = (
     WAR3_OT_remove_seq_from_armature,
     WAR3_MT_emitter_presets,
     WAR3_OT_generate_from_actions,
-    WAR3_OT_move_seq_in_list
+    WAR3_OT_move_seq_in_list,
+    WAR3_OT_sort_sequences,
+    WAR3_OT_duplicate_sequence,
+    WAR3_OT_setup_hd_nodes,
+    WAR3_OT_geoset_preview
 )
 
 ui_classes = (
@@ -143,6 +153,7 @@ ui_classes = (
     WAR3_PT_material_panel,
     WAR3_PT_particle_editor_panel,
     WAR3_PT_light_panel,
+    WAR3_PT_geoset_anim_panel,
     WAR3_PT_Armature_Sequences
 )
 

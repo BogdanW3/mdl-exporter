@@ -6,7 +6,7 @@ from mathutils import Euler, Quaternion, Matrix
 
 from ..War3AnimationAction import War3AnimationAction
 from ..War3AnimationCurve import War3AnimationCurve
-from ...action_compat import find_fcurve, assign_action
+from ...action_compat import find_fcurve, assign_action, own_fcurve
 
 
 def get_wc3_animation_curve(data_path: str,
@@ -43,6 +43,40 @@ def get_wc3_animation_curve(data_path: str,
         register_global_sequence(global_seqs, anim_curve)
         return anim_curve
     return None
+
+
+def get_own_animation_curve(id_data: Optional[bpy.types.ID],
+                            data_path: str,
+                            num_indices: int,
+                            global_seqs: Set[int],
+                            sequences: Optional[List[War3AnimationAction]] = None,
+                            default: Optional[List[float]] = None) -> Optional[War3AnimationCurve]:
+    """A curve from the keys on this datablock's own action, on the scene timeline (the frames the sequence
+    markers use).
+
+    The game uses a track's static value in a sequence that has no keys, while Blender holds the last key. With
+    sequences and the static default given, a sequence without keys whose Blender value differs from the
+    default gets a key at its start, so the game shows what Blender does."""
+    curves = [own_fcurve(id_data, data_path, index) for index in range(num_indices)]
+    if not any(curve is not None and len(curve.keyframe_points) for curve in curves):
+        return None
+    if any(curve is None for curve in curves):
+        return None  # Only some channels keyed; the others have no value to read here
+    keyed = {(getattr(id_data, "name", ""), data_path.split('.')[-1], index): curve
+             for index, curve in enumerate(curves)}
+    anim_curve = get_anim_curve(keyed, data_path)
+    fill_anim_curve(anim_curve, curves, num_indices, data_path, 0.0)
+    if sequences and default is not None and anim_curve.global_sequence <= 0:
+        for sequence in sequences:
+            if any(sequence.start <= frame <= sequence.end for frame in anim_curve.keyframes):
+                continue
+            value = [curve.evaluate(sequence.start) for curve in curves]
+            if any(abs(a - b) > 1e-6 for a, b in zip(value, default)):
+                anim_curve.keyframes[sequence.start] = value
+                anim_curve.handles_left[sequence.start] = value
+                anim_curve.handles_right[sequence.start] = value
+    register_global_sequence(global_seqs, anim_curve)
+    return anim_curve
 
 
 def get_baked_curves(armature: bpy.types.Object,
@@ -130,6 +164,10 @@ def fill_anim_curve(anim_curve: War3AnimationCurve,
     handles_right: Dict[float, List[float]] = {}
     handles_left: Dict[float, List[float]] = {}
 
+    # Colors stay RGB here; the MDL writer turns them BGR, MDX stores them RGB
+    # Hiding is the opposite of visibility
+    invert = data_path.endswith('hide_render') or data_path.endswith('hide_viewport')
+
     for frame in sorted(frames):
         values: List[float] = []
         handle_left: List[float] = []
@@ -138,18 +176,14 @@ def fill_anim_curve(anim_curve: War3AnimationCurve,
             value = fcurves[channel].evaluate(frame)
             values.append(value * scale)
 
-            if 'color' in data_path:
-                values = values[::-1]  # Colors are stored in reverse
-
-            if 'hide_render' in data_path:
-                values = [1 - v for v in values]  # Hide_Render is the opposite of visibility!
-
             if anim_curve.interpolation == 'Bezier':
                 h_left = fcurves[channel].evaluate(frame - 1)
                 h_right = fcurves[channel].evaluate(frame + 1)
                 handle_left.append(h_left)
                 handle_right.append(h_right)
 
+        if invert:
+            values = [1 - v for v in values]
         keyframes[frame + keyframe_offset] = rotation_is_quaternation(data_path, values)
 
         if len(handle_left) == len(handle_right) == len(handle_right):
@@ -216,5 +250,7 @@ def get_type(data_path: str):
         return 'Color'
     elif 'event' in data_path.lower():
         return 'Event'
-    elif 'visibility' in data_path.lower() or 'hide_render' in data_path.lower():
+    elif any(word in data_path.lower() for word in ('visibility', 'hide_render', 'hide_viewport')):
         return 'Boolean'
+    elif 'alpha' in data_path.lower():
+        return 'Alpha'

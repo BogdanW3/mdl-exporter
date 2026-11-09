@@ -6,7 +6,7 @@ import bpy
 
 class VIEW_MT_war3_add(bpy.types.Menu):
     bl_idname = "VIEW_MT_war3_add"
-    bl_label = "MDL add"
+    bl_label = "Warcraft 3"
     # bl_region_type = 'VIEW3D'
 
     def draw(self, context):

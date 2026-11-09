@@ -6,7 +6,7 @@ from bpy.types import Operator
 class WAR3_OT_add_anim_sequence(Operator):
     """Add a Warcraft 3 animation sequence using timeline markers"""
     bl_idname = "war_3.add_anim_sequence"
-    bl_label = "Add Warcraft 2 Sequence"
+    bl_label = "Add Warcraft 3 Sequence"
     bl_options = {'REGISTER', 'INTERNAL'}
 
     seq_name: StringProperty(

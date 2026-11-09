@@ -4,11 +4,15 @@ from bpy.types import Mesh
 
 
 def get_bpy_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mesh:
-    mod = bpy_obj.modifiers.new("EdgeSplitExport", 'EDGE_SPLIT')
-    if hasattr(bpy_obj.data, 'use_auto_smooth') and bpy_obj.data.use_auto_smooth:
-        mod.split_angle = bpy_obj.data.auto_smooth_angle
-    else:
-        mod.use_edge_angle = False
+    # Blender 4.1+ corner normals already follow sharp edges, flat faces and custom normals. Before that, sharp
+    # edges only count with auto smooth on, so an Edge Split modifier splits them for us.
+    mod = None
+    if bpy.app.version < (4, 1, 0):
+        mod = bpy_obj.modifiers.new("EdgeSplitExport", 'EDGE_SPLIT')
+        if hasattr(bpy_obj.data, 'use_auto_smooth') and bpy_obj.data.use_auto_smooth:
+            mod.split_angle = bpy_obj.data.auto_smooth_angle
+        else:
+            mod.use_edge_angle = False
 
     arm_mod = None
     arm_show_r = True

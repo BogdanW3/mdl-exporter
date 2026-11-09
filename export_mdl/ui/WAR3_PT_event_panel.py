@@ -7,7 +7,7 @@ from ..properties import War3EventProperties
 class WAR3_PT_event_panel(Panel):
     """Displays event object properties in the Object panel"""
     bl_idname = "WAR3_PT_event_panel"
-    bl_label = "Event Object"
+    bl_label = "Warcraft 3 Event Object"
     bl_region_type = 'WINDOW'
     bl_space_type = 'PROPERTIES'
     bl_context = 'object'

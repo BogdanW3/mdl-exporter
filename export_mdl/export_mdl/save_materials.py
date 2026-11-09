@@ -41,10 +41,11 @@ def save_materials(fw: TextIO.write,
                 # In MDL text every PBR texture goes in one layer, bound to its slot. Only binary v900/v1000
                 # spreads them over one layer each.
                 layer_shader = shader_name if 1100 <= version else None
-                write_layer(fw, material.layers[0], material.layers, textures, tvertex_anims, global_seqs, True, layer_shader)
+                write_layer(fw, material.layers[0], material.layers, textures, tvertex_anims, global_seqs, True,
+                            layer_shader, version)
             else:
                 for layer in material.layers:
-                    write_layer(fw, layer, [layer], textures, tvertex_anims, global_seqs, False, None)
+                    write_layer(fw, layer, [layer], textures, tvertex_anims, global_seqs, False, None, version)
             fw("\t}\n")
         fw("}\n")
 
@@ -56,7 +57,8 @@ def write_layer(fw: TextIO.write,
                 tvertex_anims: List[War3TextureAnim],
                 global_seqs: Set[int],
                 with_slots: bool,
-                shader_name):
+                shader_name,
+                version: int = 800):
     fw("\t\tLayer {\n")
     fw("\t\t\tFilterMode %s,\n" % layer.filter_mode)
     if layer.unshaded is True:
@@ -109,5 +111,19 @@ def write_layer(fw: TextIO.write,
         write_animation_chunk(fw, layer.alpha_anim, "Alpha", global_seqs, "\t\t")
     else:
         fw("\t\t\tstatic Alpha %s,\n" % float2str(layer.alpha_value))
+
+    if 1000 <= version:
+        # Like HiveWE, only written when animated or not the default
+        for name, anim, value, default in (
+                ("EmissiveGain", layer.emissive_gain_anim, layer.emissive_gain, 1.0),
+                ("FresnelColor", layer.fresnel_color_anim, layer.fresnel_color, (1.0, 1.0, 1.0)),
+                ("FresnelOpacity", layer.fresnel_opacity_anim, layer.fresnel_opacity, 0.0),
+                ("FresnelTeamColor", layer.fresnel_team_color_anim, layer.fresnel_team_color, 0.0)):
+            if anim is not None:
+                write_animation_chunk(fw, anim, name, global_seqs, "\t\t")
+            elif isinstance(value, tuple) and tuple(round(v, 6) for v in value) != default:
+                fw("\t\t\tstatic %s { %s },\n" % (name, ", ".join(float2str(v) for v in value)))
+            elif not isinstance(value, tuple) and round(value, 6) != default:
+                fw("\t\t\tstatic %s %s,\n" % (name, float2str(value)))
 
     fw("\t\t}\n")

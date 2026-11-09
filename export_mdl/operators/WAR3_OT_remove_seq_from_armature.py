@@ -3,8 +3,8 @@ import bpy
 
 class WAR3_OT_remove_seq_from_armature(bpy.types.Operator):
     bl_idname = 'war_3.remove_sequence_from_armature'
-    bl_label = 'Warcraft 3 Remove Sequence from Armature'
-    bl_description = 'Warcraft 3 Remove Sequence to Armature'
+    bl_label = 'Remove Sequence'
+    bl_description = 'Remove the active sequence from the armature'
     bl_options = {'UNDO'}
 
     type: bpy.props.EnumProperty(

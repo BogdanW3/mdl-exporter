@@ -7,8 +7,8 @@ from ..action_compat import assign_action
 
 class WAR3_OT_add_seq_to_armature(bpy.types.Operator):
     bl_idname = 'war_3.add_sequence_to_armature'
-    bl_label = 'Warcraft 3 Add Sequence to Armature'
-    bl_description = 'Warcraft 3 Add Sequence to Armature'
+    bl_label = 'Add Sequence'
+    bl_description = 'Add a sequence with a new action to the armature'
     bl_options = {'UNDO'}
 
     @classmethod

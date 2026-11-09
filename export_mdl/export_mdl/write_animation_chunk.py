@@ -71,8 +71,11 @@ def write_animation_chunk(fw: TextIO.write,
     global_sequence: int = animation.global_sequence
     handles_left: Dict[float, List[float]] = animation.handles_left
     handles_right: Dict[float, List[float]] = animation.handles_right
-    # name: str
-    # global_seqs: Set[int]
+    if name in ('Color', 'AmbColor'):
+        # Colors are RGB in the add-on and in MDX, but MDL text writes them BGR (fresnel color excepted)
+        def bgr(keys):
+            return {frame: list(value)[::-1] if len(value) == 3 else value for frame, value in keys.items()}
+        keyframes, handles_left, handles_right = bgr(keyframes), bgr(handles_left), bgr(handles_right)
 
 
     f2ms = 1000 / bpy.context.scene.render.fps

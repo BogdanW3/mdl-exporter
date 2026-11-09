@@ -6,8 +6,8 @@ import bpy
 
 class WAR3_OT_emitter_set_from_bpy(bpy.types.Operator):
     bl_idname = 'war_3.emitter_set_from_bpy'
-    bl_label = 'Warcraft 3 Set WC3 Particle Setting from Blender Particle Settings'
-    bl_description = 'Warcraft 3 Set WC3 Particle Setting from Blender Particle Settings'
+    bl_label = 'Copy from Blender Particle Settings'
+    bl_description = 'Set the Warcraft 3 emitter values from this particle system'
     bl_options = {'UNDO'}
 
     @classmethod

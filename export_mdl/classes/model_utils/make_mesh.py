@@ -10,7 +10,7 @@ from ..War3Geoset import War3Geoset
 from ..War3GeosetAnim import War3GeosetAnim
 from ..War3Model import War3Model
 from ..War3Vertex import War3Vertex
-from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
+from ..animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve, get_own_animation_curve
 from .is_animated_ugg import get_loc_rot_scale, get_visibility
 from ..bpy_helpers.BpyGeoset import BpyGeoset
 from ..bpy_helpers.BpySceneObjects import BpySceneObjects
@@ -68,40 +68,49 @@ def make_mesh(war3_model: War3Model,
 def get_geoset_anim(bpy_geoset: BpyGeoset,
                     actions: List[bpy.types.Action],
                     sequences: List[War3AnimationAction],
-                    global_seqs: Set[int])\
-        -> Optional[War3GeosetAnim]:
-    geo_color_anim = get_wc3_animation_curve(bpy_geoset.get_geo_color_path(), actions, 3, sequences, global_seqs)
-    # for index in range(3):
-    #     curve = action.fcurves.find(data_path)
-    # print("geo_color_anim:", geo_color_anim)
-    geo_color = [1.0, 1.0, 1.0]
-    if bpy_geoset.bpy_material:
-        color_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Color")
-        if color_node:
-            # print("color_node:", color_node)
-            geo_color = color_node.outputs[0].default_value
-            # node_tree.nodes["Geoset Anim Color"].outputs[0].default_value
-    # print(geo_color)
+                    global_seqs: Set[int]) -> Optional[War3GeosetAnim]:
+    """The geoset animation of a mesh object. Read from its Warcraft 3 Geoset Animation properties (Object tab)
+    first, then from the older ways: keyframed render/viewport visibility, or the material's "Geoset Anim
+    Alpha"/"Geoset Anim Color" nodes. Keys are read from each datablock's own action, on the scene timeline."""
+    bpy_obj = bpy_geoset.bpy_obj
+    node_tree = bpy_geoset.bpy_material.node_tree if bpy_geoset.bpy_material is not None else None
+    nodes = node_tree.nodes if node_tree is not None else {}
 
-    object_path = 'bpy.data.objects["' + bpy_geoset.name + '"]'
+    geo_props = getattr(bpy_obj, "mdl_geoset", None)
+    geo_alpha = geo_props.alpha if geo_props is not None else 1.0
+    geo_color = list(geo_props.color) if geo_props is not None else [1.0, 1.0, 1.0]
 
-    geo_alpha_anim = get_wc3_animation_curve(object_path + '.hide_render', actions, 1, sequences, global_seqs)
-    if not geo_alpha_anim:
-        geo_alpha_anim = get_wc3_animation_curve(object_path + '.hide_viewport', actions, 1, sequences, global_seqs)
-    if not geo_alpha_anim:
-        geo_alpha_anim = get_wc3_animation_curve(bpy_geoset.get_geo_alpha_path(), actions, 1, sequences, global_seqs)
-    geo_alpha = 1.0
-    if bpy_geoset.bpy_material:
-        alpha_node = bpy_geoset.bpy_material.node_tree.nodes.get("Geoset Anim Alpha")
-        if alpha_node:
-            geo_alpha = alpha_node.inputs[1].default_value
+    geo_alpha_anim = get_own_animation_curve(bpy_obj, 'mdl_geoset.alpha', 1, global_seqs, sequences, [1.0])
+    if geo_alpha_anim is None:
+        geo_alpha_anim = get_own_animation_curve(bpy_obj, 'hide_render', 1, global_seqs)
+    if geo_alpha_anim is None:
+        geo_alpha_anim = get_own_animation_curve(bpy_obj, 'hide_viewport', 1, global_seqs)
+    if geo_alpha_anim is None and nodes.get("Geoset Anim Alpha"):
+        geo_alpha_anim = get_own_animation_curve(node_tree, 'nodes["Geoset Anim Alpha"].inputs[1].default_value',
+                                                 1, global_seqs)
+    if geo_alpha == 1.0 and nodes.get("Geoset Anim Alpha"):
+        geo_alpha = nodes["Geoset Anim Alpha"].inputs[1].default_value
 
-    geoset_anim: Optional[War3GeosetAnim] = None
-    if geo_color_anim or geo_alpha_anim or geo_color != [1.0, 1.0, 1.0] or geo_alpha != 1.0:
-        geoset_anim = War3GeosetAnim(geo_color, [geo_alpha], geo_color_anim, geo_alpha_anim)
+    geo_color_anim = get_own_animation_curve(bpy_obj, 'mdl_geoset.color', 3, global_seqs, sequences,
+                                             [1.0, 1.0, 1.0])
+    if geo_color_anim is None and nodes.get("Geoset Anim Color"):
+        geo_color_anim = get_own_animation_curve(node_tree, 'nodes["Geoset Anim Color"].outputs[0].default_value',
+                                                 3, global_seqs)
+    if geo_color == [1.0, 1.0, 1.0] and nodes.get("Geoset Anim Color"):
+        geo_color = list(nodes["Geoset Anim Color"].outputs[0].default_value)[:3]
+
+    # An animated value's static is the default (what the game shows in a sequence without keys; any sequence
+    # where Blender shows something else got a key above), not whatever the curve is at the current frame
+    if geo_alpha_anim is not None:
+        geo_alpha = 1.0
+    if geo_color_anim is not None:
+        geo_color = [1.0, 1.0, 1.0]
+    if geo_color_anim or geo_alpha_anim or any(abs(c - 1.0) > 1e-6 for c in geo_color) or geo_alpha != 1.0:
+        color = geo_color if (geo_color_anim or any(abs(c - 1.0) > 1e-6 for c in geo_color)) else None
+        geoset_anim = War3GeosetAnim(color, [geo_alpha], geo_color_anim, geo_alpha_anim)
         geoset_anim.geoset_name = bpy_geoset.name
-
-    return geoset_anim
+        return geoset_anim
+    return None
 
 
 def create_geoset(bpy_geoset: BpyGeoset) -> War3Geoset:

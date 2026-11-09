@@ -76,14 +76,21 @@ class MdxWriter:
         self.bone_ids: Dict[str, int] = {bone.name: bone.obj_id for bone in model.bones}
         # GNDX stores a vertex's matrix group in one byte. Geosets with more groups than that need skin weights,
         # which v900+ has; we switch those to skinning instead of failing.
+        # HD shaders read tangents and skin weights too, so their geosets are always skinned.
         self.skinned = set()
+        hd_materials = {material.name for material in model.materials if material.layers and material.layers[0].hd}
         for geoset in model.geosets:
             too_many_groups = 256 < len(geoset.matrices)
             if too_many_groups and version < 900:
                 raise ValueError("Geoset \"%s\" uses %d bone combinations, version %d allows 256. Export as 900 "
                                  "or newer, or use fewer bone combinations" % (geoset.name, len(geoset.matrices), version))
-            if 900 <= version and (settings.use_skinweights or too_many_groups):
+            hd = geoset.mat_name in hd_materials
+            if 900 <= version and (too_many_groups or hd):
                 self.skinned.add(id(geoset))
+        # Before v1400 a skin weight names its bone in one byte
+        if self.skinned and version < 1400 and self.bone_ids and 255 < max(self.bone_ids.values()):
+            raise ValueError("Skin weights in version %d can only reach the first 256 nodes, this model has bones "
+                             "up to %d. Export as 1400 or newer" % (version, max(self.bone_ids.values())))
 
     def write(self) -> bytes:
         self.w.tag('MDLX')
@@ -232,15 +239,21 @@ class MdxWriter:
         self.w.pack('III', LAYER_FILTER_MODES.get(layer.filter_mode, 0), flags, texture_ids[0])
         self.w.pack('IIf', texture_anim, 0, layer.alpha_value)
         if 800 < self.version:
-            self.w.pack('f', 1.0)  # Emissive gain
+            self.w.pack('f', layer.emissive_gain)
         if 900 < self.version:
-            self.w.pack('3fff', 1.0, 1.0, 1.0, 0.0, 0.0)  # Fresnel color, opacity, team color
+            self.w.pack('3fff', *layer.fresnel_color, layer.fresnel_opacity, layer.fresnel_team_color)
         if 1000 < self.version:
             self.w.pack('II', shader_id, len(texture_ids))
             for slot, texture_id in enumerate(texture_ids):
                 self.w.pack('II', texture_id, slot)
         if tracks:
             self.track('KMTA', layer.alpha_anim, 1)
+            if 800 < self.version:
+                self.track('KMTE', layer.emissive_gain_anim, 1)
+            if 900 < self.version:
+                self.track('KFC3', layer.fresnel_color_anim, 3)
+                self.track('KFCA', layer.fresnel_opacity_anim, 1)
+                self.track('KFTC', layer.fresnel_team_color_anim, 1)
         self.w.end_size(position)
 
     def texture_id(self, layer: War3Layer) -> int:
@@ -321,7 +334,8 @@ class MdxWriter:
         alpha = geoset_anim.alpha[0] if geoset_anim.alpha else 1.0
         color = list(geoset_anim.color[:3]) if geoset_anim.color is not None else [1.0, 1.0, 1.0]
         has_color = geoset_anim.color is not None or geoset_anim.color_anim is not None
-        # The static color is the one value stored RGB on disk while MDL prints it BGR
+        # MDX stores every color RGB (checked on Blizzard's fire particles, ice torch tint, lights, ribbons);
+        # only MDL text writes them BGR
         self.w.pack('fI3fI', alpha, 0x2 if has_color else 0, *color, geoset_anim.geoset_id)
         self.track('KGAO', geoset_anim.alpha_anim, 1)
         self.track('KGAC', geoset_anim.color_anim, 3)
@@ -347,8 +361,8 @@ class MdxWriter:
         self.w.pack('I', LIGHT_TYPES.get(light.light_type, 0))
         if 1300 <= self.version:
             self.w.pack('I', 1 if light.shadow_casting else 0)
-        self.w.pack('ff3ff3ff', light.atten_start, light.atten_end, *reversed(light.color[:3]), light.intensity,
-                    *reversed(light.amb_color[:3]), light.amb_intensity)
+        self.w.pack('ff3ff3ff', light.atten_start, light.atten_end, *light.color[:3], light.intensity,
+                    *light.amb_color[:3], light.amb_intensity)
         if 1200 <= self.version:
             self.w.pack('f', 0.4 if light.shadow_intensity is None else light.shadow_intensity)
         if 1300 <= self.version:
@@ -413,7 +427,7 @@ class MdxWriter:
         self.w.pack('IIIIff', EMITTER2_FILTER_MODES.get(emitter.filter_mode, 0), emitter.rows, emitter.cols,
                     head_or_tail, emitter.tail_length, emitter.time)
         for color in (emitter.start_color, emitter.mid_color, emitter.end_color):
-            self.w.pack('3f', *reversed(color[:3]))
+            self.w.pack('3f', *color[:3])
         self.w.pack('3B', emitter.start_alpha, emitter.mid_alpha, emitter.end_alpha)
         self.w.pack('3f', emitter.start_scale, emitter.mid_scale, emitter.end_scale)
         self.w.pack('3I', emitter.head_life_start, emitter.head_life_end, emitter.head_life_repeat)
@@ -439,7 +453,7 @@ class MdxWriter:
         material_id = material_names.index(ribbon_material.name) \
             if ribbon_material is not None and ribbon_material.name in material_names else 0
         self.w.pack('fff3ff', psys.dimensions[0] / 2, psys.dimensions[0] / 2, emitter.alpha,
-                    *reversed(emitter.ribbon_color[:3]), emitter.life_span)
+                    *emitter.ribbon_color[:3], emitter.life_span)
         self.w.pack('IIIIIf', 0, int(emitter.emission_rate), emitter.rows, emitter.cols, material_id, emitter.gravity)
         self.track('KRAL', psys.alpha_anim, 1)
         self.track('KRCO', psys.ribbon_color_anim, 3)
@@ -472,10 +486,16 @@ class MdxWriter:
     def write_bind_poses(self):
         nodes = list(self.model.objects_all) + list(self.model.cameras)
         self.w.pack('I', len(nodes))
-        identity = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]
         for node in nodes:
-            values = identity if node.bindpose is None else list(itertools.chain.from_iterable(node.bindpose))[:12]
-            self.w.pack('12f', *(values + [0.0] * 12)[:12])
+            self.w.pack('12f', *bind_pose(node))
+
+
+def bind_pose(node) -> List[float]:
+    """A node's rest matrix as BPOS stores it: three axis columns, then the translation, which Blizzard's
+    models always set to the node's pivot (a camera's position). The axes hold Maya joint orientations in
+    Blizzard's files, which Blender bones don't have, so they're written as identity."""
+    pivot = list(node.pivot)[:3] if getattr(node, 'pivot', None) is not None else [0.0, 0.0, 0.0]
+    return [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] + [float(v) for v in pivot]
 
 
 def write_mdx_file(filepath: str, version: int, model: War3Model, frame2ms: float, settings: War3ExportSettings):

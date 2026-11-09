@@ -40,7 +40,7 @@ class War3GeosetAnim:
         return not self.__eq__(other)
 
     def __hash__(self):
-        color_hash = 0 if self.color is None else hash(self.color)
+        color_hash = 0 if self.color is None else hash(tuple(self.color))
         return hash((hash(self.color_anim), hash(self.alpha_anim), color_hash))
 
     def write_geo_anim(self, fw: TextIO.write, geoset_id: int, global_seqs: Set[int]):

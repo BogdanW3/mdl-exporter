@@ -8,7 +8,7 @@ from .WAR3_OT_search_event_id import war3_event_types
 class WAR3_OT_create_eventobject(Operator):
     """Create a Warcraft 3 event object"""
     bl_idname = "object.create_eventobject"
-    bl_label = "Add MDL Event Object"
+    bl_label = "Warcraft 3 Event Object"
 
     def invoke(self, context, event):
         bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.25, location=context.scene.cursor.location)

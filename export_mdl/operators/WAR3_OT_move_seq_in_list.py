@@ -5,7 +5,7 @@ import bpy
 
 class WAR3_OT_move_seq_in_list(bpy.types.Operator):
     bl_idname = 'war_3.move_seq_in_list'
-    bl_label = 'Warcraft 3 Move Sequence In List'
+    bl_label = 'Move Sequence'
     # bl_description = 'Warcraft 3 Move Sequence In List'
     bl_options = {'UNDO'}
 

@@ -39,6 +39,28 @@ def find_fcurve(action: Optional[bpy.types.Action], data_path: str, index: int =
     return None
 
 
+def own_fcurve(id_data: Optional[bpy.types.ID], data_path: str, index: int = 0) -> Optional[bpy.types.FCurve]:
+    """An F-Curve from the action assigned to this datablock, in its own slot. Unlike find_fcurve on a shared
+    action, this can't pick up another object's channel with the same name."""
+    anim_data = getattr(id_data, "animation_data", None)
+    action = anim_data.action if anim_data is not None else None
+    if action is None:
+        return None
+    if not is_layered(action):
+        return action.fcurves.find(data_path, index=index)
+    slot = getattr(anim_data, "action_slot", None)
+    if slot is None:
+        return None
+    for layer in action.layers:
+        for strip in layer.strips:
+            channelbag = strip.channelbag(slot) if hasattr(strip, "channelbag") else None
+            if channelbag is not None:
+                fcurve = channelbag.fcurves.find(data_path, index=index)
+                if fcurve is not None:
+                    return fcurve
+    return None
+
+
 def ensure_channelbag(action: bpy.types.Action, id_type: str = 'OBJECT'):
     slot = next((s for s in action.slots if s.target_id_type in (id_type, 'UNSPECIFIED')), None)
     if slot is None:

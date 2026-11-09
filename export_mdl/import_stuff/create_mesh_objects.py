@@ -41,12 +41,11 @@ def create_mesh_objects(model: War3Model,
         # print("applying uvs")
         apply_uvs(bpy_mesh, war3_geoset)
 
-        if "vertex_normals" in bpy_mesh.__dir__():
-            for bpy_vert_norm, vertex in zip(bpy_mesh.vertex_normals, war3_geoset.vertices):
-                bpy_vert_norm = vertex.normal
-        else:
-            for bpy_vert, vertex in zip(bpy_mesh.vertices, war3_geoset.vertices):
-                bpy_vert.normal = vertex.normal
+        # Keep the model's own normals as custom normals, so they survive a round trip
+        bpy_mesh.polygons.foreach_set("use_smooth", [True] * len(bpy_mesh.polygons))
+        if hasattr(bpy_mesh, 'use_auto_smooth'):
+            bpy_mesh.use_auto_smooth = True  # Custom normals need this before Blender 4.1
+        bpy_mesh.normals_split_custom_set_from_vertices([tuple(v.normal) for v in war3_geoset.vertices])
 
         bpy_material = bpy_materials[war3_geoset.mat_name]
         bpy_mesh.materials.append(bpy_material.bpy_material)

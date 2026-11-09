@@ -17,8 +17,8 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
     """MDL Importer"""
     bl_idname = 'import.mdl_exporter'
     # bl_idname = 'warcraft_3.import_mdl_mdx'
-    bl_label = 'Exp: Import *.mdl/*.mdx'
-    bl_description = 'Import *.mdl/*.mdx files (Exporter function, 3d models of WarCraft 3)'
+    bl_label = 'Import Warcraft 3 Model'
+    bl_description = 'Import a Warcraft 3 model (.mdx or .mdl)'
     bl_options = {'UNDO'}
 
     filename_ext = ['.mdx', '.mdl']

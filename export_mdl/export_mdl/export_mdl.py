@@ -35,7 +35,7 @@ from .save_ribbon_emitters import save_ribbon_emitters
 from .save_sequences import save_sequences
 from .save_texture_animations import save_texture_animations
 from .save_textures import save_textures
-from .write_mdx import write_mdx_file
+from .write_mdx import write_mdx_file, bind_pose
 from ..classes.War3ExportSettings import War3ExportSettings
 from ..classes.War3Model import War3Model
 from ..classes.model_utils.from_scene import from_scene
@@ -63,16 +63,18 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
         restore_action(obj, anim, slot)
     scene.frame_set(current_frame)
 
-    if settings.use_skinweights and mdl_version < 900:
-        # Tangents and skin weights don't exist before v900
-        print("Skin weights need format version 900 or newer, exporting as %d" % 1000)
-        mdl_version = 1000
+    # Things the user should know about, the operator reports them as warnings
+    warnings: List[str] = []
+    hd_materials = [mat.name for mat in model.materials if mat.layers and mat.layers[0].hd]
+    if hd_materials and mdl_version < 900:
+        warnings.append("Version %d has no HD materials, wrote %s as SD" % (mdl_version, ", ".join(hd_materials)))
 
     if file_format == 'MDX':
         write_mdx_file(filepath, mdl_version, model, frame2ms, settings)
     else:
         write_model_file(filepath, mdl_version, model, frame2ms, settings)
     print('Done saving "%s"' % filepath)
+    return warnings
 
 
 def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms: float, settings: War3ExportSettings):
@@ -102,7 +104,7 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         save_texture_animations(fw, model.tvertex_anims, model.global_seqs)
 
         # GEOSETS
-        save_geosets(fw, model, settings)
+        save_geosets(fw, model, settings, mdl_version)
 
         # GEOSET ANIMS
         save_geoset_animations(fw, model.geoset_anims, model.geosets, model.global_seqs)
@@ -140,22 +142,19 @@ def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms
         # COLLISION SHAPES
         save_collision_shape(fw, model.collision_shapes)
 
-        if settings.use_skinweights:
+        has_hd = any(mat.layers and mat.layers[0].hd for mat in model.materials)
+        if 900 <= mdl_version and has_hd:
             fw("BindPose {\n")
             fw("\tMatrices %s {\n" % (len(model.objects_all) + len(model.cameras)))
-            for obj in model.objects_all:
-                obj_mat = mat_to_tuple(obj.bindpose)
-                bp = tuple(obj_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-                fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
-            for cam in model.cameras:
-                cam_mat = mat_to_tuple(cam.bindpose)
-                bp = tuple(cam_mat) + (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-                fw("\t\t{ %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s },\n" % tuple(map(float2str, bp[0:12])))
+            for node in list(model.objects_all) + list(model.cameras):
+                fw("\t\t{ %s },\n" % ", ".join(map(float2str, bind_pose(node))))
             fw("\t}\n")
             fw("}\n")
 
 
 def mat_to_tuple(mat: Matrix):
+    if mat is None:
+        return 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0
     v_list: List[float] = []
     for row in mat:
         v_list.extend(list(row))

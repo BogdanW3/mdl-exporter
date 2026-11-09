@@ -74,7 +74,7 @@ class War3Geoset:
             # SkinWeights
             fw("\tSkinWeights %d {\n" % len(self.vertices))
             for vertex in self.vertices:
-                bones = tuple((object_indices[name] for name in vertex.bone_list)) + tuple([0, 0, 0, 0])
+                bones = tuple((object_indices.get(name, 0) for name in vertex.bone_list)) + tuple([0, 0, 0, 0])
                 fw("\t\t%s, %s, %s, %s, " % bones[0:4])
                 weights = list(vertex.weight_list)
                 weights.extend([0, 0, 0, 0])

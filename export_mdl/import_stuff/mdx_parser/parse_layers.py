@@ -33,7 +33,7 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
         layer.emissive_gain = r.getf('<f')[0]
 
     if 900 < version:
-        layer.fresnel_color = list(r.getf('<3f'))
+        layer.fresnel_color = tuple(r.getf('<3f'))
         layer.fresnel_opacity = r.getf('<f')[0]
         layer.fresnel_team_color = r.getf('<f')[0]
 
@@ -59,13 +59,13 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
         elif chunk_id == constants.CHUNK_MATERIAL_ALPHA:
             layer.alpha_anim = parse_timeline(r, '<f')
         elif chunk_id == constants.CHUNK_MATERIAL_FRESNEL_COLOR:
-            layer.fresnel_color = parse_timeline(r, '<3f')
+            layer.fresnel_color_anim = parse_timeline(r, '<3f')
         elif chunk_id == constants.CHUNK_MATERIAL_EMISSIONS:
-            layer.emissions = parse_timeline(r, '<f')
+            layer.emissive_gain_anim = parse_timeline(r, '<f')
         elif chunk_id == constants.CHUNK_MATERIAL_FRESNEL_ALPHA:
-            layer.fresnel_alpha = parse_timeline(r, '<f')
+            layer.fresnel_opacity_anim = parse_timeline(r, '<f')
         elif chunk_id == constants.CHUNK_MATERIAL_FRESNEL_TEAMCOLOR:
-            layer.fresnel_team_color = parse_timeline(r, '<f')
+            layer.fresnel_team_color_anim = parse_timeline(r, '<f')
         else:
             # An unknown track can't be skipped without knowing its value size, give up on the rest of the layer
             r.offset = data_size

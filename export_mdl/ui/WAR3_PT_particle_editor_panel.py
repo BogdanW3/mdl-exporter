@@ -5,7 +5,7 @@ from bpy.types import Panel
 class WAR3_PT_particle_editor_panel(Panel):
     """Creates a particle editor Panel in the Particles window"""
     bl_idname = "WAR3_PT_particle_editor_panel"
-    bl_label = "MDL Particle Emitter"
+    bl_label = "Warcraft 3 Particle Emitter"
     bl_region_type = 'WINDOW'
     bl_space_type = 'PROPERTIES'
     bl_context = 'particle'

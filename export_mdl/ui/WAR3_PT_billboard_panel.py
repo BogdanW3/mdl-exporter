@@ -8,7 +8,7 @@ from ..properties import War3BillboardProperties
 class WAR3_PT_billboard_panel(Panel):
     """Displays billboard settings in the Object panel"""
     bl_idname = "WAR3_PT_billboard_panel"
-    bl_label = "MDL Billboard Options"
+    bl_label = "Warcraft 3 Billboard"
     bl_region_type = 'WINDOW'
     bl_space_type = 'PROPERTIES'
     bl_context = 'object'

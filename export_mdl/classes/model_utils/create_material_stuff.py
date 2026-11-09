@@ -23,27 +23,48 @@ def get_new_material2(bpy_material: bpy.types.Material,
     material.use_const_color = use_const_color
 
     material.priority_plane = bpy_material.priority_plane
+    shader = getattr(bpy_material, "mdl_shader", 'AUTO')
 
     mdl_layers: List[War3MaterialLayerProperties] = bpy_material.mdl_layers
     for i, layer_settings in enumerate(mdl_layers):
         material.layers.append(parse_layer(i, layer_settings, bpy_material, sequences, actions, global_seqs))
 
+    hd = shader in ('HD', 'CRYSTAL')
     if not len(material.layers):
-        from_nodes = layers_from_mat_nodes(bpy_material)
+        from_nodes = layers_from_mat_nodes(bpy_material, hd)
         if from_nodes is not None:
             material.layers.extend(from_nodes)
-            if use_skin_weights:
-                for layer in material.layers:
-                    layer.hd = True
+            # Automatic: HD with HD skinning on, when the nodes have PBR textures (normal, ORM or emissive)
+            if shader == 'AUTO' and use_skin_weights and 1 < len(from_nodes):
+                hd = True
         else:
             layer = War3Layer()
             layer.texture = War3Texture()
             material.layers.append(layer)
 
+    if hd:
+        pad_hd_slots(material.layers)
+        shader_id = 24 if shader == 'CRYSTAL' else 1
+        for layer in material.layers:
+            layer.hd = True
+            layer.shader = shader_id
+
     return material
 
 
-def layers_from_mat_nodes(bpy_material: bpy.types.Material):
+# Textures an HD material falls back on for slots it doesn't fill
+HD_DEFAULT_TEXTURES = ("Textures\\white.blp", "Textures\\normal.dds", "Textures\\orm.dds",
+                       "Textures\\Black32.dds", "ReplaceableId 1", "ReplaceableTextures\\EnvironmentMap.dds")
+
+
+def pad_hd_slots(layers: List[War3Layer]):
+    # An HD material always binds all six PBR slots
+    for slot in range(len(layers), len(HD_DEFAULT_TEXTURES)):
+        path = HD_DEFAULT_TEXTURES[slot]
+        layers.append(get_layer(path, 1 if path.startswith("ReplaceableId") else 0))
+
+
+def layers_from_mat_nodes(bpy_material: bpy.types.Material, hd: bool = False):
     if bpy_material.use_nodes \
             and bpy_material.node_tree \
             and bpy_material.node_tree.nodes \
@@ -91,8 +112,9 @@ def layers_from_mat_nodes(bpy_material: bpy.types.Material):
             orm_path = get_path("Metallic", socket_to_filePath)
         if orm_path is None:
             orm_path = get_path("Specular", socket_to_filePath)
-        emis_path = get_path("Emission", socket_to_filePath)
-        if norm_path or orm_path or emis_path:
+        # Blender 4.0 renamed the Principled BSDF "Emission" input to "Emission Color"
+        emis_path = get_path("Emission Color", socket_to_filePath) or get_path("Emission", socket_to_filePath)
+        if hd or norm_path or orm_path or emis_path:
             layers.append(get_layer(norm_path, 0, "Textures\\normal.dds"))
             layers.append(get_layer(orm_path, 0, "Textures\\orm.dds"))
             layers.append(get_layer(emis_path, 0, "Textures\\Black32.dds"))
@@ -139,7 +161,6 @@ def parse_layer(i: int,
                 sequences: List[War3AnimationAction],
                 actions: List[bpy.types.Action],
                 global_seqs: Set[int]):
-    print("parse layer2")
     layer = War3Layer()
     texture_path = layer_settings.path
 
@@ -159,6 +180,26 @@ def parse_layer(i: int,
     layer.two_sided = layer_settings.two_sided
     layer.no_depth_test = layer_settings.no_depth_test
     layer.no_depth_set = layer_settings.no_depth_set
+    layer.unfogged = layer_settings.unfogged
+    layer.sphere_env_map = layer_settings.sphere_env_map
+    layer.wrap_width = layer_settings.wrap_width
+    layer.wrap_height = layer_settings.wrap_height
+    layer.unlit = layer_settings.unlit
+    layer.back_faces_for_shadows = layer_settings.back_faces_for_shadows
+    layer.ambient_occlusion = layer_settings.ambient_occlusion
+
+    layer.emissive_gain = layer_settings.emissive_gain
+    layer.fresnel_color = tuple(layer_settings.fresnel_color)
+    layer.fresnel_opacity = layer_settings.fresnel_opacity
+    layer.fresnel_team_color = layer_settings.fresnel_team_color
+    layer.emissive_gain_anim = get_wc3_animation_curve('mdl_layers[%d].emissive_gain' % i, actions, 1,
+                                                       sequences, global_seqs)
+    layer.fresnel_color_anim = get_wc3_animation_curve('mdl_layers[%d].fresnel_color' % i, actions, 3,
+                                                       sequences, global_seqs)
+    layer.fresnel_opacity_anim = get_wc3_animation_curve('mdl_layers[%d].fresnel_opacity' % i, actions, 1,
+                                                         sequences, global_seqs)
+    layer.fresnel_team_color_anim = get_wc3_animation_curve('mdl_layers[%d].fresnel_team_color' % i, actions, 1,
+                                                            sequences, global_seqs)
 
     layer.alpha_value = layer_settings.alpha
     animation_data = mat.animation_data

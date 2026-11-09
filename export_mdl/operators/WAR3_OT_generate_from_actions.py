@@ -6,8 +6,8 @@ from bpy.types import Operator
 class WAR3_OT_generate_from_actions(Operator):
     """Generate Warcraft 3 animation sequences from existing actions"""
     bl_idname = "war_3.generate_from_actions"
-    bl_label = "Warcraft 3 Generate Sequences"
-    bl_description = 'Warcraft 3 Generate Sequences From Actions'
+    bl_label = "Populate from Actions"
+    bl_description = "Add a sequence for every action that doesn't have one yet. Existing sequences are left as they are"
     bl_options = {'UNDO'}
 
     def execute(self, context: bpy.types.Context):

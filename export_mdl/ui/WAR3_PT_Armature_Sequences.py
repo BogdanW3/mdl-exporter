@@ -4,7 +4,7 @@ import bpy
 class WAR3_PT_Armature_Sequences(bpy.types.Panel):
     """Add a Warcraft 3 animation sequence using actions"""
     bl_idname = 'WAR3_PT_Armature_Sequences'
-    bl_label = 'WarCraft 3 Actions'
+    bl_label = 'Warcraft 3 Actions'
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'data'

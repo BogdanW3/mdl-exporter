@@ -1,3 +1,4 @@
+import struct
 from typing import List
 
 from ..MDXImportProperties import MDXImportProperties
@@ -45,7 +46,8 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
             model.name = parse_model(chunk_data)
             print(" Model name: " + model.name)
         elif chunk_id == constants.CHUNK_GLOBAL_SEQUENCE:
-            print(" Global sequence! (unimplemented)")
+            # Durations in ms, indexed by the global sequence id tracks refer to
+            model.global_sequence_durations = [v[0] for v in struct.iter_unpack('<I', chunk_data)]
         elif chunk_id == constants.CHUNK_SEQUENCE:
             model.sequences.extend(parse_sequences(chunk_data))
         elif chunk_id == constants.CHUNK_TEXTURE:

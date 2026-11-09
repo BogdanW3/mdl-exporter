@@ -4,6 +4,7 @@ from . import WAR3_MT_sequence_context_menu
 from . import WAR3_PT_billboard_panel
 from . import WAR3_PT_event_panel
 from . import WAR3_PT_light_panel
+from . import WAR3_PT_geoset_anim_panel
 from . import WAR3_PT_material_panel
 from . import WAR3_PT_particle_editor_panel
 from . import WAR3_PT_sequences_panel
@@ -58,6 +59,7 @@ try:
     importlib.reload(WAR3_PT_billboard_panel)
     importlib.reload(WAR3_PT_event_panel)
     importlib.reload(WAR3_PT_light_panel)
+    importlib.reload(WAR3_PT_geoset_anim_panel)
     importlib.reload(WAR3_PT_material_panel)
     importlib.reload(WAR3_PT_particle_editor_panel)
     importlib.reload(WAR3_PT_sequences_panel)

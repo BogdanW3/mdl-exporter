@@ -8,7 +8,7 @@ from ..properties import War3LightSettings
 class WAR3_PT_light_panel(Panel):
     """Displays light properties in the lamp panel"""
     bl_idname = "WAR3_PT_light_panel"
-    bl_label = "MDL Light Settings"
+    bl_label = "Warcraft 3 Light"
     bl_region_type = 'WINDOW'
     bl_space_type = 'PROPERTIES'
     bl_context = 'data'
@@ -22,9 +22,9 @@ class WAR3_PT_light_panel(Panel):
         del bpy.types.Light.mdl_light
 
     @classmethod
-    def poll(self,context):
+    def poll(cls, context):
         obj = context.active_object
-        return obj is not None and obj.type in ('LAMP', 'LIGHT')
+        return obj is not None and obj.type == 'LIGHT'
 
     def draw(self, context):
         layout = self.layout

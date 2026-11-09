@@ -3,8 +3,8 @@ import bpy
 
 class WAR3_OT_update_bone_settings(bpy.types.Operator):
     bl_idname = 'warcraft_3.update_bone_settings'
-    bl_label = 'Warcraft 3 Update Bone Settings'
-    bl_description = 'Warcraft 3 Update Bone Settings'
+    bl_label = 'Update Bone Settings'
+    bl_description = 'Apply the Warcraft 3 bone settings'
     bl_options = {'UNDO'}
 
     def execute(self, context):

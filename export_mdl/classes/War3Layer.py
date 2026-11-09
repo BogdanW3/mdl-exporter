@@ -28,6 +28,15 @@ class War3Layer:
         self.back_faces_for_shadows: bool = False
         self.ambient_occlusion: bool = False
         self.multi_texture_ids: Optional[list[int]] = None
+        # v900+ emissive gain, v1000+ fresnel (rim light)
+        self.emissive_gain: float = 1.0
+        self.fresnel_color: tuple = (1.0, 1.0, 1.0)
+        self.fresnel_opacity: float = 0.0
+        self.fresnel_team_color: float = 0.0
+        self.emissive_gain_anim: Optional[War3AnimationCurve] = None
+        self.fresnel_color_anim: Optional[War3AnimationCurve] = None
+        self.fresnel_opacity_anim: Optional[War3AnimationCurve] = None
+        self.fresnel_team_color_anim: Optional[War3AnimationCurve] = None
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):

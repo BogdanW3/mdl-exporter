@@ -67,18 +67,17 @@ def from_scene(context: bpy.types.Context,
         #     bone_zero: str = war3_model.bones[0].name
         #     for vertex in war_geoset.vertices:
         #         fix_skin_bones(vertex.bone_list, vertex.weight_list, bone_zero)
-        if bpy_geoset.bpy_material and bpy_geoset.bpy_material.node_tree:
-            geo_anim = get_geoset_anim(bpy_geoset, actions, war3_model.sequences, war3_model.global_seqs)
-            war_geoset.geoset_anim = geo_anim
-            if geo_anim:
-                geo_anim.geoset = war_geoset
-                geo_anim.geoset_id = len(war3_model.geosets)-1
+        geo_anim = get_geoset_anim(bpy_geoset, actions, war3_model.sequences, war3_model.global_seqs)
+        war_geoset.geoset_anim = geo_anim
+        if geo_anim:
+            geo_anim.geoset = war_geoset
+            geo_anim.geoset_id = len(war3_model.geosets)-1
 
     for bpy_material in bpy_scene_objects.materials:
         use_const_color = any([g for g in war3_model.geosets
                                if g.mat_name == bpy_material.name
                                and g.geoset_anim is not None
-                               and any((g.geoset_anim.color, g.geoset_anim.color_anim))])
+                               and (g.geoset_anim.color is not None or g.geoset_anim.color_anim is not None)])
         new_material = get_new_material2(bpy_material, use_const_color, settings.use_skinweights, actions,
                                          war3_model.sequences, war3_model.global_seqs)
         war3_model.materials.append(new_material)

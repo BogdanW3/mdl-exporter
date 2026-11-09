@@ -6,7 +6,7 @@ from bpy.types import Operator
 class WAR3_OT_create_collision_shape(Operator):
     """Create a Warcraft 3 collision shape"""
     bl_idname = "object.create_collision_shape"
-    bl_label = "Add MDL Collision Shape"
+    bl_label = "Warcraft 3 Collision Shape"
 
     shape: EnumProperty(
         name="Type",

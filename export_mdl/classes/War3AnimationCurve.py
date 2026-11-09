@@ -40,10 +40,11 @@ class War3AnimationCurve:
         return not self.__eq__(other)
 
     def __hash__(self):
-        values = [self.interpolation, self.global_sequence, self.type]
-        values.append(tuple(sorted(self.keyframes.items())))
-        values.append(tuple(sorted(self.handles_left.items())))
-        values.append(tuple(sorted(self.handles_right.items())))
+        def frozen(keys):
+            # Key values are lists (or Vectors), which can't be hashed as they are
+            return tuple(sorted((time, tuple(value)) for time, value in keys.items()))
+        values = [self.interpolation, self.global_sequence, self.type,
+                  frozen(self.keyframes), frozen(self.handles_left), frozen(self.handles_right)]
         return hash(tuple(values))
 
 # import math

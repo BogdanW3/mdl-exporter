@@ -4,12 +4,15 @@ from ..classes.War3Model import War3Model
 from ..utils import float2str, calc_bounds_radius
 
 
-def save_geosets(fw: TextIO.write, model: War3Model, settings):
+def save_geosets(fw: TextIO.write, model: War3Model, settings, version: int = 800):
     if len(model.geosets):
         material_names = [mat.name for mat in model.materials]
+        # HD shaders read tangents and skin weights, so their geosets are always skinned (v900+)
+        hd_materials = {mat.name for mat in model.materials if mat.layers and mat.layers[0].hd}
         for geoset in model.geosets:
             if 0 < len(geoset.vertices):
-                geoset.write_geoset(fw, material_names, model.sequences, model.bones, settings.use_skinweights)
+                skinned = 900 <= version and geoset.mat_name in hd_materials
+                geoset.write_geoset(fw, material_names, model.sequences, model.bones, skinned)
             # fw("Geoset {\n")
             # # Vertices
             # fw("\tVertices %d {\n" % len(geoset.vertices))

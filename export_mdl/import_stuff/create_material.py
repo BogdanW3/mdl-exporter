@@ -31,6 +31,11 @@ def create_material(model: War3Model, team_color: str) -> Dict[str, War3BpyMater
             images.append(bpy_images[layer.texture.texture_path])
 
         bpy_material = create_bpy_material(images, layer.hd, team_color)
+        first = material.layers[0]
+        bpy_material.bpy_material.priority_plane = material.priority_plane
+        if first.hd:
+            # So exporting it again keeps it HD, whatever the skinning option says
+            bpy_material.bpy_material.mdl_shader = 'CRYSTAL' if first.shader == 24 else 'HD'
 
         bpy_materials[str(i)] = bpy_material
 
