@@ -24,8 +24,19 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
     filename_ext = ['.mdx', '.mdl']
     filter_glob: bpy.props.StringProperty(default='*.mdx;*.mdl', options={'HIDDEN'})
     filepath: bpy.props.StringProperty(name='File Path', maxlen=1024, default='')
-    useCustomFPS: bpy.props.BoolProperty(name='Use Custom FPS', default=False)
-    animationFPS: bpy.props.FloatProperty(name='Animation FPS', default=30.0, min=1.0, max=1000.0)
+    frameRate: bpy.props.EnumProperty(
+        name='Frame Rate',
+        items=[
+            ('FIT', 'Match the Model',
+             "Change the scene's frame rate if needed so every key lands on a whole frame and keeps its exact "
+             "timing. Animation already in the scene is moved along so it keeps its timing too"),
+            ('SCENE', "Keep the Scene's",
+             "Keep the scene's frame rate; keys between frames move to the nearest one"),
+            ('CUSTOM', 'Custom', "Switch the scene to a frame rate of your choice (existing animation is moved "
+                                 "along); keys between frames move to the nearest one"),
+        ],
+        default='FIT')
+    animationFPS: bpy.props.IntProperty(name='FPS', default=30, min=1, max=1000)
     boneSize: bpy.props.FloatProperty(name='Bone Size', default=5.0, min=0.0001, max=1000.0)
     teamColor: bpy.props.FloatVectorProperty(
         name='Team Color',
@@ -77,8 +88,8 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
         sub_split.prop(self, 'setTeamColor', text="")
         split.prop(self, 'teamColor', text="")
         layout.prop(self, 'boneSize')
-        layout.prop(self, 'useCustomFPS')
-        if self.useCustomFPS:
+        layout.prop(self, 'frameRate')
+        if self.frameRate == 'CUSTOM':
             layout.prop(self, 'animationFPS')
 
     def execute(self, context):
@@ -86,7 +97,7 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
         import_properties.mdx_file_path = self.filepath
         import_properties.team_color = self.setTeamColor
         import_properties.bone_size = self.boneSize
-        import_properties.use_custom_fps = self.useCustomFPS
+        import_properties.frame_rate = self.frameRate
         import_properties.fps = self.animationFPS
         import_properties.calculate_frame_time()
         constants.os_path_separator = os.path
@@ -94,6 +105,8 @@ class WAR3_OT_import_mdlx(bpy.types.Operator, io_utils.ImportHelper):
             load_mdl(import_properties)
         else:
             load_mdx(import_properties)
+        for message in import_properties.messages:
+            self.report({'INFO'}, message)
         return {'FINISHED'}
 
     def invoke(self, context, event):

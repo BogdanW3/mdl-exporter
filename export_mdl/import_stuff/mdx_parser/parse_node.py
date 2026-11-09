@@ -16,6 +16,10 @@ def parse_node(r: Reader, node: War3Node):
         node.parent = str(parent)
 
     flags = r.getf('<I')[0]
+    node.flags = flags
+    node.billboarded = bool(flags & 0x8)
+    # (lock z, lock y, lock x), the order the exporter uses
+    node.billboard_lock = (bool(flags & 0x40), bool(flags & 0x20), bool(flags & 0x10))
 
     while r.offset < inclusive_size:
         chunk_id = r.getid(constants.SUB_CHUNKS_NODE)

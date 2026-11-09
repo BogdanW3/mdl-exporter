@@ -26,7 +26,7 @@ class WAR3_OT_emitter_set_from_bpy(bpy.types.Operator):
             time = p_sys.frame_end - p_sys.frame_start
             life_time = p_sys.lifetime
             p_settings.speed = p_sys.normal_factor * 10.0
-            fps_translate = 1000.0 / bpy.context.scene.render.fps
+            fps_translate = 1000.0 / (bpy.context.scene.render.fps / bpy.context.scene.render.fps_base)
             p_settings.emission_rate = num / time * fps_translate
             p_settings.life_span = life_time
             if p_sys.normal_factor != 0:

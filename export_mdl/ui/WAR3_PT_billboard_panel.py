@@ -16,10 +16,12 @@ class WAR3_PT_billboard_panel(Panel):
     @classmethod
     def register(cls):
         bpy.types.Object.mdl_billboard = PointerProperty(type=War3BillboardProperties.War3BillboardProperties)
+        bpy.types.Bone.mdl_billboard = PointerProperty(type=War3BillboardProperties.War3BillboardProperties)
 
     @classmethod
     def unregister(cls):
         del bpy.types.Object.mdl_billboard
+        del bpy.types.Bone.mdl_billboard
 
     @classmethod
     def poll(cls, context):
@@ -34,7 +36,7 @@ class WAR3_PT_billboard_panel(Panel):
         if obj.type in ('LAMP', 'LIGHT'):
             return True
 
-        if obj.name.endswith(" Ref"):
+        if obj.name.endswith(" Ref") or obj.get("mdl_node_type"):
             return True
 
         return False
@@ -42,6 +44,27 @@ class WAR3_PT_billboard_panel(Panel):
     def draw(self, context):
         layout = self.layout
         data = bpy.context.active_object.mdl_billboard
+        layout.prop(data, "billboarded")
+        layout.prop(data, "billboard_lock_x")
+        layout.prop(data, "billboard_lock_y")
+        layout.prop(data, "billboard_lock_z")
+
+
+class WAR3_PT_bone_billboard_panel(Panel):
+    """Billboard settings of the active bone"""
+    bl_idname = "WAR3_PT_bone_billboard_panel"
+    bl_label = "Warcraft 3 Billboard"
+    bl_region_type = 'WINDOW'
+    bl_space_type = 'PROPERTIES'
+    bl_context = 'bone'
+
+    @classmethod
+    def poll(cls, context):
+        return context.bone is not None and hasattr(context.bone, "mdl_billboard")
+
+    def draw(self, context):
+        layout = self.layout
+        data = context.bone.mdl_billboard
         layout.prop(data, "billboarded")
         layout.prop(data, "billboard_lock_x")
         layout.prop(data, "billboard_lock_y")

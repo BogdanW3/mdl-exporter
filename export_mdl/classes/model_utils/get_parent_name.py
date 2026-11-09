@@ -11,6 +11,8 @@ def get_parent_name(bpy_obj: bpy.types.Object) -> Optional[str]:
         return None
     elif bpy_obj.parent_type == 'BONE':
         return bpy_obj.parent_bone if bpy_obj.parent_bone != "" else None
+    elif parent.get("mdl_node_name"):
+        return parent["mdl_node_name"]
     elif parent.type == 'EMPTY':
         return parent.name
     elif parent.type == 'OBJECT':

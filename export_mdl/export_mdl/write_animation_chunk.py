@@ -78,7 +78,7 @@ def write_animation_chunk(fw: TextIO.write,
         keyframes, handles_left, handles_right = bgr(keyframes), bgr(handles_left), bgr(handles_right)
 
 
-    f2ms = 1000 / bpy.context.scene.render.fps
+    f2ms = 1000 / (bpy.context.scene.render.fps / bpy.context.scene.render.fps_base)
 
     fw(indent + "%s %d {\n" % (name, len(keyframes)))
 
@@ -103,14 +103,14 @@ def write_animation_chunk(fw: TextIO.write,
             line += ',\n'
 
         if type1 == 'Event':
-            fw(indent+"\t%d,\n" % int(frame * f2ms))
+            fw(indent+"\t%d,\n" % int(round(frame * f2ms)))
         else:
             keyframe = keyframes[frame]
 
             if type1 == 'Rotation':
                 keyframe = keyframe[1:] + keyframe[:1]  # MDL quaternions must be on the form XYZW
 
-            s = "\t%d: " % int(frame * f2ms)
+            s = "\t%d: " % int(round(frame * f2ms))
             fw(indent + s + line % tuple(float2str(rnd(x)) for x in keyframe))
 
             if interpolation == 'Bezier':

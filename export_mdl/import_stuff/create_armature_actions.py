@@ -9,14 +9,12 @@ from export_mdl.classes.War3AnimationCurve import War3AnimationCurve
 from export_mdl.classes.War3Model import War3Model
 from export_mdl.classes.War3Node import War3Node
 from ..action_compat import find_fcurve, new_fcurve
+from .key_tracks import apply_tangents
 
 
 def create_armature_actions(armature_object: bpy.types.Object, model: War3Model, fps_ratio: float):
     print(" adding animations")
-    nodes: List[War3Node] = []
-    # nodes.extend(model.objects_all)
-    nodes.extend(model.bones)
-    nodes.extend(model.helpers)
+    nodes: List[War3Node] = list(getattr(model, "armature_nodes", None) or (list(model.bones) + list(model.helpers)))
     sequences: List[War3AnimationAction] = model.sequences
     armature: bpy.types.Armature = armature_object.data
     action_unanimated = bpy.data.actions.new(name='#UNANIMATED')
@@ -44,6 +42,18 @@ def create_armature_actions(armature_object: bpy.types.Object, model: War3Model,
 
     create_timeline_markers(fps_ratio, sequences)
 
+    # Tracks on a global sequence loop on their own, independent of the sequences: they're set aside here and
+    # become looping (Cycles) curves in "all sequences", starting at frame 0
+    durations = getattr(model, "global_sequence_durations", [])
+    looping: List = []
+    for node in nodes:
+        for attr in ('anim_loc', 'anim_rot', 'anim_scale'):
+            curve = getattr(node, attr)
+            gs = curve.global_sequence if curve is not None else None
+            if isinstance(gs, int) and 0 <= gs < len(durations):
+                looping.append((node, attr, curve, durations[gs]))
+                setattr(node, attr, None)
+
     identity = Matrix().Identity(4)
     for sequence in sequences:
         action: bpy.types.Action = bpy.data.actions.get(sequence.name)
@@ -54,11 +64,51 @@ def create_armature_actions(armature_object: bpy.types.Object, model: War3Model,
             add_actions_to_node(action, fps_ratio, 0, sequence.end, sequence.start, node, matrix)
             # add_actions_to_node2(action, fps_ratio, 0, sequence, node, matrix)
 
+    # Frames the sequences cover: the rest-pose padding around each sequence must not land on another one's keys
+    # (two sequences can be a single frame apart)
+    occupied = [(round(s.start / fps_ratio), round(s.end / fps_ratio)) for s in sequences]
     for sequence in sequences:
         for node in nodes:
             matrix: Matrix = rotation_adjust.get(node.name, identity)
-            add_actions_to_node(action_all, fps_ratio, sequence.start, sequence.end, sequence.start, node, matrix)
+            add_actions_to_node(action_all, fps_ratio, sequence.start, sequence.end, sequence.start, node, matrix,
+                                occupied)
             # add_actions_to_node2(action_all, fps_ratio, sequence.start, sequence, node, matrix)
+
+    paths = {'anim_loc': ('location', [0.0, 0.0, 0.0]), 'anim_rot': ('rotation_quaternion', [1.0, 0.0, 0.0, 0.0]),
+             'anim_scale': ('scale', [1.0, 1.0, 1.0])}
+    for node, attr, curve, duration in looping:
+        setattr(node, attr, curve)
+        path, zero = paths[attr]
+        matrix = rotation_adjust.get(node.name, identity)
+        data_path = 'pose.bones["' + node.name + '"].' + path
+        # Replace whatever the rest pose put there with the looping track
+        for index in range(len(zero)):
+            fcurve = find_fcurve(action_all, data_path, index)
+            if fcurve is not None:
+                fcurve.keyframe_points.clear()
+        create_transformation_curves(action_all, node.name, path, fps_ratio, duration, 0, 0, curve, zero, matrix)
+        end = round(duration / fps_ratio)
+        for index in range(len(zero)):
+            fcurve = find_fcurve(action_all, data_path, index)
+            if fcurve is None or not len(fcurve.keyframe_points):
+                continue
+            if fcurve.keyframe_points[-1].co[0] < end:
+                first = fcurve.keyframe_points[0]
+                fcurve.keyframe_points.insert(end, first.co[1]).interpolation = first.interpolation
+            fcurve.modifiers.new('CYCLES')
+
+    # Curved (Hermite/Bezier) translation and scaling keep their shape: handles from the file's tangents, in
+    # "all sequences" (what the exporter reads). Rotations interpolate on the sphere, so they're left as they are.
+    for node in nodes:
+        matrix = rotation_adjust.get(node.name, identity)
+        for attr, path, convert in (('anim_loc', 'location', lambda v, m=matrix: rotate_vec3(m, v)),
+                                    ('anim_scale', 'scale', lambda v: v)):
+            curve = getattr(node, attr)
+            if curve is None:
+                continue
+            data_path = 'pose.bones["' + node.name + '"].' + path
+            fcurves = [find_fcurve(action_all, data_path, index) for index in range(3)]
+            apply_tangents(fcurves, curve, fps_ratio, convert)
 
 
 def add_unanimated_to_bones(action: bpy.types.Action, node: War3Node, bone_name: str):
@@ -73,12 +123,32 @@ def add_unanimated_to_bones(action: bpy.types.Action, node: War3Node, bone_name:
 
 
 def create_timeline_markers(frame_time: float, sequences: List[War3AnimationAction]):
+    scene = bpy.data.scenes[0]
     for sequence in sequences:
         int_start: int = round(sequence.start / frame_time, None)
         int_end: int = round(sequence.end / frame_time, None)
 
-        bpy.data.scenes[0].timeline_markers.new(sequence.name, frame=int_start)
-        bpy.data.scenes[0].timeline_markers.new(sequence.name, frame=int_end)
+        scene.timeline_markers.new(sequence.name, frame=int_start)
+        scene.timeline_markers.new(sequence.name, frame=int_end)
+
+    # The scene's sequence list (what the exporter writes), in the file's order and with its settings. Without
+    # this the list is filled from the markers later, with guessed settings.
+    window_manager = bpy.context.window_manager
+    refreshing = window_manager.mdl_sequence_refreshing
+    window_manager.mdl_sequence_refreshing = True  # Keep the marker sync handler out while we fill it
+    try:
+        scene_sequences = scene.war3_mdl_sequences.mdl_sequences
+        for index, sequence in enumerate(sequences):
+            found = scene_sequences.find(sequence.name)
+            item = scene_sequences[found] if found >= 0 else scene_sequences.add()
+            item.seq_name = sequence.name
+            item.name = sequence.name
+            item.non_looping = bool(sequence.non_looping)
+            item.rarity = int(round(sequence.rarity))
+            item.move_speed = int(round(sequence.movement_speed))
+            scene_sequences.move(scene_sequences.find(sequence.name), index)
+    finally:
+        window_manager.mdl_sequence_refreshing = refreshing
 
 
 def create_bpy_actions(sequences: List[War3AnimationAction],
@@ -99,7 +169,8 @@ def add_actions_to_node(action: bpy.types.Action,
                         interval_end: float,
                         interval_start: float,
                         node: War3Node,
-                        matrix: Matrix):
+                        matrix: Matrix,
+                        occupied=()):
     bone_name = node.name
     translations: Optional[War3AnimationCurve] = node.anim_loc
     rotations: Optional[War3AnimationCurve] = node.anim_rot
@@ -109,18 +180,18 @@ def add_actions_to_node(action: bpy.types.Action,
         # print("translations!")
         create_transformation_curves(action, bone_name, 'location',
                                      fps_ratio, interval_end, interval_start, timeline_offset,
-                                     translations, [0.0, 0.0, 0.0], matrix)
+                                     translations, [0.0, 0.0, 0.0], matrix, occupied)
     if rotations:
         # print("rotations!")
         create_transformation_curves(action, bone_name, 'rotation_quaternion',
                                      fps_ratio, interval_end, interval_start,
-                                     timeline_offset, rotations, [1.0, 0.0, 0.0, 0.0], matrix)
+                                     timeline_offset, rotations, [1.0, 0.0, 0.0, 0.0], matrix, occupied)
 
     if scalings:
         # print("scalings!")
         create_transformation_curves(action, bone_name, 'scale',
                                      fps_ratio, interval_end, interval_start, timeline_offset,
-                                     scalings, [1.0, 1.0, 1.0], matrix)
+                                     scalings, [1.0, 1.0, 1.0], matrix, occupied)
 
 
 def add_actions_to_node2(action: bpy.types.Action,
@@ -156,7 +227,7 @@ def create_transformation_curves(action: bpy.types.Action,
                                  interval_start: float,
                                  timeline_offset: float,
                                  transformations: War3AnimationCurve,
-                                 trans_zero_values: List[float], matrix: Matrix):
+                                 trans_zero_values: List[float], matrix: Matrix, occupied=()):
     data_path = 'pose.bones["' + bone_name + '"].' + data_path_addition
     starting_keyframe = round(timeline_offset / fps_ratio, 0)
     interpolation_type = constants.INTERPOLATION_NAME_BLEND_NAME[transformations.interpolation]
@@ -185,8 +256,9 @@ def create_transformation_curves(action: bpy.types.Action,
             value = rotate_vec3(matrix, value)
 
         end_keyframe = round((interval_end + timeline_offset - interval_start) / fps_ratio, 0)
-        set_new_curves(action, bone_name, data_path, fcurves, starting_keyframe - 1, value, None, None, interpolation_type)
-        set_new_curves(action, bone_name, data_path, fcurves, end_keyframe + 1, value, None, None, interpolation_type)
+        for frame in (starting_keyframe - 1, end_keyframe + 1):
+            if not any(start <= frame <= end for start, end in occupied):
+                set_new_curves(action, bone_name, data_path, fcurves, frame, value, None, None, interpolation_type)
 
         value: List[float] = list(transformations.keyframes.get(interval_start, trans_zero_values))
         if data_path_addition == 'rotation_quaternion':

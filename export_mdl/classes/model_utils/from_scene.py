@@ -34,7 +34,7 @@ def from_scene(context: bpy.types.Context,
 
     bpy_scene_objects = BpySceneObjects(context, settings)
 
-    frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
+    frame2ms: float = 1000 / (context.scene.render.fps / context.scene.render.fps_base)  # Frame to millisecond conversion
     model_name = bpy.path.basename(context.blend_data.filepath).replace(".blend", "")
     war3_model = War3Model(model_name)
 
@@ -207,6 +207,13 @@ def collect_all_nodes(war3_model: War3Model):
         # print("Setting nodeID: ", i, war3_node.name)
         war3_node.obj_id = i
 
+    # Objects (attachments, lights, events, ...) only know their parent's name; bones already link the node
+    by_name = {node.name: node for node in model_objects_all}
+    for war3_node in model_objects_all:
+        if war3_node.parent_node is None and war3_node.parent and war3_node.parent in by_name \
+                and by_name[war3_node.parent] is not war3_node:
+            war3_node.parent_node = by_name[war3_node.parent]
+
     for war3_node in model_objects_all:
         if war3_node.parent_node is not None:
             # print("setting parent id to", war3_node.parent_node.obj_id,
@@ -241,7 +248,7 @@ def parse_bpy_objects2(bpy_scene_objects: BpySceneObjects,
                                             sequences, global_seqs))
 
     for bpy_empty_node in bpy_scene_objects.collisions:
-        war3_model.collision_shapes.append(get_collision(bpy_empty_node, global_matrix))
+        war3_model.collision_shapes.append(get_collision(bpy_empty_node, global_matrix, global_seqs, sequences))
 
     for bpy_emitter in bpy_scene_objects.particle1s:
         particle_emitter = get_particle_emitter(sequences, global_seqs, actions, bpy_emitter,

@@ -31,13 +31,14 @@ def get_actions(f2ms: float, bpy_actions: List[bpy.types.Action], use_actions: b
             actions.append(bpy_actions[0])
 
     if len(sequences) == 0:
-        sequences.append(War3AnimationAction("Stand", 0, bpy.context.scene.render.fps))
+        sequences.append(War3AnimationAction("Stand", 0, int(round(bpy.context.scene.render.fps / bpy.context.scene.render.fps_base))))
         if len(bpy_actions) == 0:
             pass
 
-    sequences.sort(key=lambda x: x.start)
     if use_actions:
+        sequences.sort(key=lambda x: x.start)
         space_actions(sequences)
+    # Marker-based sequences keep the scene list's order (an imported model's own order)
 
     return sequences, actions
 

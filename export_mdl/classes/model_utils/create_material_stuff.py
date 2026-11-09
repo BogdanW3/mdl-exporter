@@ -9,7 +9,7 @@ from export_mdl.classes.War3Material import War3Material
 from export_mdl.classes.War3Layer import War3Layer
 from export_mdl.classes.War3Texture import War3Texture
 from export_mdl.classes.War3TextureAnim import War3TextureAnim
-from export_mdl.classes.animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve
+from export_mdl.classes.animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve, get_own_animation_curve
 from export_mdl.properties import War3MaterialLayerProperties
 
 
@@ -192,19 +192,32 @@ def parse_layer(i: int,
     layer.fresnel_color = tuple(layer_settings.fresnel_color)
     layer.fresnel_opacity = layer_settings.fresnel_opacity
     layer.fresnel_team_color = layer_settings.fresnel_team_color
-    layer.emissive_gain_anim = get_wc3_animation_curve('mdl_layers[%d].emissive_gain' % i, actions, 1,
-                                                       sequences, global_seqs)
-    layer.fresnel_color_anim = get_wc3_animation_curve('mdl_layers[%d].fresnel_color' % i, actions, 3,
-                                                       sequences, global_seqs)
-    layer.fresnel_opacity_anim = get_wc3_animation_curve('mdl_layers[%d].fresnel_opacity' % i, actions, 1,
-                                                         sequences, global_seqs)
-    layer.fresnel_team_color_anim = get_wc3_animation_curve('mdl_layers[%d].fresnel_team_color' % i, actions, 1,
-                                                            sequences, global_seqs)
+    def layer_curve(prop, channels, default):
+        """The material's own keys first (on the scene timeline), then the older shared-action lookup. An animated
+        value's static is the default (what the game shows in a sequence without keys); a sequence where Blender
+        shows something else gets a key."""
+        path = 'mdl_layers[%d].%s' % (i, prop)
+        return get_own_animation_curve(mat, path, channels, global_seqs, sequences, default) \
+            or get_wc3_animation_curve(path, actions, channels, sequences, global_seqs)
+
+    layer.emissive_gain_anim = layer_curve('emissive_gain', 1, [1.0])
+    if layer.emissive_gain_anim is not None:
+        layer.emissive_gain = 1.0
+    layer.fresnel_color_anim = layer_curve('fresnel_color', 3, [1.0, 1.0, 1.0])
+    if layer.fresnel_color_anim is not None:
+        layer.fresnel_color = (1.0, 1.0, 1.0)
+    layer.fresnel_opacity_anim = layer_curve('fresnel_opacity', 1, [0.0])
+    if layer.fresnel_opacity_anim is not None:
+        layer.fresnel_opacity = 0.0
+    layer.fresnel_team_color_anim = layer_curve('fresnel_team_color', 1, [0.0])
+    if layer.fresnel_team_color_anim is not None:
+        layer.fresnel_team_color = 0.0
 
     layer.alpha_value = layer_settings.alpha
     animation_data = mat.animation_data
-    alpha_anim = get_wc3_animation_curve('mdl_layers[%d].alpha' % i, actions, 1, sequences, global_seqs)
-    layer.alpha_anim = alpha_anim
+    layer.alpha_anim = layer_curve('alpha', 1, [1.0])
+    if layer.alpha_anim is not None:
+        layer.alpha_value = 1.0
 
     # get_curve(mat, {'mdl_layers[%d].alpha' % i})
     if mat.use_nodes:

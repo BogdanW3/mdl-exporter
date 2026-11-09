@@ -4,7 +4,8 @@ import bpy
 
 from export_mdl import constants
 from export_mdl.classes.War3Model import War3Model
-from ..action_compat import find_fcurve, new_fcurve, own_fcurve
+from ..action_compat import find_fcurve, new_fcurve
+from .key_tracks import key_track
 from ..geoset_preview import add_geoset_preview
 
 
@@ -111,41 +112,8 @@ def create_geoset_actions(model: War3Model,
             props.color = tuple(geoset_anim.color[:3])
         static_alpha = props.alpha
         static_color = tuple(props.color)
-        key_track(obj, 'alpha', geoset_anim.alpha_anim, frame_time, durations, lambda v: v[0],
-                  model.sequences, static_alpha)
-        key_track(obj, 'color', geoset_anim.color_anim, frame_time, durations, lambda v: tuple(v[:3]),
-                  model.sequences, static_color)
+        key_track(obj, 'mdl_geoset.alpha', geoset_anim.alpha_anim, frame_time, model.sequences, durations,
+                  static_alpha, lambda v: setattr(props, 'alpha', v), lambda v: v[0], "Geoset Animation")
+        key_track(obj, 'mdl_geoset.color', geoset_anim.color_anim, frame_time, model.sequences, durations,
+                  static_color, lambda v: setattr(props, 'color', v), lambda v: tuple(v[:3]), "Geoset Animation")
         add_geoset_preview(obj)
-
-
-def key_track(obj: bpy.types.Object, prop: str, curve, frame_time: float, durations: List[int], convert,
-              sequences, static):
-    if curve is None or not curve.keyframes:
-        return
-    props = obj.mdl_geoset
-    data_path = 'mdl_geoset.' + prop
-    gs = curve.global_sequence
-    looping = isinstance(gs, int) and 0 <= gs < len(durations)
-    keys = {round(time / frame_time): convert(value) for time, value in curve.keyframes.items()}
-    if not looping:
-        # The game shows the static value in a sequence without keys, Blender would hold the previous key
-        for sequence in sequences:
-            if not any(sequence.start <= time <= sequence.end for time in curve.keyframes):
-                keys.setdefault(round(sequence.start / frame_time), static)
-    for frame, value in sorted(keys.items()):
-        setattr(props, prop, value)
-        obj.keyframe_insert(data_path=data_path, frame=frame, group="Geoset Animation")
-    interpolation = constants.INTERPOLATION_NAME_BLEND_NAME.get(curve.interpolation, 'LINEAR')
-    channels = 3 if prop == 'color' else 1
-    for index in range(channels):
-        fcurve = own_fcurve(obj, data_path, index)
-        if fcurve is None:
-            continue
-        for point in fcurve.keyframe_points:
-            point.interpolation = interpolation
-        if looping:
-            end = round(durations[gs] / frame_time)
-            if fcurve.keyframe_points[-1].co[0] < end:
-                # The loop length is where the curve ends, so close it with the first value
-                fcurve.keyframe_points.insert(end, fcurve.keyframe_points[0].co[1]).interpolation = interpolation
-            fcurve.modifiers.new('CYCLES')

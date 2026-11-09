@@ -4,15 +4,13 @@ from bpy.types import Mesh
 
 
 def get_bpy_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mesh:
-    # Blender 4.1+ corner normals already follow sharp edges, flat faces and custom normals. Before that, sharp
-    # edges only count with auto smooth on, so an Edge Split modifier splits them for us.
+    # Blender 4.1+ corner normals already follow sharp edges, flat faces and custom normals. Before that, split
+    # normals do too with auto smooth on (an Edge Split there would break custom normals); with it off, sharp
+    # edges don't count, so an Edge Split modifier splits them for us.
     mod = None
-    if bpy.app.version < (4, 1, 0):
+    if bpy.app.version < (4, 1, 0) and not getattr(bpy_obj.data, 'use_auto_smooth', False):
         mod = bpy_obj.modifiers.new("EdgeSplitExport", 'EDGE_SPLIT')
-        if hasattr(bpy_obj.data, 'use_auto_smooth') and bpy_obj.data.use_auto_smooth:
-            mod.split_angle = bpy_obj.data.auto_smooth_angle
-        else:
-            mod.use_edge_angle = False
+        mod.use_edge_angle = False
 
     arm_mod = None
     arm_show_r = True
@@ -38,7 +36,7 @@ def get_bpy_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) -> Mes
         arm_mod.show_viewport = arm_show_v
 
     # Invalid geometry (faces repeating a vertex) can make bmesh operations hang on Blender 5.3
-    bpy_mesh.validate()
+    bpy_mesh.validate(clean_customdata=False)  # (Before 4.1 the default drops custom normals)
 
     # Triangulate for web export
     bm = bmesh.new()
@@ -106,7 +104,7 @@ def get_bpy_curve_mesh(bpy_obj: bpy.types.Object, context: bpy.context, matrix) 
     # if bpy_obj.data.use_auto_smooth:
     #     bpy_obj.modifiers.remove(mod)
 
-    bpy_mesh.validate()
+    bpy_mesh.validate(clean_customdata=False)  # (Before 4.1 the default drops custom normals)
 
     # Triangulate for web export
     bm = bmesh.new()

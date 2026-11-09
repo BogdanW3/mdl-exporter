@@ -13,7 +13,7 @@ class BpyLight:
         self.matrix_world: Matrix = bpy_obj.matrix_world
         self.location: Vector = Vector(bpy_obj.location)
         self.pivot: Vector = global_matrix @ Vector(bpy_obj.location)
-        self.name: str = bpy_obj.name
+        self.name: str = bpy_obj.get("mdl_node_name") or bpy_obj.name
 
         self.bpy_light: bpy.types.Light = bpy_obj.data
         if hasattr(self.bpy_light, "mdl_light"):

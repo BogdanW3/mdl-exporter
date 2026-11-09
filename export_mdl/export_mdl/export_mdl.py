@@ -56,7 +56,7 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
             obj_to_anim[obj] = (obj.animation_data.action, get_action_slot(obj))
     scene.frame_set(0)
 
-    frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
+    frame2ms: float = 1000 / (context.scene.render.fps / context.scene.render.fps_base)  # Frame to millisecond conversion
     model: War3Model = from_scene(context, settings)
 
     for obj, (anim, slot) in obj_to_anim.items():  # set objects' active actions
@@ -69,12 +69,40 @@ def save(operator, context: bpy.types.Context, settings: War3ExportSettings, fil
     if hd_materials and mdl_version < 900:
         warnings.append("Version %d has no HD materials, wrote %s as SD" % (mdl_version, ", ".join(hd_materials)))
 
+    trim_node_tracks(model)
+
     if file_format == 'MDX':
         write_mdx_file(filepath, mdl_version, model, frame2ms, settings)
     else:
         write_model_file(filepath, mdl_version, model, frame2ms, settings)
     print('Done saving "%s"' % filepath)
     return warnings
+
+
+IDENTITY = {'anim_loc': (0.0, 0.0, 0.0), 'anim_rot': (1.0, 0.0, 0.0, 0.0), 'anim_scale': (1.0, 1.0, 1.0)}
+
+
+def trim_node_tracks(model: War3Model):
+    """The game only reads a track's keys inside sequences, so keys between sequences (Blender-side padding)
+    are dropped, and a track whose every key is the identity is the same as no track."""
+    ranges = [(sequence.start, sequence.end) for sequence in model.sequences]
+    nodes = list(model.bones) + list(model.helpers) + list(model.attachments) + list(model.lights) \
+        + list(model.event_objects) + list(model.collision_shapes) + list(model.particle_systems) \
+        + list(model.particle_systems2) + list(model.particle_ribbon)
+    for node in nodes:
+        for attr, identity in IDENTITY.items():
+            curve = getattr(node, attr, None)
+            if curve is None or not curve.keyframes:
+                continue
+            if curve.global_sequence <= 0 and ranges:
+                outside = [frame for frame in curve.keyframes
+                           if not any(start <= frame <= end for start, end in ranges)]
+                for frame in outside:
+                    curve.keyframes.pop(frame, None)
+                    curve.handles_left.pop(frame, None)
+                    curve.handles_right.pop(frame, None)
+            if all(all(abs(a - b) < 1e-6 for a, b in zip(value, identity)) for value in curve.keyframes.values()):
+                setattr(node, attr, None)
 
 
 def write_model_file(filepath: str, mdl_version: int, model: War3Model, frame2ms: float, settings: War3ExportSettings):

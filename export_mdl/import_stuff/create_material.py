@@ -42,6 +42,61 @@ def create_material(model: War3Model, team_color: str) -> Dict[str, War3BpyMater
     return bpy_materials
 
 
+LAYER_TEXTURE_TYPES = {'1', '2', '11', '31', '32', '33', '34', '35'}
+LAYER_FLAGS = ('unshaded', 'unfogged', 'two_sided', 'sphere_env_map', 'no_depth_test', 'no_depth_set', 'wrap_width',
+               'wrap_height', 'unlit', 'back_faces_for_shadows', 'ambient_occlusion')
+
+
+def fill_material_layers(model: War3Model, bpy_materials: Dict[str, War3BpyMaterial], frame_time: float):
+    """Each material's layer list (what the exporter writes) from the file: game texture paths or replaceable ids,
+    filter modes, flags, alpha (and its track), emissive and fresnel. The node tree is only the viewport preview."""
+    from .key_tracks import key_track
+    durations = getattr(model, "global_sequence_durations", [])
+    for i, material in enumerate(model.materials):
+        bpy_material = bpy_materials[str(i)].bpy_material
+        bpy_material.mdl_layers.clear()
+        for index, layer in enumerate(material.layers):
+            item = bpy_material.mdl_layers.add()
+            texture = layer.texture
+            replaceable = int(getattr(texture, "replaceable_id", 0) or 0)
+            if replaceable == 0:
+                item.texture_type = '0'
+                item.path = texture.texture_path if texture is not None else ""
+                item.name = (item.path.replace('\\', '/').split('/')[-1] or "Layer")[:16]
+            elif str(replaceable) in LAYER_TEXTURE_TYPES:
+                item.texture_type = str(replaceable)
+                item.name = "Replaceable %d" % replaceable
+            else:
+                item.texture_type = '36'
+                item.replaceable_id = replaceable
+                item.name = "Replaceable %d" % replaceable
+            if layer.filter_mode in ('None', 'Transparent', 'Blend', 'Additive', 'AddAlpha', 'Modulate', 'Modulate2x'):
+                item.filter_mode = layer.filter_mode
+            for flag in LAYER_FLAGS:
+                setattr(item, flag, bool(getattr(layer, flag, False)))
+            item.alpha = layer.alpha_value if layer.alpha_value is not None else 1.0
+            if isinstance(getattr(layer, "emissive_gain", None), (int, float)):
+                item.emissive_gain = layer.emissive_gain
+            if isinstance(getattr(layer, "fresnel_color", None), (tuple, list)):
+                item.fresnel_color = tuple(layer.fresnel_color[:3])
+            for prop in ('fresnel_opacity', 'fresnel_team_color'):
+                if isinstance(getattr(layer, prop, None), (int, float)):
+                    setattr(item, prop, getattr(layer, prop))
+            for prop, attr, convert in (('alpha', 'alpha_anim', lambda v: v[0]),
+                                        ('emissive_gain', 'emissive_gain_anim', lambda v: v[0]),
+                                        ('fresnel_color', 'fresnel_color_anim', lambda v: tuple(v[:3])),
+                                        ('fresnel_opacity', 'fresnel_opacity_anim', lambda v: v[0]),
+                                        ('fresnel_team_color', 'fresnel_team_color_anim', lambda v: v[0])):
+                curve = getattr(layer, attr, None)
+                if curve is None or not hasattr(curve, "keyframes"):
+                    continue
+                static = getattr(item, prop)
+                static = tuple(static) if prop == 'fresnel_color' else static
+                key_track(bpy_material, 'mdl_layers[%d].%s' % (index, prop), curve, frame_time, model.sequences,
+                          durations, static, lambda v, it=item, p=prop: setattr(it, p, v), convert, "Layers")
+        bpy_material.mdl_layer_index = 0
+
+
 def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str):
     material_name = images[0].filepath.split(os.path.sep)[-1].split('.')[0]
     war3_bpy_material = War3BpyMaterial(material_name)

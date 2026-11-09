@@ -148,7 +148,7 @@ class MdxWriter:
         self.w.tag(tag)
         self.w.pack('IIi', len(curve.keyframes), interpolation, self.global_seq_id(curve))
         for frame in sorted(curve.keyframes):
-            self.w.pack('I', int(frame * self.frame2ms))
+            self.w.pack('I', int(round(frame * self.frame2ms)))
             self.track_value(curve, curve.keyframes[frame], size)
             if tangents:
                 self.track_value(curve, curve.handles_left.get(frame, curve.keyframes[frame]), size)
@@ -184,8 +184,8 @@ class MdxWriter:
     def write_sequences(self):
         for sequence in self.model.sequences:
             self.w.string(sequence.name, 80)
-            self.w.pack('II', int(sequence.start * self.frame2ms), int(sequence.end * self.frame2ms))
-            move_speed = sequence.movement_speed if 'walk' in sequence.name.lower() else 0
+            self.w.pack('II', int(round(sequence.start * self.frame2ms)), int(round(sequence.end * self.frame2ms)))
+            move_speed = sequence_move_speed(sequence)
             self.w.pack('fIfI', move_speed, 1 if sequence.non_looping else 0, max(sequence.rarity, 0), 0)
             self.extent(self.model.global_extents_min, self.model.global_extents_max)
 
@@ -389,7 +389,7 @@ class MdxWriter:
         attachment_id, attachment = indexed_attachment
         position = self.w.begin_size()
         self.node(attachment, NODE_ATTACHMENT)
-        self.w.string('', 256)
+        self.w.string(getattr(attachment, 'path', '') or '', 256)
         self.w.pack('II', 0, attachment_id)
         self.track('KATV', attachment.visibility, 1)
         self.w.end_size(position)
@@ -469,7 +469,7 @@ class MdxWriter:
     def write_event_object(self, event):
         self.node(event, NODE_EVENT)
         track = event.track
-        times = [] if track is None else [int(frame * self.frame2ms) for frame in sorted(track.keyframes)]
+        times = [] if track is None else [int(round(frame * self.frame2ms)) for frame in sorted(track.keyframes)]
         self.w.tag('KEVT')
         self.w.pack('Ii', len(times), -1 if track is None else self.global_seq_id(track))
         self.w.pack('%dI' % len(times), *times)
@@ -488,6 +488,15 @@ class MdxWriter:
         self.w.pack('I', len(nodes))
         for node in nodes:
             self.w.pack('12f', *bind_pose(node))
+
+
+def sequence_move_speed(sequence) -> float:
+    """Walk sequences always carry it; others only when set to something other than the untouched default (270),
+    as Blizzard's do on some Stand sequences."""
+    speed = sequence.movement_speed or 0
+    if 'walk' in sequence.name.lower() or speed != 270:
+        return float(speed)
+    return 0.0
 
 
 def bind_pose(node) -> List[float]:

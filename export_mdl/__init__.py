@@ -55,7 +55,7 @@ import bpy
 import os
 import shutil
 
-from .ui.WAR3_PT_billboard_panel import WAR3_PT_billboard_panel
+from .ui.WAR3_PT_billboard_panel import WAR3_PT_billboard_panel, WAR3_PT_bone_billboard_panel
 from .ui.WAR3_PT_event_panel import WAR3_PT_event_panel
 from .ui.WAR3_PT_light_panel import WAR3_PT_light_panel
 from .ui.WAR3_PT_geoset_anim_panel import WAR3_PT_geoset_anim_panel
@@ -95,6 +95,7 @@ from .operators.WAR3_OT_move_seq_in_list import WAR3_OT_move_seq_in_list
 from .operators.WAR3_OT_sequence_tools import WAR3_OT_sort_sequences, WAR3_OT_duplicate_sequence
 from .operators.WAR3_OT_setup_hd_nodes import WAR3_OT_setup_hd_nodes
 from .operators.WAR3_OT_geoset_preview import WAR3_OT_geoset_preview
+from .operators.WAR3_OT_frame_rate import WAR3_OT_set_frame_rate
 
 bl_info = {
     "name": "Warcraft MDL Exporter",
@@ -140,7 +141,8 @@ op_classes = (
     WAR3_OT_sort_sequences,
     WAR3_OT_duplicate_sequence,
     WAR3_OT_setup_hd_nodes,
-    WAR3_OT_geoset_preview
+    WAR3_OT_geoset_preview,
+    WAR3_OT_set_frame_rate
 )
 
 ui_classes = (
@@ -150,6 +152,7 @@ ui_classes = (
     WAR3_PT_sequences_panel,
     WAR3_PT_event_panel,
     WAR3_PT_billboard_panel,
+    WAR3_PT_bone_billboard_panel,
     WAR3_PT_material_panel,
     WAR3_PT_particle_editor_panel,
     WAR3_PT_light_panel,

@@ -67,11 +67,16 @@ def get_own_animation_curve(id_data: Optional[bpy.types.ID],
     anim_curve = get_anim_curve(keyed, data_path)
     fill_anim_curve(anim_curve, curves, num_indices, data_path, 0.0)
     if sequences and default is not None and anim_curve.global_sequence <= 0:
+        # The default is in the curve's own terms (visibility for hide_*, Euler angles for rotation_euler)
+        invert = data_path.endswith('hide_render') or data_path.endswith('hide_viewport')
         for sequence in sequences:
             if any(sequence.start <= frame <= sequence.end for frame in anim_curve.keyframes):
                 continue
             value = [curve.evaluate(sequence.start) for curve in curves]
+            if invert:
+                value = [1 - v for v in value]
             if any(abs(a - b) > 1e-6 for a, b in zip(value, default)):
+                value = rotation_is_quaternation(data_path, value)
                 anim_curve.keyframes[sequence.start] = value
                 anim_curve.handles_left[sequence.start] = value
                 anim_curve.handles_right[sequence.start] = value
@@ -130,7 +135,7 @@ def register_global_sequence(global_seqs: Set[int], curve: Optional[War3Animatio
 
 def get_anim_curve(fcurves: Dict[Tuple[str, str, int], bpy.types.FCurve],
                    data_path: str) -> War3AnimationCurve:
-    f2ms = 1000 / bpy.context.scene.render.fps
+    f2ms = 1000 / (bpy.context.scene.render.fps / bpy.context.scene.render.fps_base)
 
     anim_type = get_type(data_path)
 
@@ -168,25 +173,21 @@ def fill_anim_curve(anim_curve: War3AnimationCurve,
     # Hiding is the opposite of visibility
     invert = data_path.endswith('hide_render') or data_path.endswith('hide_viewport')
 
-    for frame in sorted(frames):
+    ordered = sorted(frames)
+    bezier = bezier_tangents(fcurves, channels, ordered, scale) if anim_curve.interpolation == 'Bezier' else None
+
+    for frame in ordered:
         values: List[float] = []
-        handle_left: List[float] = []
-        handle_right: List[float] = []
         for channel in range(channels):
             value = fcurves[channel].evaluate(frame)
             values.append(value * scale)
-
-            if anim_curve.interpolation == 'Bezier':
-                h_left = fcurves[channel].evaluate(frame - 1)
-                h_right = fcurves[channel].evaluate(frame + 1)
-                handle_left.append(h_left)
-                handle_right.append(h_right)
 
         if invert:
             values = [1 - v for v in values]
         keyframes[frame + keyframe_offset] = rotation_is_quaternation(data_path, values)
 
-        if len(handle_left) == len(handle_right) == len(handle_right):
+        if bezier is not None:
+            handle_left, handle_right = bezier[frame]
             handles_left[frame + keyframe_offset] = set_handle(data_path, handle_left)
             handles_right[frame + keyframe_offset] = set_handle(data_path, handle_right)
 
@@ -195,11 +196,36 @@ def fill_anim_curve(anim_curve: War3AnimationCurve,
     anim_curve.handles_right.update(handles_right)
 
 
+def bezier_tangents(fcurves: List[bpy.types.FCurve], channels: int, frames: List[float], scale=1):
+    """Warcraft 3 Bezier tangents (frame -> (in, out)) that reproduce the Blender curve between each pair of keys.
+
+    Between keys v0 and v1 the game evaluates a 1D cubic Bezier v0, c1, c2, v1 (c1 is v0's out tangent, c2 is v1's
+    in tangent). Sampling the Blender curve a third and two thirds of the way along gives
+        12 c1 + 6 c2 = 27 B(1/3) - 8 v0 - v1
+        6 c1 + 12 c2 = 27 B(2/3) - v0 - 8 v1
+    which fixes c1 and c2 exactly, whatever shape the curve has in Blender."""
+    result = {}
+    for frame in frames:
+        value = [fcurves[c].evaluate(frame) * scale for c in range(channels)]
+        result[frame] = [list(value), list(value)]  # in, out: flat where there's no neighbour
+    for f0, f1 in zip(frames, frames[1:]):
+        d = f1 - f0
+        for c in range(channels):
+            curve = fcurves[c]
+            v0, v1 = curve.evaluate(f0) * scale, curve.evaluate(f1) * scale
+            b1, b2 = curve.evaluate(f0 + d / 3) * scale, curve.evaluate(f0 + 2 * d / 3) * scale
+            r1 = 27 * b1 - 8 * v0 - v1
+            r2 = 27 * b2 - v0 - 8 * v1
+            result[f0][1][c] = (2 * r1 - r2) / 18
+            result[f1][0][c] = (2 * r2 - r1) / 18
+    return result
+
+
 def get_global_seq(f2ms: float, fcurves: Dict[Tuple[str, str, int], bpy.types.FCurve]):
     global_seq: int = -1
     for fcurve in fcurves.values():
         for mod in [m for m in fcurve.modifiers if m.type == 'CYCLES']:
-            global_seq = max(global_seq, int(fcurve.range()[1] * f2ms))
+            global_seq = max(global_seq, int(round(fcurve.range()[1] * f2ms)))
     return global_seq
 
 

@@ -43,17 +43,28 @@ def create_bpy_collision(node: War3CollisionShape, node_names: Set[str]):
     bpy_object = bpy.data.objects.new(node_name, None)
     bpy.context.scene.collection.objects.link(bpy_object)
     bpy_object.location = node.pivot
-    # bpy_object.empty_display_type =
+    set_collision_display(bpy_object, node)
+    return bpy_object
+
+
+def set_collision_display(bpy_object: bpy.types.Object, node: War3CollisionShape):
+    # The shape type is kept on the object, the exporter reads it before guessing from the name or display.
+    # So are the file's exact vertices and radius (boxes are relative to the pivot and often lopsided, which an
+    # empty's display can't show); the exporter writes them back unchanged.
+    bpy_object["mdl_collision_shape"] = node.type
+    bpy_object["mdl_collision_vertices"] = [float(c) for vert in node.verts for c in vert]
+    if getattr(node, "radius", None) is not None:
+        bpy_object["mdl_collision_radius"] = float(node.radius)
     if node.type == 'Cylinder':
-        bpy_object.empty_display_size = int(node.radius)
-        bpy_object.empty_display_type = 'CUBE'
+        bpy_object.empty_display_size = float(node.radius)
+        bpy_object.empty_display_type = 'CIRCLE'
     elif node.type == 'Sphere':
-        bpy_object.empty_display_size = int(node.radius)
+        bpy_object.empty_display_size = float(node.radius)
         bpy_object.empty_display_type = 'SPHERE'
     elif node.type == 'Box':
         bpy_object.empty_display_size = Vector(node.verts[0]).length
         bpy_object.empty_display_type = 'CUBE'
     else:
-        bpy_object.empty_display_size = int(Vector(node.verts[0]).length)
+        bpy_object.empty_display_size = Vector(node.verts[0]).length
         bpy_object.empty_display_type = 'CUBE'
     return bpy_object

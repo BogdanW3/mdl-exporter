@@ -98,7 +98,7 @@ def optimize_anim(anim: Optional[War3AnimationCurve], tolerance: float, sequence
 
 def optimize(anim_curve: War3AnimationCurve, tolerance: float, sequences: List[War3AnimationAction]):
 
-    f2ms = 1000 / bpy.context.scene.render.fps
+    f2ms = 1000 / (bpy.context.scene.render.fps / bpy.context.scene.render.fps_base)
 
     if anim_curve.interpolation == 'Bezier':
         anim_curve.interpolation = 'Linear'  # This feature doesn't support bezier as of right now

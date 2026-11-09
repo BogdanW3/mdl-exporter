@@ -51,7 +51,7 @@ def save_sequences(fw: TextIO.write, sequences: List[War3AnimationAction],
     fw("Sequences %d {\n" % len(sequences))
     for sequence in sequences:
         fw("\tAnim \"%s\" {\n" % sequence.name)
-        fw("\t\tInterval { %i, %i },\n" % (int(sequence.start*f2ms), int(sequence.end*f2ms)))
+        fw("\t\tInterval { %i, %i },\n" % (int(round(sequence.start * f2ms)), int(round(sequence.end * f2ms))))
         if sequence.non_looping:
             fw("\t\tNonLooping,\n")
         if sequence.rarity > 0:

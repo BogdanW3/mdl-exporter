@@ -25,6 +25,9 @@ class WAR3_PT_sequences_panel(Panel):
         index = war3_mdl_sequences.mdl_sequence_index
         sequences = war3_mdl_sequences.mdl_sequences
 
+        row = layout.row(align=True)
+        row.label(text="%g fps" % (scene.render.fps / scene.render.fps_base))
+        row.operator("war_3.set_frame_rate", text="Change Frame Rate", icon='TIME')
         layout.operator("war_3.add_anim_sequence", text="Add Sequence")
 
         if sequences is not None:

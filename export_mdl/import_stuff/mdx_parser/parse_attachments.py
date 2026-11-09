@@ -23,12 +23,12 @@ def parse_attachments(data: bytes) -> List[War3Attachment]:
         data_size_chunk = len(node_data)
         node = War3Attachment("")
         parse_node(r, node)
-        path = r.gets(260)
+        node.path = r.gets(260)
         node_id = r.getf('<I')[0]
 
         if r.offset < data_size_chunk:
             chunk_id = r.getid(constants.CHUNK_ATTACHMENT_VISIBILITY)
-            visibility = parse_timeline(r, '<f')
+            node.visibility = parse_timeline(r, '<f')
 
         nodes.append(node)
     return nodes

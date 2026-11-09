@@ -20,8 +20,9 @@ class War3AnimationAction:
             fw("\t\tNonLooping,\n")
         if self.rarity > 0:
             fw("\t\tRarity %d,\n" % self.rarity)
-        if 'walk' in self.name.lower():
-            fw("\t\tMoveSpeed %d,\n" % self.movement_speed)
+        from ..export_mdl.write_mdx import sequence_move_speed
+        if sequence_move_speed(self):
+            fw("\t\tMoveSpeed %d,\n" % sequence_move_speed(self))
 
         fw("\t\tMinimumExtent { %s, %s, %s },\n" % tuple(map(float2str, global_extents_min)))
         fw("\t\tMaximumExtent { %s, %s, %s },\n" % tuple(map(float2str, global_extents_max)))

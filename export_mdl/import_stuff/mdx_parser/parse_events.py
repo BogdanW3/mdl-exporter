@@ -21,7 +21,7 @@ def parse_events(data: bytes) -> List[War3EventObject]:
             chunk_id = r.gets(4)
 
             if chunk_id == constants.CHUNK_EVENT_TRACKS:
-                parse_tracks(r)
+                node.event_times, node.event_global_sequence = parse_tracks(r)
             else:
                 r.offset -= 4
 

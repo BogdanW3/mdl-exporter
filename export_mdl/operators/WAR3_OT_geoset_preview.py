@@ -6,8 +6,8 @@ from ..geoset_preview import add_geoset_preview
 class WAR3_OT_geoset_preview(bpy.types.Operator):
     bl_idname = 'war_3.geoset_preview'
     bl_label = 'Preview in Viewport'
-    bl_description = ("Show the geoset alpha and color in Material Preview: drives the object's color from them "
-                      "and multiplies Object Info into its materials. Doesn't change what's exported")
+    bl_description = ("Show the geoset alpha and color in Material Preview and renders: the object's materials "
+                      "read them per object (Attribute nodes). Doesn't change what's exported")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

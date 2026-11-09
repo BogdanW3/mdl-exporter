@@ -1,5 +1,7 @@
 import bpy
 
+from ..geoset_preview import has_geoset_preview
+
 
 class WAR3_PT_geoset_anim_panel(bpy.types.Panel):
     """Geoset animation (visibility and tint per sequence) of a mesh object"""
@@ -23,8 +25,5 @@ class WAR3_PT_geoset_anim_panel(bpy.types.Panel):
         col.prop(geoset, "alpha")
         col.prop(geoset, "color")
         layout.label(text="Keyframe on the scene timeline, at your sequence markers", icon='INFO')
-        obj = context.active_object
-        has_preview = obj.animation_data is not None and any(
-            d.data_path == "color" for d in obj.animation_data.drivers)
-        if not has_preview:
+        if not has_geoset_preview(context.active_object):
             layout.operator("war_3.geoset_preview", icon='HIDE_OFF')

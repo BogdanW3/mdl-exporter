@@ -50,7 +50,7 @@ class BpySceneObjects:
 
         scene: bpy.types.Scene = context.scene
 
-        frame2ms: float = 1000 / context.scene.render.fps  # Frame to millisecond conversion
+        frame2ms: float = 1000 / (context.scene.render.fps / context.scene.render.fps_base)  # Frame to millisecond conversion
 
 
         objects: List[bpy.types.Object]
@@ -137,8 +137,15 @@ class BpySceneObjects:
         elif bpy_obj.type == 'EMPTY':
             print("empty, mat:", bpy_obj.matrix_world)
             print("mat is mat:", isinstance(bpy_obj.matrix_world, Matrix))
-            print("mat is list:", isinstance(bpy_obj.matrix_world, List))
-            if obj_name.startswith("SND") \
+            # Imported nodes carry their type; otherwise it's guessed from the name
+            tagged = bpy_obj.get("mdl_node_type")
+            if tagged == 'ATTACHMENT':
+                self.attachments.append(BpyEmptyNode(bpy_obj, global_matrix))
+            elif tagged == 'EVENT':
+                self.events.append(BpyEmptyNode(bpy_obj, global_matrix))
+            elif tagged == 'COLLISION':
+                self.collisions.append(BpyEmptyNode(bpy_obj, global_matrix))
+            elif obj_name.startswith("SND") \
                     or obj_name.startswith("UBR") \
                     or obj_name.startswith("FTP") \
                     or obj_name.startswith("SPL"):

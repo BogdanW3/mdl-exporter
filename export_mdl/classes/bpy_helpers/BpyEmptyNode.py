@@ -13,7 +13,7 @@ class BpyEmptyNode:
         self.display_type = bpy_obj.empty_display_type
         self.location: Vector = Vector(bpy_obj.location)
         self.pivot = global_matrix @ Vector(bpy_obj.location)
-        self.name: str = bpy_obj.name
+        self.name: str = bpy_obj.get("mdl_node_name") or bpy_obj.name
 
         if hasattr(bpy_obj, "mdl_billboard"):
             bb = bpy_obj.mdl_billboard

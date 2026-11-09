@@ -9,7 +9,7 @@ from ..classes.War3Node import War3Node
 
 def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Object:
     print(" creating armature")
-    war3_nodes = list(model.id_to_object.values())
+    war3_nodes = list(getattr(model, "armature_nodes", None) or model.id_to_object.values())
     bpy_armature_object = get_bpy_armature_object(model.name + ' Nodes')
     bpy.ops.object.mode_set(mode='EDIT')
     bpy_armature: bpy.types.Armature = bpy_armature_object.data
@@ -33,7 +33,18 @@ def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Obje
     for p_bone in bpy_armature_object.pose.bones:
         p_bone.rotation_mode = 'QUATERNION'
 
+    for node in war3_nodes:
+        bone = bpy_armature.bones.get(node.name)
+        if bone is not None and hasattr(bone, "mdl_billboard"):
+            apply_billboard(bone.mdl_billboard, node)
+
     return bpy_armature_object
+
+
+def apply_billboard(settings, node: War3Node):
+    settings.billboarded = getattr(node, "billboarded", False)
+    lock_z, lock_y, lock_x = getattr(node, "billboard_lock", (False, False, False))
+    settings.billboard_lock_x, settings.billboard_lock_y, settings.billboard_lock_z = lock_x, lock_y, lock_z
 
 
 def get_bpy_armature_object(name: str) -> bpy.types.Object:

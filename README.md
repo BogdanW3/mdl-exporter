@@ -59,6 +59,13 @@ It is possible to animate the position, scale and rotation of bones or meshes. A
 #### Sequences
 To mark sequences, create timeline markers (using the M key while hovering over the timeline) and rename them (using CTRL+M) to the name of your animation. Each sequence requires both a start and an end key with the same name. This approach was chosen over using acitons because it was deemed to be more intuitive and similar to how the process works in Wc3 Art Tools. If no sequence exists, a default one will be added on export.
 
+#### Frame rate
+Warcraft 3 times are milliseconds; Blender keys sit on frames, which export as frame / fps seconds. On import, "Frame
+Rate: Match the Model" (the default) switches the scene to a rate where every key of the model lands on a whole frame,
+usually 30 fps for Blizzard's models, so nothing moves. Animation already in the scene is moved along with it so it
+keeps its timing. "Change Frame Rate" in the Warcraft 3 Sequences panel does the same at any time: it suggests the
+lowest rate where every key is on a whole frame and says how far keys would move at the rate you pick.
+
 Whenever you create two timeline markers with the same name, a sequence will show up in the sequence manager tab, which is at the bottom of your scene tab in the properties menu. This is where you set things like looping and rarity - changing the name in the sequence editor will also change the corresponding timeline markers. If the name contains the word "Walk", you will also get to set a Movement Speed parameter which controls the relationship between the units movement speed and the walk animation playback rate. If you create a Death, Decay, or Attack animation, their non-looping values will default to "False" for convenience. 
 
 There is also a button below the sequence list where you can more conveniently create sequences. This operator will generate timeline markers at the specified keyframes, and you are also able to specify the looping and rarity properties.

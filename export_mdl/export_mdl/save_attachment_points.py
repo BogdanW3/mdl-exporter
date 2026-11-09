@@ -19,6 +19,13 @@ def save_attachment_points(fw: TextIO.write, attachments: List[War3Attachment], 
             write_billboard(fw, attachment.billboarded, attachment.billboard_lock)
 
             fw("\tAttachmentID %d,\n" % i)
+            if getattr(attachment, "path", ""):
+                fw("\tPath \"%s\",\n" % attachment.path)
+
+            for curve, name in ((attachment.anim_loc, "Translation"), (attachment.anim_rot, "Rotation"),
+                                (attachment.anim_scale, "Scaling")):
+                if curve is not None:
+                    write_animation_chunk(fw, curve, name, global_seqs, "\t")
 
             visibility = attachment.visibility
             if visibility is not None:
