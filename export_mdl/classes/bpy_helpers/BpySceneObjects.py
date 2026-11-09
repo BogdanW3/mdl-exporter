@@ -46,6 +46,7 @@ class BpySceneObjects:
 
     def from_scene(self, context: bpy.types.Context,
                    settings: War3ExportSettings):
+        self.use_skinweights = getattr(settings, "use_skinweights", True)
         print("context: ", context)
 
         scene: bpy.types.Scene = context.scene
@@ -179,10 +180,13 @@ class BpySceneObjects:
             self.cameras.append(bpy_obj)
 
     def make_bpy_geosets(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):
+        from ..model_utils.create_material_stuff import material_is_hd
+        use_skinweights = getattr(self, "use_skinweights", True)
         for i, m in enumerate(bpy_mesh.materials):
-            self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, i, self.bone_names))
+            # Only HD geosets store tangents, so only they need vertices split by tangent handedness
+            self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, i, self.bone_names, material_is_hd(m, use_skinweights)))
         if not bpy_mesh.materials:
-            self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, 0, self.bone_names))
+            self.geosets.append(BpyGeoset(bpy_mesh, bpy_obj, 0, self.bone_names, False))
 
 
     def collect_material(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object):

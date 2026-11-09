@@ -74,10 +74,9 @@ def from_scene(context: bpy.types.Context,
             geo_anim.geoset_id = len(war3_model.geosets)-1
 
     for bpy_material in bpy_scene_objects.materials:
-        use_const_color = any([g for g in war3_model.geosets
-                               if g.mat_name == bpy_material.name
-                               and g.geoset_anim is not None
-                               and (g.geoset_anim.color is not None or g.geoset_anim.color_anim is not None)])
+        # (This used to follow geoset animation colors; the game doesn't need it for those, and Blizzard's
+        # models never set it)
+        use_const_color = bool(getattr(bpy_material, "mdl_constant_color", False))
         new_material = get_new_material2(bpy_material, use_const_color, settings.use_skinweights, actions,
                                          war3_model.sequences, war3_model.global_seqs)
         war3_model.materials.append(new_material)
@@ -99,9 +98,8 @@ def from_scene(context: bpy.types.Context,
     war3_model.tvertex_anims.extend(dict.fromkeys(layer.texture_anim for layer in layers if layer.texture_anim is not None))
     # Convert to set and back to list for unique entries
 
-    if settings.demote_to_helper:
-        # Demote bones to helpers if they have no attached geosets
-        demote_to_helpers(war3_model)
+    # Bones set to export as helpers, and (with the option on) automatic ones no mesh uses
+    demote_to_helpers(war3_model, settings.demote_to_helper)
 
     # We also need the textures used by emitters
     emitters: List[War3Emitter] = []
@@ -147,7 +145,7 @@ def from_scene(context: bpy.types.Context,
     return war3_model
 
 
-def demote_to_helpers(war3_model: War3Model):
+def demote_to_helpers(war3_model: War3Model, unused: bool = True):
     used_bones: Set[str] = set()
     for geoset in war3_model.geosets:
         for m in geoset.matrices:
@@ -155,7 +153,8 @@ def demote_to_helpers(war3_model: War3Model):
                 used_bones.add(name)
     bone_to_helper: Dict[War3Node, War3Node] = {}
     for bone in war3_model.bones:
-        if bone.name not in used_bones:
+        kind = getattr(bone, "node_kind", 'AUTO')
+        if kind == 'HELPER' or (kind == 'AUTO' and unused and bone.name not in used_bones):
             # print("demoting", bone.name, "to helper")
             helper = War3Helper(bone.name, bone.obj_id, bone.pivot,
                                 bone.parent_id, bone.parent,
@@ -163,6 +162,7 @@ def demote_to_helpers(war3_model: War3Model):
                                 bone.bindpose)
             helper.parent_node = bone.parent_node
             helper.billboard_lock = bone.billboard_lock
+            helper.node_flags = getattr(bone, "node_flags", 0)
             helper.billboarded = bone.billboarded
             helper.bindpose = bone.bindpose
             war3_model.helpers.append(helper)

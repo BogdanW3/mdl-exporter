@@ -166,6 +166,7 @@ class MdxWriter:
         self.w.string(node.name if name is None else name, 80)
         if node.billboarded:
             flags |= BILLBOARDED
+        flags |= getattr(node, "node_flags", 0) & 0x87
         for locked, flag in zip(node.billboard_lock, (BILLBOARDED_LOCK_Z, BILLBOARDED_LOCK_Y, BILLBOARDED_LOCK_X)):
             if locked:
                 flags |= flag
@@ -333,7 +334,7 @@ class MdxWriter:
         position = self.w.begin_size()
         alpha = geoset_anim.alpha[0] if geoset_anim.alpha else 1.0
         color = list(geoset_anim.color[:3]) if geoset_anim.color is not None else [1.0, 1.0, 1.0]
-        has_color = geoset_anim.color is not None or geoset_anim.color_anim is not None
+        has_color = geoset_anim.uses_color()
         # MDX stores every color RGB (checked on Blizzard's fire particles, ice torch tint, lights, ribbons);
         # only MDL text writes them BGR
         self.w.pack('fI3fI', alpha, 0x2 if has_color else 0, *color, geoset_anim.geoset_id)
@@ -350,10 +351,7 @@ class MdxWriter:
         self.w.pack('ii', geoset_id, geoset_anim_id)
 
     def write_helper(self, helper):
-        name = helper.name.replace('.', '_')
-        if not name.lower().startswith("bone"):
-            name = "Bone_" + name
-        self.node(helper, 0, name)
+        self.node(helper, 0, helper.name.replace('.', '_'))
 
     def write_light(self, light):
         position = self.w.begin_size()

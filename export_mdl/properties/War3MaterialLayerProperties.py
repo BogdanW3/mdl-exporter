@@ -3,18 +3,19 @@ from bpy.props import StringProperty, EnumProperty, IntProperty, BoolProperty, F
     FloatVectorProperty
 from bpy.types import PropertyGroup
 
+from ..hd_slots import HD_SLOT_NAMES, shader_changed
+
 
 MATERIAL_SHADERS = [
     ('AUTO', "Automatic", "HD Default Unit when the node tree has normal, ORM or emissive textures and HD "
                           "skinning is on (the default), SD otherwise"),
     ('SD', "SD", "Classic material, every layer is drawn on top of the previous one"),
-    ('HD', "HD Default Unit", "PBR material (v900+). The layers are the texture slots: diffuse, normal, ORM, "
-                              "emissive, team color and environment"),
+    ('HD', "HD Default Unit", "PBR material (v900+). The layers are its six texture slots: diffuse, normal, ORM, "
+                              "emissive, team color and environment, filled from the node tree or with the "
+                              "game's default textures"),
     ('CRYSTAL', "HD Crystal", "Like HD Default Unit, with the crystal shader (v900+)"),
 ]
 
-# What each layer is used for when the material is HD, in slot order
-HD_SLOT_NAMES = ("Diffuse", "Normal", "ORM", "Emissive", "Team Color", "Environment")
 
 
 class War3MaterialLayerProperties(PropertyGroup):
@@ -177,6 +178,13 @@ class War3MaterialLayerProperties(PropertyGroup):
         maxlen=256
         )
 
+    uv_node: StringProperty(
+        name="Texture Animation",
+        description="Mapping node in the material's node tree whose animated Location, Rotation and Scale move "
+                    "this layer's UVs (Warcraft 3 UV space: V runs top to bottom)",
+        default=""
+        )
+
     @classmethod
     def register(cls):
         bpy.types.Material.mdl_layers = CollectionProperty(type=War3MaterialLayerProperties, options={'HIDDEN'})
@@ -184,8 +192,12 @@ class War3MaterialLayerProperties(PropertyGroup):
         # bpy.types.Material.mdl_layers
         bpy.types.Material.mdl_layer_index = IntProperty(name="Layer index", description="", default=0, options={'HIDDEN'})
         bpy.types.Material.priority_plane = IntProperty(name="Priority Plane", description="Order at which this material will be rendered", default=0, options={'HIDDEN'})
+        bpy.types.Material.mdl_constant_color = BoolProperty(
+            name="Constant Color", default=False,
+            description="Material flag ConstantColor. Blizzard's models never set it, geoset animation colors work "
+                        "without it")
         bpy.types.Material.mdl_shader = EnumProperty(name="Shader", items=MATERIAL_SHADERS, default='AUTO',
-                                                     options={'HIDDEN'})
+                                                     options={'HIDDEN'}, update=shader_changed)
 
     @classmethod
     def unregister(cls):
@@ -193,3 +205,4 @@ class War3MaterialLayerProperties(PropertyGroup):
         del bpy.types.Material.mdl_layer_index
         del bpy.types.Material.priority_plane
         del bpy.types.Material.mdl_shader
+        del bpy.types.Material.mdl_constant_color

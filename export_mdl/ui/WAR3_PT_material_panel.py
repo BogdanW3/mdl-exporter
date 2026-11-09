@@ -1,6 +1,6 @@
 import bpy
 
-from ..properties.War3MaterialLayerProperties import HD_SLOT_NAMES
+from ..hd_slots import HD_SLOT_NAMES, is_default
 
 
 def sub_panel(layout: bpy.types.UILayout, idname: str, title: str, default_closed: bool = True):
@@ -36,9 +36,11 @@ class WAR3_PT_material_panel(bpy.types.Panel):
         col.use_property_split = True
         col.use_property_decorate = False
         col.prop(mat, "priority_plane")
+        if hasattr(mat, "mdl_constant_color"):
+            col.prop(mat, "mdl_constant_color")
         col.prop(mat, "mdl_shader")
         if hd:
-            col.label(text="HD needs version 900 or newer, layers are the texture slots", icon='INFO')
+            col.label(text="HD needs version 900 or newer", icon='INFO')
 
         layout.separator()
         layout.label(text="Texture Slots (v900+)" if hd else "Layers")
@@ -52,23 +54,32 @@ class WAR3_PT_material_panel(bpy.types.Panel):
         row.template_list("WAR3_UL_material_layer_list", "", mat, "mdl_layers", mat, "mdl_layer_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("war_3.list_action", icon='ADD', text="").action = 'ADD'
-        col.operator("war_3.list_action", icon='REMOVE', text="").action = 'REMOVE'
-        col.separator()
-        col.operator("war_3.list_action", icon='TRIA_UP', text="").action = 'UP'
-        col.operator("war_3.list_action", icon='TRIA_DOWN', text="").action = 'DOWN'
+        if hd:
+            # The slots are fixed; only layers past the sixth (which the shader doesn't use) can go
+            if index >= len(HD_SLOT_NAMES):
+                col.operator("war_3.list_action", icon='REMOVE', text="").action = 'REMOVE'
+        else:
+            col.operator("war_3.list_action", icon='ADD', text="").action = 'ADD'
+            col.operator("war_3.list_action", icon='REMOVE', text="").action = 'REMOVE'
+            col.separator()
+            col.operator("war_3.list_action", icon='TRIA_UP', text="").action = 'UP'
+            col.operator("war_3.list_action", icon='TRIA_DOWN', text="").action = 'DOWN'
+
+        if hd and len(layers) < len(HD_SLOT_NAMES):
+            box = layout.box()
+            box.label(text="%d of the %d texture slots are set" % (len(layers), len(HD_SLOT_NAMES)), icon='ERROR')
+            if not len(layers):
+                box.label(text="Until then the textures are read from the node tree")
+            box.operator("war_3.hd_slots", text="Fill Texture Slots", icon='TEXTURE').action = 'FILL'
+            box.operator("war_3.setup_hd_nodes", icon='NODETREE')
+            if not len(layers):
+                return
 
         if not len(layers):
             box = layout.box()
             col = box.column(align=True)
             col.label(text="No layers: the textures are read from the node tree", icon='NODETREE')
-            if hd:
-                col.label(text="Principled BSDF inputs used for each slot:")
-                col.label(text="    Diffuse: Base Color    Normal: Normal")
-                col.label(text="    ORM: Roughness/Metallic    Emissive: Emission")
-                box.operator("war_3.setup_hd_nodes", icon='NODETREE')
-            else:
-                col.label(text="Base Color gives the texture. Add layers to set it here instead")
+            col.label(text="Base Color gives the texture. Add layers to set it here instead")
             return
         if not 0 <= index < len(layers):
             return
@@ -90,6 +101,20 @@ class WAR3_PT_material_panel(bpy.types.Panel):
             row.operator("object.search_texture", text="", icon='VIEWZOOM').target = 'Material'
         elif active_layer.texture_type == '36':
             col.prop(active_layer, "replaceable_id")
+        if hd and index < len(HD_SLOT_NAMES):
+            row = col.row(align=True)
+            if is_default(active_layer, index):
+                row.label(text="The game's default texture for this slot")
+            else:
+                row.operator("war_3.hd_slots", text="Use Default", icon='LOOP_BACK').action = 'DEFAULT'
+            if index != 4:  # (Team color is always replaceable id 1)
+                row.operator("war_3.hd_slots", text="From Node Tree", icon='NODETREE').action = 'NODES'
+
+        if (not hd or index == 0) and mat.node_tree is not None:
+            row = col.row(align=True)
+            row.prop_search(active_layer, "uv_node", mat.node_tree, "nodes", text="Texture Animation")
+            if not active_layer.uv_node:
+                row.operator("war_3.add_uv_animation", text="", icon='ADD')
 
         # HD materials take their filter mode, flags and animated values from the first slot
         if hd and index != 0:

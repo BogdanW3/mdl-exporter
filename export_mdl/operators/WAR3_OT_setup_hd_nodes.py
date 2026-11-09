@@ -2,6 +2,8 @@ from typing import Dict, Optional
 
 import bpy
 
+from ..hd_slots import fill_hd_slots
+
 # Principled BSDF inputs the exporter reads each HD texture slot from (see create_material_stuff.py)
 SLOT_INPUTS = {
     'diffuse': ("Base Color",),
@@ -108,6 +110,8 @@ class WAR3_OT_setup_hd_nodes(bpy.types.Operator):
         material = context.active_object.active_material
         build_hd_nodes(material)
         if getattr(material, "mdl_shader", 'AUTO') not in ('HD', 'CRYSTAL'):
-            material.mdl_shader = 'HD'
+            material.mdl_shader = 'HD'  # (Which fills the texture slots from the new tree)
+        else:
+            fill_hd_slots(material)
         self.report({'INFO'}, "Rebuilt %s as an HD material" % material.name)
         return {'FINISHED'}

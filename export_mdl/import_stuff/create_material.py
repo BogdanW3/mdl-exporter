@@ -33,6 +33,7 @@ def create_material(model: War3Model, team_color: str) -> Dict[str, War3BpyMater
         bpy_material = create_bpy_material(images, layer.hd, team_color)
         first = material.layers[0]
         bpy_material.bpy_material.priority_plane = material.priority_plane
+        bpy_material.bpy_material.mdl_constant_color = bool(getattr(material, "use_const_color", False))
         if first.hd:
             # So exporting it again keeps it HD, whatever the skinning option says
             bpy_material.bpy_material.mdl_shader = 'CRYSTAL' if first.shader == 24 else 'HD'
@@ -94,7 +95,43 @@ def fill_material_layers(model: War3Model, bpy_materials: Dict[str, War3BpyMater
                 static = tuple(static) if prop == 'fresnel_color' else static
                 key_track(bpy_material, 'mdl_layers[%d].%s' % (index, prop), curve, frame_time, model.sequences,
                           durations, static, lambda v, it=item, p=prop: setattr(it, p, v), convert, "Layers")
+        add_texture_animations(model, material, bpy_material, frame_time, durations)
         bpy_material.mdl_layer_index = 0
+
+
+def add_texture_animations(model: War3Model, material, bpy_material: bpy.types.Material, frame_time: float,
+                           durations):
+    """A Mapping node per animated layer (an HD material's one animation moves all its slots), keyed with the
+    file's translation, rotation and scaling."""
+    from .key_tracks import key_track
+    from ..uv_animation import add_uv_animation, socket_path, compatible_eulers, LOCATION, ROTATION, SCALE
+    anims = getattr(model, "tvertex_anims", [])
+    hd = bool(material.layers) and material.layers[0].hd
+    for index, layer in enumerate(material.layers[:1] if hd else material.layers):
+        anim_id = getattr(layer, "textureAnimationId", None)
+        if not isinstance(anim_id, int) or not 0 <= anim_id < len(anims):
+            continue
+        anim = anims[anim_id]
+        image_nodes = [n for n in bpy_material.node_tree.nodes
+                       if n.bl_idname == 'ShaderNodeTexImage' and (hd or n.get("mdl_layer") == index)]
+        node = add_uv_animation(bpy_material, image_nodes, "UV Animation %d" % index)
+        bpy_material.mdl_layers[index].uv_node = node.name
+        tree = bpy_material.node_tree
+        for curve, socket, static in ((anim.translation, LOCATION, (0.0, 0.0, 0.0)),
+                                      (anim.scale, SCALE, (1.0, 1.0, 1.0))):
+            key_track(tree, socket_path(node, socket), curve, frame_time, model.sequences, durations, static,
+                      lambda v, n=node, i=socket: setattr(n.inputs[i], 'default_value', v),
+                      lambda v: tuple(v[:3]), "Texture Animation")
+        rotation = anim.rotation
+        if rotation is not None and rotation.keyframes:
+            times = sorted(rotation.keyframes)
+            # Quaternions to Euler angles, each close to the one before so the curves don't jump
+            eulers = {id(rotation.keyframes[t]): tuple(e) for t, e in
+                      zip(times, compatible_eulers([rotation.keyframes[t] for t in times]))}
+            curved = rotation.interpolation in ('Hermite', 'Bezier')
+            key_track(tree, socket_path(node, ROTATION), rotation, frame_time, model.sequences, durations,
+                      (0.0, 0.0, 0.0), lambda v, n=node: setattr(n.inputs[ROTATION], 'default_value', v),
+                      lambda v: eulers[id(v)], "Texture Animation", 'LINEAR' if curved else None)
 
 
 def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str):
@@ -113,6 +150,7 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
             if i < 4: # don't create image nodes for the textures we don't use
                 texture_mat_node = war3_bpy_material.get_new_node(3, i, 'ShaderNodeTexImage')
                 texture_mat_node.image = bpy_image
+                texture_mat_node["mdl_layer"] = i  # (HD: a texture animation moves every slot)
             if i == 0:
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Color"), mix_socket(tc_mix.inputs, "A"))
                 war3_bpy_material.connect(texture_mat_node.outputs.get("Alpha"), war3_bpy_material.get_input("Alpha"))
@@ -155,6 +193,7 @@ def create_bpy_material(images: List[bpy.types.Image], hd: bool, team_color: str
         for i, bpy_image in enumerate(images):
             texture_mat_node = war3_bpy_material.get_new_node(i*2+3, i, 'ShaderNodeTexImage')
             texture_mat_node.image = bpy_image
+            texture_mat_node["mdl_layer"] = i
             mix_node = war3_bpy_material.get_new_node(i*2+1.5, i, "ShaderNodeMix")
             mix_node.blend_type = 'MULTIPLY' # shouldn't always be multiply...
             mix_node.data_type = 'RGBA'

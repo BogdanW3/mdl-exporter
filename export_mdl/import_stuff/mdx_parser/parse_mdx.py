@@ -21,6 +21,7 @@ from .parse_sequences import parse_sequences
 from .parse_textures import parse_textures
 from .parse_version import parse_version
 from .parse_lights import parse_lights
+from .parse_texture_animations import parse_texture_animations
 
 
 def parse_mdx(data: bytes, import_properties: MDXImportProperties):
@@ -72,6 +73,8 @@ def parse_mdx(data: bytes, import_properties: MDXImportProperties):
             model.event_objects.extend(parse_events(chunk_data))
         elif chunk_id == constants.CHUNK_COLLISION_SHAPE:
             model.collision_shapes.extend(parse_collision_shapes(chunk_data))
+        elif chunk_id == constants.CHUNK_TEXTURE_ANIMATIONS:
+            model.tvertex_anims.extend(parse_texture_animations(chunk_data))
         elif chunk_id == constants.CHUNK_PIVOT_POINT:
             pivot_points.extend(parse_pivot_points(chunk_data))
             model.pivot_points.extend(pivot_points)

@@ -30,13 +30,16 @@ The export dialog defaults to MDX version 1800 and remembers your choices per .b
 default) makes materials HD when their node tree has normal, ORM or emissive textures, and gives the geosets using
 an HD material skin weights and tangents. SD materials export as before, and version 800 has no HD at all. A
 material's shader can also be set by hand in the Warcraft 3 Material panel (Automatic, SD, HD Default Unit, HD
-Crystal), where "Set Up HD Nodes" builds the node layout the exporter reads.
+Crystal). Picking an HD shader fills the material's six texture slots (diffuse, normal, ORM, emissive, team color,
+environment) from the node tree's images, and with the game's default textures where it has none (textures/normal,
+orm and black32, replaceable id 1, the environment map). Each slot can be changed, put back to its default or taken
+from the node tree. "Set Up HD Nodes" builds a node layout with one image per slot for the viewport.
 
 ## Instructions
 This plugin tries to approximate the functionality of the Wc3 Art Tools exporter for 3ds Max. The ambition has been to support multiple ways of achieving the same result, so that users can set up their scene in whatever way feels most intuitive. There are, however, some implementation details you might need to know before using this plugin.
 
 ### Materials
-This exporter comes with a custom material editor which will attach extra MDL properties to the materials in your file. A material consists of multiple material layers, which will be rendered from top to bottom, and blended together using the specified filter mode. Some filter modes support an additional alpha multiplier, which can be animated. To add a texture animation, create a mapping node in the node graph with the same name as your layer, and animate its properties.
+This exporter comes with a custom material editor which will attach extra MDL properties to the materials in your file. A material consists of multiple material layers, which will be rendered from top to bottom, and blended together using the specified filter mode. Some filter modes support an additional alpha multiplier, which can be animated. A layer's texture animation (UVs moving, rotating or scaling over time, like flowing water or lava) is a Mapping node in the material's node tree: press + next to "Texture Animation" in the layer's settings to add one, then key its Location, Rotation and Scale on the scene timeline. Its values are in Warcraft 3's UV space (V runs top to bottom); two fixed flip nodes around it make the viewport show it the same way. Imported models get these nodes with the file's keys.
 
 ![Material Editor](https://github.com/khalv/mdl-exporter/blob/2.8/images/Material%20Editor.jpg)
 
@@ -47,7 +50,7 @@ A "geoset" in an MDL file refers to a patch of geometry sharing the same materia
 
 Each geoset must be associated with at least one bone - if the mesh is not parented to a bone, one will be created for it. It is possible to skin an armature to a mesh - but make sure that each vertex is weighted to at least one bone, otherwise they will default to the armature root. The MDL format supports up to 3 bones influencing a single vertex - but these bones can't have individual weights, and will influence it equally. The exporter will discard extra bone weights with less than 25% influence, unless they are the only bone influencing a vertex. 
 
-An empty object whose name starts with "Bone_" can also be treated as a bone - this is sometimes useful for mechanical models. Bones with no geosets attached to them will be automatically converted into helpers.
+An empty object whose name starts with "Bone_" can also be treated as a bone - this is sometimes useful for mechanical models. Bones with no geosets attached to them will be automatically converted into helpers. A bone's "Export As" setting (in its Warcraft 3 Bone panel, next to the billboard and "don't inherit" options) can make it always a bone or always a helper instead; imported bones keep what they were in the file.
 
 A current issue is that auto-created root bones will not be combined even if they share the same geosets/geoset anims, to solve this it's good practice to always parent all your geosets to a manually created root bone. This will help reduce the amount of geosets and hence improve render performance (in GPU terms, each geoset generates a draw call). 
 

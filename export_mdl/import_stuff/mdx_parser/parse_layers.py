@@ -49,13 +49,13 @@ def parse_layers(r: Reader, version: int) -> War3Layer:
             layer.multi_texture_ids.append(texture_id)
             if r.peek_id() == constants.CHUNK_MATERIAL_TEXTURE_ID:
                 r.skip(4)
-                layer.texture_anim = parse_timeline(r, '<I')
+                layer.texture_id_anim = parse_timeline(r, '<I')  # (Flipbook: which texture, over time)
 
     while r.offset < data_size:
         chunk_id = r.getid(constants.SUB_CHUNKS_LAYER)
         # print("layer chunk: " + chunk_id)
         if chunk_id == constants.CHUNK_MATERIAL_TEXTURE_ID:
-            layer.texture_anim = parse_timeline(r, '<I')
+            layer.texture_id_anim = parse_timeline(r, '<I')  # (Flipbook: which texture, over time)
         elif chunk_id == constants.CHUNK_MATERIAL_ALPHA:
             layer.alpha_anim = parse_timeline(r, '<f')
         elif chunk_id == constants.CHUNK_MATERIAL_FRESNEL_COLOR:

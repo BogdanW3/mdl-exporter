@@ -41,6 +41,7 @@ def get_object_node(sequences: List[War3AnimationAction],
 
     node.billboarded = bpy_empty_node.billboarded
     node.billboard_lock = bpy_empty_node.billboard_lock
+    node.node_flags = getattr(bpy_empty_node, "node_flags", 0)
     return node
 
 
@@ -67,6 +68,7 @@ def get_object_nod1(sequences: List[War3AnimationAction],
 
     node.billboarded = bpy_empty_node.billboarded
     node.billboard_lock = bpy_empty_node.billboard_lock
+    node.node_flags = getattr(bpy_empty_node, "node_flags", 0)
     return node
 
 
@@ -111,6 +113,7 @@ def get_attachment(sequences: List[War3AnimationAction],
     att.path = str(bpy_obj.get("mdl_attachment_path", ""))
     att.billboarded = bpy_empty_node.billboarded
     att.billboard_lock = bpy_empty_node.billboard_lock
+    att.node_flags = getattr(bpy_empty_node, "node_flags", 0)
     return att
 
 
@@ -158,6 +161,7 @@ def get_helper1(sequences: List[War3AnimationAction],
 
     helper.billboarded = bpy_empty_node.billboarded
     helper.billboard_lock = bpy_empty_node.billboard_lock
+    helper.node_flags = getattr(bpy_empty_node, "node_flags", 0)
     return helper
 
 

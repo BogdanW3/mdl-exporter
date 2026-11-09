@@ -37,6 +37,10 @@ def create_armature_object(model: War3Model, bone_size: float) -> bpy.types.Obje
         bone = bpy_armature.bones.get(node.name)
         if bone is not None and hasattr(bone, "mdl_billboard"):
             apply_billboard(bone.mdl_billboard, node)
+        if bone is not None and hasattr(bone, "mdl_node_kind"):
+            # So it exports as what it was, whatever the mesh uses
+            kind = type(node).__name__
+            bone.mdl_node_kind = 'HELPER' if kind == 'War3Helper' else 'BONE' if kind == 'War3Bone' else 'AUTO'
 
     return bpy_armature_object
 
@@ -45,6 +49,8 @@ def apply_billboard(settings, node: War3Node):
     settings.billboarded = getattr(node, "billboarded", False)
     lock_z, lock_y, lock_x = getattr(node, "billboard_lock", (False, False, False))
     settings.billboard_lock_x, settings.billboard_lock_y, settings.billboard_lock_z = lock_x, lock_y, lock_z
+    if hasattr(settings, "set_node_flags"):
+        settings.set_node_flags(getattr(node, "node_flags", 0))
 
 
 def get_bpy_armature_object(name: str) -> bpy.types.Object:

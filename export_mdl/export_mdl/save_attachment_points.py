@@ -16,7 +16,7 @@ def save_attachment_points(fw: TextIO.write, attachments: List[War3Attachment], 
             if attachment.parent_id is not None:
                 fw("\tParent %d,\n" % attachment.parent_id)
 
-            write_billboard(fw, attachment.billboarded, attachment.billboard_lock)
+            write_billboard(fw, attachment.billboarded, attachment.billboard_lock, getattr(attachment, "node_flags", 0))
 
             fw("\tAttachmentID %d,\n" % i)
             if getattr(attachment, "path", ""):

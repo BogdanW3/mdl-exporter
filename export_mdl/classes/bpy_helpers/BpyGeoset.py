@@ -5,7 +5,8 @@ from export_mdl.classes.model_utils.get_parent_name import get_parent_name
 
 
 class BpyGeoset:
-    def __init__(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object, material_slot: int, bone_names: List[str]):
+    def __init__(self, bpy_mesh: bpy.types.Mesh, bpy_obj: bpy.types.Object, material_slot: int, bone_names: List[str],
+                 split_tangents: bool = True):
         # self.vertex_list: List[int] = []  # indices
         self.name = bpy_obj.name
         print("Processing BpyGeoset - name:", self.name)
@@ -38,6 +39,12 @@ class BpyGeoset:
         # smooth average. Blender 4.1+ has Mesh.corner_normals, older versions loop.normal after calc_normals_split.
         corner_normals = getattr(bpy_mesh, 'corner_normals', None)
         has_tangents = bool(bpy_mesh.uv_layers)
+        normal_groups: Dict[str, list] = {}
+        twin_layer = bpy_mesh.attributes.get("mdl_vertex_twin") if hasattr(bpy_mesh, "attributes") else None
+        twins = None
+        if twin_layer is not None and twin_layer.domain == 'POINT' and len(twin_layer.data) == len(bpy_mesh.vertices):
+            twins = [0] * len(bpy_mesh.vertices)
+            twin_layer.data.foreach_get("value", twins)
 
         for tri in bpy_mesh.loop_triangles:
             if tri.material_index is material_slot:
@@ -46,9 +53,10 @@ class BpyGeoset:
                     vertex = bpy_mesh.vertices[vert_index]
                     normal = tuple(corner_normals[loop].vector) if corner_normals is not None \
                         else tuple(bpy_mesh.loops[loop].normal)
-                    vert_int_s = "%s, " % vert_index
+                    # A copy the importer made (a double-sided face on the same vertices) is its original again
+                    twin_index = twins[vert_index] if twins is not None and twins[vert_index] >= 0 else vert_index
+                    vert_int_s = "%s, " % twin_index
                     pos_s = "%s, %s, %s, " % tuple(vertex.undeformed_co)
-                    norm_s = "%.5f, %.5f, %.5f, " % normal
                     mesh_uv_layers = bpy_mesh.uv_layers
                     uv: List[float] = [0.0, 0.0] \
                         if not len(mesh_uv_layers) \
@@ -64,7 +72,17 @@ class BpyGeoset:
                         tangent: List[float] = list(bpy_loop.tangent) + [bpy_loop.bitangent_sign]
                     else:
                         tangent = [0.7, 0.7, 0.0, 1.0]
-                    vertex_key = vert_int_s + pos_s + norm_s + uv_s + ", %d" % tangent[3]
+                    base_key = vert_int_s + pos_s + uv_s
+                    if split_tangents:
+                        base_key += ", %d" % tangent[3]
+                    # Corners of one vertex share an exported vertex when their normals agree. (Not by comparing
+                    # rounded text: custom normals decode a hair differently per corner, -0.000 isn't 0.000...)
+                    same_spot = normal_groups.setdefault(base_key, [])
+                    vertex_key = next((key for other, key in same_spot
+                                       if max(abs(a - b) for a, b in zip(other, normal)) < 1e-3), None)
+                    if vertex_key is None:
+                        vertex_key = base_key + " #%d" % len(same_spot)
+                        same_spot.append((normal, vertex_key))
                     if vertex_key not in self.vertex_map:
                         self.vertex_map[vertex_key] = len(self.vertex_list)
                         self.vertex_list.append(vertex)

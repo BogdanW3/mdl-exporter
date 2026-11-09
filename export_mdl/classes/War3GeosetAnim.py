@@ -43,6 +43,12 @@ class War3GeosetAnim:
         color_hash = 0 if self.color is None else hash(tuple(self.color))
         return hash((hash(self.color_anim), hash(self.alpha_anim), color_hash))
 
+    def uses_color(self) -> bool:
+        """The UseColor flag: an animated or tinted color. Blizzard's models leave it off for plain white."""
+        if self.color_anim is not None:
+            return True
+        return self.color is not None and any(abs(c - 1.0) > 1e-6 for c in self.color[:3])
+
     def write_geo_anim(self, fw: TextIO.write, geoset_id: int, global_seqs: Set[int]):
         fw("GeosetAnim {\n")
 
@@ -62,7 +68,7 @@ class War3GeosetAnim:
             #                       vertex_color_anim.handles_left, vertex_color_anim.handles_right,
             #           "Color", fw, global_seqs, "\t")
 
-        elif self.color is not None:
+        elif self.uses_color():
             fw("\tstatic Color { %s, %s, %s },\n" % tuple(map(float2str, reversed(self.color[:3]))))
 
         fw("\tGeosetId %d,\n" % geoset_id)

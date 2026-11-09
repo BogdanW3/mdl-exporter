@@ -11,6 +11,20 @@ from export_mdl.classes.War3Texture import War3Texture
 from export_mdl.classes.War3TextureAnim import War3TextureAnim
 from export_mdl.classes.animation_curve_utils.get_wc3_animation_curve import get_wc3_animation_curve, get_own_animation_curve
 from export_mdl.properties import War3MaterialLayerProperties
+from export_mdl.uv_animation import find_uv_node, read_texture_anim
+
+
+def material_is_hd(bpy_material: Optional[bpy.types.Material], use_skin_weights: bool) -> bool:
+    """Whether get_new_material2 will make this material HD (the same rules, without building it)."""
+    if bpy_material is None:
+        return False
+    shader = getattr(bpy_material, "mdl_shader", 'AUTO')
+    if shader in ('HD', 'CRYSTAL'):
+        return True
+    if shader != 'AUTO' or not use_skin_weights or len(bpy_material.mdl_layers):
+        return False
+    from_nodes = layers_from_mat_nodes(bpy_material, False)
+    return from_nodes is not None and 1 < len(from_nodes)
 
 
 def get_new_material2(bpy_material: bpy.types.Material,
@@ -53,8 +67,8 @@ def get_new_material2(bpy_material: bpy.types.Material,
 
 
 # Textures an HD material falls back on for slots it doesn't fill
-HD_DEFAULT_TEXTURES = ("Textures\\white.blp", "Textures\\normal.dds", "Textures\\orm.dds",
-                       "Textures\\Black32.dds", "ReplaceableId 1", "ReplaceableTextures\\EnvironmentMap.dds")
+from export_mdl.hd_slots import HD_SLOT_DEFAULTS
+HD_DEFAULT_TEXTURES = tuple("ReplaceableId 1" if texture_type == '1' else path for texture_type, path in HD_SLOT_DEFAULTS)
 
 
 def pad_hd_slots(layers: List[War3Layer]):
@@ -115,11 +129,11 @@ def layers_from_mat_nodes(bpy_material: bpy.types.Material, hd: bool = False):
         # Blender 4.0 renamed the Principled BSDF "Emission" input to "Emission Color"
         emis_path = get_path("Emission Color", socket_to_filePath) or get_path("Emission", socket_to_filePath)
         if hd or norm_path or orm_path or emis_path:
-            layers.append(get_layer(norm_path, 0, "Textures\\normal.dds"))
-            layers.append(get_layer(orm_path, 0, "Textures\\orm.dds"))
-            layers.append(get_layer(emis_path, 0, "Textures\\Black32.dds"))
+            layers.append(get_layer(norm_path, 0, "Textures\\normal.blp"))
+            layers.append(get_layer(orm_path, 0, "Textures\\orm.blp"))
+            layers.append(get_layer(emis_path, 0, "Textures\\black32.blp"))
             layers.append(get_layer("ReplaceableId %s" % 1, 1))
-            layers.append(get_layer(get_path("Specular Tint", socket_to_filePath), 0, "ReplaceableTextures\\EnvironmentMap.dds"))
+            layers.append(get_layer(get_path("Specular Tint", socket_to_filePath), 0, "ReplaceableTextures\\EnvironmentMap.blp"))
         return layers
     return None
 
@@ -219,49 +233,10 @@ def parse_layer(i: int,
     if layer.alpha_anim is not None:
         layer.alpha_value = 1.0
 
-    # get_curve(mat, {'mdl_layers[%d].alpha' % i})
-    if mat.use_nodes:
-        uv_node: Optional[bpy.types.Node] = mat.node_tree.nodes.get(layer_settings.name)
-        animation_data = mat.node_tree.animation_data
-        texture_anim = get_texture_anim(animation_data, sequences, actions, global_seqs, uv_node)
-        if texture_anim is not None:
-            layer.texture_anim = texture_anim
-        # uv_node = mat.node_tree.nodes.get(layer_settings.name)
-        # if uv_node is not None and mat.node_tree.animation_data is not None:
-        #     layer.texture_anim = War3TextureAnim.get(mat.node_tree.animation_data, uv_node, sequences)
+    uv_node = find_uv_node(mat, layer_settings)
+    if uv_node is not None:
+        layer.texture_anim = read_texture_anim(mat, uv_node, sequences, global_seqs)
     return layer
-
-
-def get_texture_anim(animation_data: Optional[bpy.types.AnimData],
-                     sequences: List[War3AnimationAction],
-                     actions: List[bpy.types.Action],
-                     global_seqs: Set[int],
-                     uv_node: Optional[bpy.types.Node]) -> Optional[War3TextureAnim]:
-    if uv_node is not None and animation_data is not None:
-        if animation_data.action:
-            loc_value: str
-            rot_value: str
-            scl_value: str
-            if len(uv_node.inputs) > 1:  # 2.81 Mapping Node
-                loc_value = 'nodes["%s"].inputs["Location"].default_value'
-                rot_value = 'nodes["%s"].inputs["Rotation"].default_value'
-                scl_value = 'nodes["%s"].inputs["Scale"].default_value'
-            else:
-                loc_value = 'nodes["%s"].translation'
-                rot_value = 'nodes["%s"].rotation'
-                scl_value = 'nodes["%s"].scale'
-            translation = get_wc3_animation_curve(loc_value % uv_node.name, actions, 3, sequences, global_seqs)
-
-            rotation = get_wc3_animation_curve(rot_value % uv_node.name, actions, 3, sequences, global_seqs)
-
-            scale = get_wc3_animation_curve(scl_value % uv_node.name, actions, 3, sequences, global_seqs)
-
-            if any((translation, rotation, scale)):
-                texture_anim = War3TextureAnim()
-                texture_anim.set_from(translation, rotation, scale)
-
-                return texture_anim
-    return None
 
 
 def register_global_sequence(global_seqs: Set[int], curve: Optional[War3AnimationCurve]):

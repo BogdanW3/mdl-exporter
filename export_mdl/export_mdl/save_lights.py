@@ -16,7 +16,7 @@ def save_lights(fw: TextIO.write, model: War3Model, version: int = 800):
         if light.parent_id is not None:
             fw("\tParent %d,\n" % light.parent_id)
 
-        write_billboard(fw, light.billboarded, light.billboard_lock)
+        write_billboard(fw, light.billboarded, light.billboard_lock, getattr(light, "node_flags", 0))
 
         fw("\t%s,\n" % light.light_type)
 

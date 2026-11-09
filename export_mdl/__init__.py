@@ -96,6 +96,8 @@ from .operators.WAR3_OT_sequence_tools import WAR3_OT_sort_sequences, WAR3_OT_du
 from .operators.WAR3_OT_setup_hd_nodes import WAR3_OT_setup_hd_nodes
 from .operators.WAR3_OT_geoset_preview import WAR3_OT_geoset_preview
 from .operators.WAR3_OT_frame_rate import WAR3_OT_set_frame_rate
+from .operators.WAR3_OT_hd_slots import WAR3_OT_hd_slots
+from .operators.WAR3_OT_add_uv_animation import WAR3_OT_add_uv_animation
 
 bl_info = {
     "name": "Warcraft MDL Exporter",
@@ -142,7 +144,9 @@ op_classes = (
     WAR3_OT_duplicate_sequence,
     WAR3_OT_setup_hd_nodes,
     WAR3_OT_geoset_preview,
-    WAR3_OT_set_frame_rate
+    WAR3_OT_set_frame_rate,
+    WAR3_OT_hd_slots,
+    WAR3_OT_add_uv_animation
 )
 
 ui_classes = (

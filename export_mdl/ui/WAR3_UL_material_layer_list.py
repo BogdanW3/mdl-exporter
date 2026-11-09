@@ -1,6 +1,6 @@
 from bpy.types import UIList
 
-from ..properties.War3MaterialLayerProperties import HD_SLOT_NAMES
+from ..hd_slots import HD_SLOT_NAMES
 
 
 class WAR3_UL_material_layer_list(UIList):

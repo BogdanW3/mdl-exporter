@@ -29,6 +29,7 @@ def get_lights(sequences: List[War3AnimationAction],
 
     light.billboarded = bpy_light.billboarded
     light.billboard_lock = bpy_light.billboard_lock
+    light.node_flags = getattr(bpy_light, "node_flags", 0)
 
     # obj: bpy.types.Light = bpy_obj
     # bpy_light: bpy.types.Light = bpy_obj.data

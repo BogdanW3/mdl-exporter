@@ -28,7 +28,9 @@ class BpyLight:
                 bb.billboard_lock_z,
                 bb.billboard_lock_y,
                 bb.billboard_lock_x)
+            self.node_flags: int = bb.node_flags() if hasattr(bb, "node_flags") else 0
         else:
+            self.node_flags: int = 0
             self.billboarded: bool = False
             self.billboard_lock: Tuple[bool, bool, bool] = (False, False, False)
         self.parent_name: Optional[str] = get_parent_name(bpy_obj)

@@ -9,7 +9,7 @@ from export_mdl.classes.War3AnimationCurve import War3AnimationCurve
 from export_mdl.classes.War3Model import War3Model
 from export_mdl.classes.War3Node import War3Node
 from ..action_compat import find_fcurve, new_fcurve
-from .key_tracks import apply_tangents
+from .key_tracks import apply_tangents, game_value, shape_sequence_bounds, bake_curved_rotation
 
 
 def create_armature_actions(armature_object: bpy.types.Object, model: War3Model, fps_ratio: float):
@@ -23,6 +23,12 @@ def create_armature_actions(armature_object: bpy.types.Object, model: War3Model,
 
     action_all = bpy.data.actions.new(name='all sequences')
     war3_armature_properties.sequencesList.add().name = 'all sequences'
+
+    # Curved rotations become linear keys that follow the game's curve (see bake_curved_rotation)
+    spans = [(sequence.start, sequence.end) for sequence in sequences]
+    for node in nodes:
+        node.anim_rot = bake_curved_rotation(node.anim_rot, spans, fps_ratio,
+                                             getattr(model, "global_sequence_durations", []))
 
     for node in nodes:
         # print("adding unanimated to: ", node.name)
@@ -109,6 +115,7 @@ def create_armature_actions(armature_object: bpy.types.Object, model: War3Model,
             data_path = 'pose.bones["' + node.name + '"].' + path
             fcurves = [find_fcurve(action_all, data_path, index) for index in range(3)]
             apply_tangents(fcurves, curve, fps_ratio, convert)
+            shape_sequence_bounds(fcurves, curve, fps_ratio, sequences, convert)
 
 
 def add_unanimated_to_bones(action: bpy.types.Action, node: War3Node, bone_name: str):
@@ -260,15 +267,22 @@ def create_transformation_curves(action: bpy.types.Action,
             if not any(start <= frame <= end for start, end in occupied):
                 set_new_curves(action, bone_name, data_path, fcurves, frame, value, None, None, interpolation_type)
 
-        value: List[float] = list(transformations.keyframes.get(interval_start, trans_zero_values))
-        if data_path_addition == 'rotation_quaternion':
-            # if value[0] < 0:
-            #     for i in range(len(value)):
-            #         value[i] = value[i] * -1.0
-            value = rotate_quat(matrix, value)
-        if data_path_addition == 'location':
-            value = rotate_vec3(matrix, value)
-        set_new_curves(action, bone_name, data_path, fcurves, end_keyframe, value, None, None, interpolation_type)
+        # Keys at the start and end with what the game shows there: past the last key it blends back toward the
+        # first, before the first one it extrapolates. Blender then plays the same, and the end of one sequence
+        # doesn't run into the next. (Real keys at those frames replace them below.)
+        quaternion = data_path_addition == 'rotation_quaternion'
+        in_sequence = [t for t in transformations.keyframes if interval_start <= t <= interval_end]
+        bounds = [(end_keyframe, interval_end)]
+        if in_sequence and min(in_sequence) > interval_start:
+            bounds.append((starting_keyframe, interval_start))
+        for frame, time in bounds:
+            value = game_value(transformations, time, interval_start, interval_end, quaternion)
+            value = list(trans_zero_values) if value is None else value
+            if quaternion:
+                value = rotate_quat(matrix, value)
+            if data_path_addition == 'location':
+                value = rotate_vec3(matrix, value)
+            set_new_curves(action, bone_name, data_path, fcurves, frame, value, None, None, interpolation_type)
 
 
 

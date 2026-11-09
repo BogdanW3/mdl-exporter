@@ -28,24 +28,41 @@ def create_mesh_objects(model: War3Model,
         # print("adding ", mesh_name, "to scene")
         bpy.context.scene.collection.objects.link(bpy_object)
         # print("collecting positions for %s verts" % len(war3_geoset.vertices))
-        locations = [v.pos for v in war3_geoset.vertices]
+        # Blender keeps one face per set of vertices, so a second triangle on the same three (double-sided
+        # geometry) gets copies of them; the exporter merges identical vertices again
+        vertices = list(war3_geoset.vertices)
         # for l in locations:
         #     print(l)
 
         # print("creating mesh with %s verts" % len(locations))
         # Some Reforged models have zero-area triangles that repeat a vertex. Blender doesn't allow those,
         # and 5.3 hangs in bmesh operations on meshes that have them.
-        triangles = [t for t in war3_geoset.triangles if len(set(t)) == 3]
-        bpy_mesh.from_pydata(locations, (), triangles)
+        triangles = []
+        seen = set()
+        for t in war3_geoset.triangles:
+            if len(set(t)) != 3:
+                continue
+            if frozenset(t) in seen:
+                original = t
+                t = tuple(range(len(vertices), len(vertices) + 3))
+                vertices.extend(war3_geoset.vertices[i] for i in original)
+            seen.add(frozenset(t))
+            triangles.append(t)
+        bpy_mesh.from_pydata([v.pos for v in vertices], (), triangles)
+        if len(vertices) > len(war3_geoset.vertices):
+            # Which vertex each copy stands for, so the exporter writes it as that one again
+            index_of = {id(v): i for i, v in enumerate(war3_geoset.vertices)}
+            twins = [-1] * len(war3_geoset.vertices) + [index_of[id(v)] for v in vertices[len(war3_geoset.vertices):]]
+            bpy_mesh.attributes.new("mdl_vertex_twin", 'INT', 'POINT').data.foreach_set("value", twins)
 
         # print("applying uvs")
-        apply_uvs(bpy_mesh, war3_geoset)
+        apply_uvs(bpy_mesh, vertices)
 
         # Keep the model's own normals as custom normals, so they survive a round trip
         bpy_mesh.polygons.foreach_set("use_smooth", [True] * len(bpy_mesh.polygons))
         if hasattr(bpy_mesh, 'use_auto_smooth'):
             bpy_mesh.use_auto_smooth = True  # Custom normals need this before Blender 4.1
-        bpy_mesh.normals_split_custom_set_from_vertices([tuple(v.normal) for v in war3_geoset.vertices])
+        bpy_mesh.normals_split_custom_set_from_vertices([tuple(v.normal) for v in vertices])
 
         bpy_material = bpy_materials[war3_geoset.mat_name]
         bpy_mesh.materials.append(bpy_material.bpy_material)
@@ -57,7 +74,7 @@ def create_mesh_objects(model: War3Model,
         # print("applying bones")
         print("   skinning")
         groups: bpy.types.VertexGroups = bpy_object.vertex_groups
-        for vertex_index, vertex in enumerate(war3_geoset.vertices):
+        for vertex_index, vertex in enumerate(vertices):
             for i in range(0, len(vertex.bone_list)):
                 if vertex.weight_list[i] != 0:
                     v_bone = vertex.bone_list[i]
@@ -76,11 +93,11 @@ def create_mesh_objects(model: War3Model,
     return bpy_mesh_objects
 
 
-def apply_uvs(bpy_mesh: bpy.types.Mesh, war3_geoset: War3Geoset):
+def apply_uvs(bpy_mesh: bpy.types.Mesh, vertices):
     # print("applying uvs")
     bpy_mesh.uv_layers.new()
     uv_layer = bpy_mesh.uv_layers.active.data
     for tris in bpy_mesh.polygons:
         for loopIndex in range(tris.loop_start, tris.loop_start + tris.loop_total):
             vertex_index = bpy_mesh.loops[loopIndex].vertex_index
-            uv_layer[loopIndex].uv = war3_geoset.vertices[vertex_index].uv
+            uv_layer[loopIndex].uv = vertices[vertex_index].uv

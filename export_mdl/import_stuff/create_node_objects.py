@@ -14,7 +14,7 @@ from mathutils import Matrix, Vector
 from .create_collision_empties import set_collision_display
 from .create_light_objects import create_bpy_light
 from .create_armature_object import apply_billboard
-from .key_tracks import key_track, compatible_quaternions
+from .key_tracks import key_track, compatible_quaternions, bake_curved_rotation
 
 NODE_TYPE_KEY = "mdl_node_type"
 
@@ -108,6 +108,7 @@ def animate(obj: bpy.types.Object, node, frame_time: float, sequences, durations
         return lambda value: setattr(obj, path, value)
     key_track(obj, 'location', node.anim_loc, frame_time, sequences, durations, (0.0, 0.0, 0.0),
               setter('location'), lambda v: tuple(v[:3]), "Transform")
+    node.anim_rot = bake_curved_rotation(node.anim_rot, [(s.start, s.end) for s in sequences], frame_time, durations)
     compatible_quaternions(node.anim_rot)
     key_track(obj, 'rotation_quaternion', node.anim_rot, frame_time, sequences, durations, (1.0, 0.0, 0.0, 0.0),
               setter('rotation_quaternion'), lambda v: tuple(v[:4]), "Transform")

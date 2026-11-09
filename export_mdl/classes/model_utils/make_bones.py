@@ -58,10 +58,12 @@ def get_wc3_bone(armature: bpy.types.Object, animation_data: bpy.types.AnimData,
     pivot_ = matrix_world @ Vector(pose_bone.bone.head_local)  # Armature space to world space
     pivot = global_matrix @ Vector(pivot_)  # Axis conversion
     bone = War3Bone(pose_bone.name, -1, pivot, None, bone_p_name, anim_loc, anim_rot, anim_scale, pose_bone.matrix_basis)
+    bone.node_kind = getattr(pose_bone.bone, "mdl_node_kind", 'AUTO')
     bb = getattr(pose_bone.bone, "mdl_billboard", None)
     if bb is not None:
         bone.billboarded = bb.billboarded
         bone.billboard_lock = (bb.billboard_lock_z, bb.billboard_lock_y, bb.billboard_lock_x)
+        bone.node_flags = bb.node_flags() if hasattr(bb, "node_flags") else 0
     return bone
 
 
