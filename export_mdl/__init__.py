@@ -102,8 +102,8 @@ from .operators.WAR3_OT_add_uv_animation import WAR3_OT_add_uv_animation
 bl_info = {
     "name": "Warcraft MDL Exporter",
     "author": "Kalle Halvarsson (& twilac)",
-    'version': (0, 0, 1),
-    "blender": (3, 4, 0),
+    'version': (1, 0, 0),
+    "blender": (3, 6, 0),
     'category': 'Import-Export',
     "location": "File > Import-Export > Warcraft 3 (.mdx/.mdl)",
     "description": "Import and export Warcraft 3 .mdx and .mdl models",
