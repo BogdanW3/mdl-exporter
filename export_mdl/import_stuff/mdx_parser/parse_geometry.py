@@ -121,7 +121,8 @@ def parse_geometry(data: bytes, version: int) -> War3Geoset:
             skin_format, element_size = ('<8H', 2) if 1400 <= version else ('<8B', 1)
             for _ in range(skin_size // 8):
                 sw_weight = r.getf(skin_format)
-                sw_bones.append([str(sw_weight[0]), str(sw_weight[1]), str(sw_weight[2]), str(sw_weight[3])])
+                # Bone indices are positions in the matrix list, which holds the node ids
+                sw_bones.append([str(matrix_node_ids[b] if b < len(matrix_node_ids) else b) for b in sw_weight[:4]])
                 sw_weights.append([sw_weight[4], sw_weight[5], sw_weight[6], sw_weight[7]])
             r.skip((skin_size % 8) * element_size)
             chunk_id = r.getid(constants.CHUNK_TEXTURE_VERTEX_GROUP)

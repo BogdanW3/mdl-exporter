@@ -87,10 +87,14 @@ class MdxWriter:
             hd = geoset.mat_name in hd_materials
             if 900 <= version and (too_many_groups or hd):
                 self.skinned.add(id(geoset))
-        # Before v1400 a skin weight names its bone in one byte
-        if self.skinned and version < 1400 and self.bone_ids and 255 < max(self.bone_ids.values()):
-            raise ValueError("Skin weights in version %d can only reach the first 256 nodes, this model has bones "
-                             "up to %d. Export as 1400 or newer" % (version, max(self.bone_ids.values())))
+        # Before v1400 a skin weight's bone index (a position in its geoset's bone list) is one byte
+        if version < 1400:
+            for geoset in model.geosets:
+                if id(geoset) in self.skinned:
+                    count = len(geoset.skin_matrices(self.bone_ids)[0])
+                    if 256 < count:
+                        raise ValueError("Geoset %s uses %d bones; version %d skin weights reach 256. Export as "
+                                         "1400 or newer" % (geoset.name, count, version))
 
     def write(self) -> bytes:
         self.w.tag('MDLX')
@@ -283,8 +287,10 @@ class MdxWriter:
         self.w.pack('I%dH' % len(indices), len(indices), *indices)
 
         if skin:
-            # Skinned geosets leave the vertex groups empty and use one group with the first bone, like Blizzard's
-            groups, matrices = [], [[0]]
+            # Skinned geosets leave the vertex groups empty; the matrix list holds one group per bone they use, and
+            # the skin's bone indices are positions in it
+            skin_ids, skins = geoset.skin_matrices(self.bone_ids)
+            groups, matrices = [], [[node_id] for node_id in skin_ids]
         else:
             groups = [geoset.matrices.index(vertex.bone_list) if vertex.bone_list in geoset.matrices else 0
                       for vertex in vertices]
@@ -315,11 +321,11 @@ class MdxWriter:
             self.w.tag('SKIN')
             self.w.pack('I', len(vertices) * 8)
             skin_format = '8H' if 1400 <= self.version else '8B'
-            for vertex in vertices:
-                bones = ([self.bone_ids.get(name, 0) for name in vertex.bone_list] + [0, 0, 0, 0])[:4]
+            for vertex, bones in zip(vertices, skins):
                 weights = (list(vertex.weight_list) + [0, 0, 0, 0])[:4]
                 if skin_format == '8B' and 255 < max(bones):
-                    raise ValueError("Bone index %d needs format version 1400 or newer" % max(bones))
+                    raise ValueError("A geoset uses %d bones; more than 256 need format version 1400 or newer"
+                                     % len(skin_ids))
                 self.w.pack(skin_format, *bones, *(int(weight) for weight in weights))
 
         self.w.tag('UVAS')

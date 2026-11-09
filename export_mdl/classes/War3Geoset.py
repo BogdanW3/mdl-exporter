@@ -29,6 +29,20 @@ class War3Geoset:
         # return hash(tuple(sorted(self.__dict__.items())))
         return hash((self.mat_name, hash(self.geoset_anim)))  # Different geoset anims should split geosets
 
+    def skin_matrices(self, bone_ids: Dict[str, int]):
+        """For skinned geosets: the node ids the geoset's matrix list holds (one single-bone group each, like
+        Blizzard's), and per vertex the four skin bone indices. Skin bone indices are positions in that list, not
+        node ids (HiveWE mdx.ixx); Blizzard's lists are mostly 0, 1, 2..., which hides the difference."""
+        ids = sorted({bone_ids.get(name, 0) for vertex in self.vertices
+                      for name, weight in zip(vertex.bone_list, vertex.weight_list) if weight}) or [0]
+        position = {node_id: i for i, node_id in enumerate(ids)}
+        skins = []
+        for vertex in self.vertices:
+            bones = [position.get(bone_ids.get(name, 0), 0) if weight else 0
+                     for name, weight in zip(vertex.bone_list, vertex.weight_list)]
+            skins.append((bones + [0, 0, 0, 0])[:4])
+        return ids, skins
+
     def write_geoset(self, fw: TextIO.write, material_names,
                      sequences,
                      bones: List[War3Bone],
@@ -72,10 +86,10 @@ class War3Geoset:
                 fw("\t\t{ %s, %s, %s, %s },\n" % tuple(tangents))
             fw("\t}\n")
             # SkinWeights
+            skin_ids, skins = self.skin_matrices(object_indices)
             fw("\tSkinWeights %d {\n" % len(self.vertices))
-            for vertex in self.vertices:
-                bones = tuple((object_indices.get(name, 0) for name in vertex.bone_list)) + tuple([0, 0, 0, 0])
-                fw("\t\t%s, %s, %s, %s, " % bones[0:4])
+            for vertex, bones in zip(self.vertices, skins):
+                fw("\t\t%s, %s, %s, %s, " % tuple(bones))
                 weights = list(vertex.weight_list)
                 weights.extend([0, 0, 0, 0])
                 fw("%s, %s, %s, %s,\n" % tuple(weights[0:4]))
@@ -97,9 +111,9 @@ class War3Geoset:
         fw("\t}\n")
 
         if use_skinweights:
-            # SkinWeights reference bones directly, so every bone just gets a group of its own
-            fw("\tGroups %d %d {\n" % (len(object_indices), len(object_indices)))
-            for obj_id in object_indices.values():
+            # The skin weights' bone indices are positions in this list
+            fw("\tGroups %d %d {\n" % (len(skin_ids), len(skin_ids)))
+            for obj_id in skin_ids:
                 fw("\t\tMatrices { %d },\n" % obj_id)
             fw("\t}\n")
         else:
